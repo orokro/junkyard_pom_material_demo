@@ -147,12 +147,19 @@ export function createPomMaterial(tile, runtime) {
 			#endif`
 		);
 
-		// 3) Feed the offset UV to each map sampler (all share uv channel 0).
+		// 3) Feed the offset UV to each map sampler. IMPORTANT: inside
+		//    onBeforeCompile the fragment shader still holds raw `#include <...>`
+		//    directives (three expands them AFTER this hook). So we replace the
+		//    include with the chunk's own source, its UV varying offset by
+		//    jyPomOffset. All our maps share uv channel 0, so the same offset
+		//    applies to every sampler.
+		const offsetChunk = (chunk, uvName) =>
+			THREE.ShaderChunk[chunk].split(uvName).join(`( ${uvName} + jyPomOffset )`);
 		shader.fragmentShader = shader.fragmentShader
-			.replace("texture2D( map, vMapUv )", "texture2D( map, vMapUv + jyPomOffset )")
-			.replace("texture2D( normalMap, vNormalMapUv )", "texture2D( normalMap, vNormalMapUv + jyPomOffset )")
-			.replace("texture2D( roughnessMap, vRoughnessMapUv )", "texture2D( roughnessMap, vRoughnessMapUv + jyPomOffset )")
-			.replace("texture2D( metalnessMap, vMetalnessMapUv )", "texture2D( metalnessMap, vMetalnessMapUv + jyPomOffset )");
+			.replace("#include <map_fragment>", offsetChunk("map_fragment", "vMapUv"))
+			.replace("#include <normal_fragment_maps>", offsetChunk("normal_fragment_maps", "vNormalMapUv"))
+			.replace("#include <roughnessmap_fragment>", offsetChunk("roughnessmap_fragment", "vRoughnessMapUv"))
+			.replace("#include <metalnessmap_fragment>", offsetChunk("metalnessmap_fragment", "vMetalnessMapUv"));
 	};
 
 	return {
