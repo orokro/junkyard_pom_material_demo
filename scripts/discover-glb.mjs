@@ -193,7 +193,6 @@ function main() {
 	const materials = gltf.materials || [];
 
 	const rows = [];
-	const upAxisCounts = { x: 0, y: 0, z: 0 }; // which axis holds the tile height
 	const baseAtZero = { x: 0, y: 0, z: 0 }; // how many tiles have local-min ~0 on each axis
 	const nameIssues = [];
 	const footprintIssues = [];
@@ -255,8 +254,6 @@ function main() {
 		const translation = node.translation || [0, 0, 0];
 
 		// Aggregates (use world size: post-import orientation).
-		const upAxis = wsize.indexOf(Math.max(...wsize));
-		upAxisCounts[["x", "y", "z"][upAxis]]++;
 		["x", "y", "z"].forEach((ax, i) => {
 			if (Math.abs(wmin[i]) < EPS) {
 				baseAtZero[ax]++;
@@ -332,11 +329,6 @@ function main() {
 	console.log("\n" + "-".repeat(78));
 	console.log("AGGREGATE FINDINGS");
 	console.log("-".repeat(78));
-	console.log(`Height (largest-dim) axis distribution: ${JSON.stringify(upAxisCounts)}`);
-	console.log(
-		`  -> Expect ThreeJS 'y' dominant for tall tiles; 'z' dominant would mean the ` +
-			`Blender Z-up conversion did NOT happen and tiles need an X -90deg rotation.`
-	);
 	console.log(`Local-min ~0 per axis (re-zero anchor candidates): ${JSON.stringify(baseAtZero)}`);
 	console.log(
 		`  -> The axis where (almost) every tile sits at 0 is the shared base plane; ` +

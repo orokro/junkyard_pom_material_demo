@@ -1,13 +1,24 @@
 {
   "name": "jy_pom_demo",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "discover": "node scripts/discover-glb.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "WebGL POC for Dumper Cars junkyard procedural generation + POM textures.",
+  "dependencies": {
+    "three": "^0.185.0",
+    "tweakpane": "^4.0.5"
+  },
+  "devDependencies": {
+    "vite": "^8.0.0"
+  }
 }
