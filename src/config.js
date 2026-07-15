@@ -109,6 +109,7 @@ export const RUNTIME_GROUPS = [
 	{
 		title: "View",
 		fields: [
+			{ key: "previewTile", type: "number", label: "Preview tile (1-4)", value: 1, min: 1, max: 4, step: 1, hint: "Phase 2: swap which POM tile set the cube shows." },
 			{ key: "cullInteriorFaces", type: "bool", label: "Cull interior faces", value: false, hint: "Stretch-goal optimization; off for now." },
 		],
 	},
