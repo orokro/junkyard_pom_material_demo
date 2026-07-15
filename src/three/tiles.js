@@ -23,8 +23,12 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 const GLB_URL = new URL("../../assets/models/jy_parts_v001.glb", import.meta.url).href;
 const loader = new GLTFLoader();
 
-/** Level token → integer meters. */
-const LEVELS = { "0": 0, "1.3": 1, "2.3": 2, "3.3": 3 };
+/**
+ * Level token → integer meters. NOTE: GLTFLoader strips '.' from node names on
+ * import (it sanitizes reserved characters), so the authored `1.3`/`2.3`/`3.3`
+ * arrive as `13`/`23`/`33`. We match the runtime (dot-less) form here.
+ */
+const LEVELS = { "0": 0, "13": 1, "23": 2, "33": 3 };
 
 /**
  * @typedef {object} TileEntry
@@ -43,9 +47,9 @@ const LEVELS = { "0": 0, "1.3": 1, "2.3": 2, "3.3": 3 };
  * @returns {{kind: string, dir: string|null, from: number|null, to: number|null}|null}
  */
 export function parseTileName(name) {
-	const flat = name.match(/^jyt_flat_(0|1\.3|2\.3|3\.3)$/);
+	const flat = name.match(/^jyt_flat_(0|13|23|33)$/);
 	if (flat) return { kind: "flat", dir: null, from: null, to: LEVELS[flat[1]] };
-	const ramp = name.match(/^jyt_ramp_(n|ne|e|se|s|sw|w|nw)_(0|1\.3|2\.3|3\.3)_to_(0|1\.3|2\.3|3\.3)$/);
+	const ramp = name.match(/^jyt_ramp_(n|ne|e|se|s|sw|w|nw)_(0|13|23|33)_to_(0|13|23|33)$/);
 	if (ramp) return { kind: "ramp", dir: ramp[1], from: LEVELS[ramp[2]], to: LEVELS[ramp[3]] };
 	return null;
 }

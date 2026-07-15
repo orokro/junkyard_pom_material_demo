@@ -79,7 +79,7 @@ async function startRun(worldConfig) {
 	setLoading(true);
 
 	try {
-		demo = await startDemo(canvasEl, runtimeConfig, (loaded, total) => {
+		demo = await startDemo(canvasEl, runtimeConfig, worldConfig, (loaded, total) => {
 			setLoading(true, `Loading textures… ${loaded}/${total}`);
 		});
 	} catch (err) {

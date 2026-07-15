@@ -62,7 +62,7 @@ export function createScene(canvas, fov = 70) {
 
 	/** @type {(dt: number, elapsed: number) => void} */
 	let update = () => {};
-	const clock = new THREE.Clock();
+	const timer = new THREE.Timer();
 	let running = false;
 	let raf = 0;
 
@@ -79,8 +79,9 @@ export function createScene(canvas, fov = 70) {
 	/** @returns {void} Frame loop. */
 	function tick() {
 		raf = requestAnimationFrame(tick);
-		const dt = Math.min(clock.getDelta(), 0.1);
-		update(dt, clock.elapsedTime);
+		timer.update();
+		const dt = Math.min(timer.getDelta(), 0.1);
+		update(dt, timer.getElapsed());
 		renderer.render(scene, camera);
 	}
 
@@ -98,7 +99,6 @@ export function createScene(canvas, fov = 70) {
 		start() {
 			if (running) return;
 			running = true;
-			clock.start();
 			tick();
 		},
 		dispose() {
