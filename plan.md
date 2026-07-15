@@ -151,7 +151,23 @@ Bottoms and interiors are never visible (no tunneling), so never generate them.
 
 ## Phases
 
-**Phase 0 — Discovery (CLI node script, run first)**
+**Phase 0 — Discovery — ✅ DONE** (`scripts/discover-glb.mjs`, `npm run discover`)
+Results — the GLB is clean, no corrective work needed:
+- **75 mesh nodes, all names valid**, zero typos/dupes. The `.` in names survived the Blender
+  export (generator: Khronos glTF Blender I/O v5.0.21). Full flat + ramp matrix present.
+- **Orientation correct — no rotation fix needed.** Every tile imports as `[3, h, 3]` (X/Z
+  footprint = 3 m, height in **Y**, h ∈ {1,2,3}). Blender Z-up→glTF Y-up conversion happened
+  properly. (The script's "largest-dim axis" aggregate is a red herring here — X and Z tie at
+  3 m, so it reports X; the per-tile footprint check is the authoritative confirmation.)
+- **All tiles have UVs (TEXCOORD_0)** and reference a single shared material (his tiling
+  preview mat — we ignore it and swap in the POM texture-array material at load).
+- **Uniform re-zero anchor** (locks placement math): every tile's base sits at **Y=0**, and
+  local geometry min corner is a constant **localMin = [0, 0, −3]** across all 75 tiles. So the
+  local origin is the **(minX, bottom, maxZ) corner** — matches the "top-left/bottom corner"
+  note. Placement rule: **strip the node's grid translation** (re-zero), then position a tile so
+  its footprint fills a cell by adding `cellMinCorner − localMin`. Tiles are never rotated.
+
+**Phase 0 (original spec) — Discovery (CLI node script, run first)**
 Load `assets/models/jy_parts_v001.glb` and report, per mesh:
 - name (validate against `` jyt_{flat|ramp}_{dir}_{lvl}_to_{lvl} `` convention; flag typos/dupes;
   note that Blender may have sanitized `.` or appended `.001` on export)
