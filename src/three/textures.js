@@ -92,3 +92,26 @@ export async function loadAllTiles(maxAniso, onProgress) {
 	}
 	return tiles;
 }
+
+/**
+ * @typedef {object} DirtTextures
+ * @property {THREE.Texture} albedo
+ * @property {THREE.Texture} normal
+ * @property {THREE.Texture} metal
+ * @property {THREE.Texture} rough
+ */
+
+/**
+ * Load the dirt floor texture set.
+ * @param {number} maxAniso Max anisotropy.
+ * @returns {Promise<DirtTextures>} Loaded dirt textures.
+ */
+export async function loadDirtTextures(maxAniso) {
+	const [albedo, normal, metal, rough] = await Promise.all([
+		loadTex("dry-dirt1-albedo.png", true, maxAniso),
+		loadTex("dry-dirt1-normal2.png", false, maxAniso),
+		loadTex("dry-dirt1-metalness.png", false, maxAniso),
+		loadTex("dry-dirt1-roughness.png", false, maxAniso),
+	]);
+	return { albedo, normal, metal, rough };
+}

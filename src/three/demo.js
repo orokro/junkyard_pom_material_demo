@@ -16,6 +16,7 @@ import { createScene } from "./scene.js";
 import { createFlyControls } from "./flyCamera.js";
 import { loadAllTiles } from "./textures.js";
 import { createPomMaterial } from "./pomMaterial.js";
+import { createFloor } from "./floor.js";
 
 const HOME_POS = new THREE.Vector3(5, 3.4, 7);
 const HOME_TARGET = new THREE.Vector3(0, 1.5, 0);
@@ -38,14 +39,20 @@ export async function startDemo(canvas, runtime, onProgress) {
 	const bundle = createScene(canvas, runtime.cameraFov ?? 70);
 	const { renderer, scene, camera } = bundle;
 
-	// Reference grid at Y=0 so motion + scale read clearly.
+	// Reference grid at Y=0 so motion + scale read clearly (sits just above the
+	// dirt floor to avoid z-fighting).
 	const grid = new THREE.GridHelper(120, 40, 0x2b3441, 0x1c232d);
-	grid.position.y = 0;
+	grid.position.y = 0.02;
 	scene.add(grid);
 
 	// Load tiles and build the POM cube.
 	const maxAniso = renderer.capabilities.getMaxAnisotropy();
 	const tiles = await loadAllTiles(maxAniso, onProgress);
+
+	// Scrolling dirt floor.
+	const floor = await createFloor(maxAniso, runtime.floorTileMeters ?? 8);
+	floor.setVisible(runtime.floorVisible ?? true);
+	scene.add(floor.mesh);
 	const startIndex = THREE.MathUtils.clamp(Math.round(runtime.previewTile ?? 1), 1, 4);
 	const pom = createPomMaterial(tiles[startIndex - 1], runtime);
 
@@ -59,6 +66,7 @@ export async function startDemo(canvas, runtime, onProgress) {
 
 	bundle.setUpdate((dt) => {
 		controls.update(dt);
+		floor.update(camera);
 	});
 	bundle.start();
 
@@ -81,6 +89,12 @@ export async function startDemo(canvas, runtime, onProgress) {
 					pom.setTile(tiles[idx - 1]);
 					break;
 				}
+				case "floorTileMeters":
+					floor.setTile(value);
+					break;
+				case "floorVisible":
+					floor.setVisible(value);
+					break;
 				default:
 					break;
 			}
@@ -100,6 +114,7 @@ export async function startDemo(canvas, runtime, onProgress) {
 				t.depth.dispose();
 			}
 			grid.geometry.dispose();
+			floor.dispose();
 			bundle.dispose();
 		},
 	};

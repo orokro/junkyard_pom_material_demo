@@ -81,12 +81,6 @@ export const WORLD_GROUPS = [
 			{ key: "pathBlur", type: "number", label: "Edge blur (m)", value: 6, min: 0, max: 40, step: 1, hint: "0 = sheer cliffs; higher = ramped shoulders." },
 		],
 	},
-	{
-		title: "Floor",
-		fields: [
-			{ key: "floorTileMeters", type: "number", label: "Dirt tile (m)", value: 8, min: 1, max: 64, step: 1 },
-		],
-	},
 ];
 
 /** @type {GroupDef[]} Runtime parameters (live in the sidebar). */
@@ -94,8 +88,8 @@ export const RUNTIME_GROUPS = [
 	{
 		title: "POM shader",
 		fields: [
-			{ key: "pomStrength", type: "number", label: "Parallax strength", value: 0.06, min: 0, max: 0.3, step: 0.005 },
-			{ key: "pomSteps", type: "number", label: "Ray steps", value: 24, min: 4, max: 64, step: 1 },
+			{ key: "pomStrength", type: "number", label: "Parallax strength", value: 0.115, min: 0, max: 0.3, step: 0.005 },
+			{ key: "pomSteps", type: "number", label: "Ray steps", value: 30, min: 4, max: 64, step: 1 },
 			{ key: "pomInvertDepth", type: "bool", label: "Invert depth", value: false, hint: "Toggle if the surface pushes the wrong way." },
 		],
 	},
@@ -104,6 +98,13 @@ export const RUNTIME_GROUPS = [
 		fields: [
 			{ key: "cameraSpeed", type: "number", label: "Fly speed (m/s)", value: 18, min: 2, max: 120, step: 1 },
 			{ key: "cameraFov", type: "number", label: "FOV", value: 70, min: 40, max: 100, step: 1 },
+		],
+	},
+	{
+		title: "Floor",
+		fields: [
+			{ key: "floorVisible", type: "bool", label: "Show floor", value: true },
+			{ key: "floorTileMeters", type: "number", label: "Dirt tile (m)", value: 8, min: 1, max: 64, step: 1, hint: "World size of one dirt repeat; scrolls to stay world-locked." },
 		],
 	},
 	{

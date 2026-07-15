@@ -178,18 +178,31 @@ Load `assets/models/jy_parts_v001.glb` and report, per mesh:
 - UV + material presence
 Output a tile registry the generator consumes. Decide any corrective transforms from results.
 
-**Phase 1 — UI skeleton** (likely one-shot)
-Start screen + form + seed gen/persistence + prefilled defaults + Tweakpane sidebar shell.
-No ThreeJS yet.
+**Phase 1 — UI skeleton — ✅ DONE**
+Vite + vanilla + Tweakpane scaffold. Single-source config schema drives both the start-screen
+form and the runtime sidebar. Seed roll + localStorage persistence. `npm run dev` / `build`
+emit a runtime-free static `dist/` (base `./` for GitHub Pages).
 
-**Phase 2 — ThreeJS: POM cube + fly cam**
-Single cube with the POM material (texture-array, onBeforeCompile parallax), free-fly camera,
-sky-blue clear. Validate the POM look — the riskiest piece — in isolation.
+**Phase 2 — ThreeJS: POM cube + fly cam — ✅ DONE**
+POM works. `MeshStandardMaterial` patched via `onBeforeCompile` with a tangent-space
+parallax-occlusion raymarch (cotangent-frame TBN, no vertex tangents needed), live
+strength/steps/invert uniforms, graceful degrade to plain PBR at strength 0. Pointer-lock fly
+cam (WASD + Shift + Space/C). Tile 1-4 preview switcher. Dialed-in defaults: **strength 0.115,
+steps 30**.
+- Key gotcha recorded: inside `onBeforeCompile` the fragment shader still holds raw
+  `#include <...>` directives (expanded *after* the hook), so the offset must be injected by
+  replacing the `#include <map_fragment>` etc. with the chunk body + offset UV — not by patching
+  the expanded `texture2D(...)` calls (which aren't there yet).
 
-**Phase 3 — ThreeJS: noise map generation**
-Global height field with **noise only** (gradient/path = identity). Chunked, visible-shell
-generation, whole-tile instancing, buried-column skip. Chunk streaming/unloading. Full noise +
-chunk-size + max-height params wired. Dirt floor.
+**Floor — ✅ DONE** (pulled ahead of Phase 3)
+Pseudo-infinite dirt floor at Y=0: a large plane recentered under the camera each frame with
+world-locked scrolling UVs (`three/floor.js`). Tile size + visibility moved out of the world-gen
+form into **live runtime controls** (sidebar "Floor" group) since it's dynamic, not chunk-based.
+
+**Phase 3 — ThreeJS: noise map generation** (next)
+Staged: (3.1) load GLB + build re-zeroed tile registry + render one of each; (3.2) single chunk
+from the global height field (noise only), visible-shell columns, buried-column skip; (3.3) chunk
+streaming/unloading by render distance, seeded per `${seed}_${cx}_${cz}`. Floor already done.
 
 **Phase 4 — Gradient**
 Enable `gradientEast` term + tuning UI.
