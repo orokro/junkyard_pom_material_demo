@@ -54,7 +54,19 @@ export async function startDemo(canvas, runtime, worldConfig, onProgress) {
 	const heightField = createHeightField(worldConfig);
 	const chunk = generateChunk(0, 0, { worldConfig, heightField, registry, materials });
 	scene.add(chunk.group);
-	console.info(`[jy] chunk(0,0): ${chunk.instanceCount} blocks, max height ${chunk.maxHeight} m`);
+	console.info(`[jy] chunk(0,0): ${chunk.instanceCount} blocks, ${chunk.rampCount} ramps, max height ${chunk.maxHeight} m`);
+
+	// Debug materials: neutral flat-shaded (reveals geometry + lighting) and wireframe.
+	const flatMat = new THREE.MeshStandardMaterial({ color: 0x9aa4b2, metalness: 0.1, roughness: 0.85, flatShading: true });
+	const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true });
+	for (const m of chunk.group.children) m.userData.pomMat = m.material;
+	const setMaterialMode = () => {
+		const mode = runtime.debugWireframe ? "wire" : runtime.debugFlat ? "flat" : "pom";
+		for (const m of chunk.group.children) {
+			m.material = mode === "wire" ? wireMat : mode === "flat" ? flatMat : m.userData.pomMat;
+		}
+	};
+	setMaterialMode();
 
 	const cs = Math.round(worldConfig.chunkSize);
 	const spanM = cs * 3;
@@ -104,6 +116,10 @@ export async function startDemo(canvas, runtime, worldConfig, onProgress) {
 				case "floorVisible":
 					floor.setVisible(value);
 					break;
+				case "debugFlat":
+				case "debugWireframe":
+					setMaterialMode();
+					break;
 				default:
 					break;
 			}
@@ -123,6 +139,8 @@ export async function startDemo(canvas, runtime, worldConfig, onProgress) {
 				t.rough.dispose();
 				t.depth.dispose();
 			}
+			flatMat.dispose();
+			wireMat.dispose();
 			grid.geometry.dispose();
 			floor.dispose();
 			bundle.dispose();

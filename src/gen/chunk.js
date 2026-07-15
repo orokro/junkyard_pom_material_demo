@@ -66,35 +66,39 @@ export function chooseCap(H, nb) {
 	const maxDelta = Math.min(3, H);
 	if (maxDelta < 1) return { kind: "flat", delta: 0 };
 
-	/** @type {Record<string, number>} downhill amount per direction (>0 = neighbour lower). */
-	const d = {
-		e: H - nb.e, w: H - nb.w, n: H - nb.n, s: H - nb.s,
-		ne: H - nb.ne, nw: H - nb.nw, se: H - nb.se, sw: H - nb.sw,
-	};
+	const drop = (dir) => H - nb[dir]; //  > 0 → that neighbour is lower (downhill)
+	const lower = (dir) => nb[dir] < H;
+	// The ramp's high edge leans on this side, so it must be at least as high.
+	const supported = (dir) => nb[dir] >= H;
 
-	// Corner ramps: both adjacent orthogonals and the diagonal must be lower.
+	// A ramp only makes sense on a slope "shelf": a side drops AND the OPPOSITE
+	// side is at least as high, so the ramp descends from higher ground. Peaks
+	// and ridges (lower on both opposite sides) get no ramp and stay flat — this
+	// is what prevents the top being pulled into a pyramid spike.
+
+	// Corner ramps: two adjacent orthogonals + the diagonal drop, opposite corner supported.
 	const corners = [
 		["n", "e", "ne"], ["n", "w", "nw"], ["s", "e", "se"], ["s", "w", "sw"],
 	];
 	/** @type {(CapChoice & {score: number})|null} */
 	let bestCorner = null;
 	for (const [a, b, diag] of corners) {
-		if (d[a] >= 1 && d[b] >= 1 && d[diag] >= 1) {
-			const delta = Math.min(maxDelta, d[diag]);
-			if (!bestCorner || d[diag] > bestCorner.score) {
-				bestCorner = { kind: "ramp", tile: `jyt_ramp_${OPP[diag]}_0_to_${LVL[delta]}`, delta, score: d[diag] };
+		if (lower(a) && lower(b) && lower(diag) && supported(OPP[diag])) {
+			const delta = Math.min(maxDelta, drop(diag));
+			if (!bestCorner || drop(diag) > bestCorner.score) {
+				bestCorner = { kind: "ramp", tile: `jyt_ramp_${OPP[diag]}_0_to_${LVL[delta]}`, delta, score: drop(diag) };
 			}
 		}
 	}
 	if (bestCorner) return bestCorner;
 
-	// Edge ramp toward the steepest single downhill side.
-	const edges = [["e", d.e], ["w", d.w], ["n", d.n], ["s", d.s]];
+	// Edge ramp toward the steepest downhill side whose opposite side is supported.
 	/** @type {{dir: string, drop: number}|null} */
 	let bestEdge = null;
-	for (const [dir, drop] of edges) {
-		if (drop >= 1 && (!bestEdge || drop > bestEdge.drop)) {
-			bestEdge = { dir: /** @type {string} */ (dir), drop: /** @type {number} */ (drop) };
+	for (const dir of ["e", "w", "n", "s"]) {
+		if (lower(dir) && supported(OPP[dir])) {
+			const dd = drop(dir);
+			if (!bestEdge || dd > bestEdge.drop) bestEdge = { dir, drop: dd };
 		}
 	}
 	if (bestEdge) {
