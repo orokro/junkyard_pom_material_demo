@@ -2,12 +2,13 @@
  * ============================================================================
  * three/demo.js
  * ----------------------------------------------------------------------------
- * Phase 2 demo orchestration: a single 3 m POM cube on a reference grid, lit
- * and explorable with the fly camera. Loads all four tile sets so the sidebar
- * "Preview tile" control can swap between them live.
+ * Phase 3.1 demo orchestration: loads the tile registry from the GLB and lays
+ * every tile out in a labeled catalog (shared POM material) so orientation,
+ * the re-zero anchor, and UVs can be verified before map generation. Includes
+ * the scrolling dirt floor and fly camera.
  *
  * Returns an API the app uses to push runtime-config changes (POM, camera,
- * FOV, preview tile), reset the view, and tear everything down.
+ * FOV, floor, preview tile), reset the view, and tear everything down.
  * ============================================================================
  */
 
@@ -17,52 +18,48 @@ import { createFlyControls } from "./flyCamera.js";
 import { loadAllTiles } from "./textures.js";
 import { createPomMaterial } from "./pomMaterial.js";
 import { createFloor } from "./floor.js";
-
-const HOME_POS = new THREE.Vector3(5, 3.4, 7);
-const HOME_TARGET = new THREE.Vector3(0, 1.5, 0);
-
-/**
- * @typedef {object} DemoApi
- * @property {(key: string, value: *) => void} applyRuntime
- * @property {() => void} resetView
- * @property {() => void} dispose
- */
+import { loadTileRegistry } from "./tiles.js";
+import { buildCatalog } from "./catalog.js";
 
 /**
- * Boot the Phase 2 cube demo.
+ * Boot the Phase 3.1 catalog demo.
  * @param {HTMLCanvasElement} canvas Target canvas.
  * @param {Record<string, *>} runtime Runtime config (mutated live by the sidebar).
  * @param {(loaded: number, total: number) => void} [onProgress] Texture progress.
- * @returns {Promise<DemoApi>} Demo control API.
+ * @returns {Promise<import("./demo.js").DemoApi>} Demo control API.
  */
 export async function startDemo(canvas, runtime, onProgress) {
 	const bundle = createScene(canvas, runtime.cameraFov ?? 70);
 	const { renderer, scene, camera } = bundle;
 
-	// Reference grid at Y=0 so motion + scale read clearly (sits just above the
-	// dirt floor to avoid z-fighting).
-	const grid = new THREE.GridHelper(120, 40, 0x2b3441, 0x1c232d);
-	grid.position.y = 0.02;
-	scene.add(grid);
-
-	// Load tiles and build the POM cube.
 	const maxAniso = renderer.capabilities.getMaxAnisotropy();
+
+	// Textures + shared POM material.
 	const tiles = await loadAllTiles(maxAniso, onProgress);
+	const startIndex = THREE.MathUtils.clamp(Math.round(runtime.previewTile ?? 1), 1, 4);
+	const pom = createPomMaterial(tiles[startIndex - 1], runtime);
+
+	// Tile geometry registry + catalog view.
+	const { list } = await loadTileRegistry();
+	const catalog = buildCatalog(list, pom.material);
+	scene.add(catalog.group);
+
+	// Reference grid centered on the catalog.
+	const grid = new THREE.GridHelper(160, 32, 0x2b3441, 0x1c232d);
+	grid.position.set(catalog.center.x, 0.02, catalog.center.z);
+	scene.add(grid);
 
 	// Scrolling dirt floor.
 	const floor = await createFloor(maxAniso, runtime.floorTileMeters ?? 8);
 	floor.setVisible(runtime.floorVisible ?? true);
 	scene.add(floor.mesh);
-	const startIndex = THREE.MathUtils.clamp(Math.round(runtime.previewTile ?? 1), 1, 4);
-	const pom = createPomMaterial(tiles[startIndex - 1], runtime);
 
-	const cube = new THREE.Mesh(new THREE.BoxGeometry(3, 3, 3), pom.material);
-	cube.position.set(0, 1.5, 0);
-	scene.add(cube);
+	// Camera framed to overlook the whole catalog.
+	const homePos = new THREE.Vector3(catalog.center.x, catalog.center.y + 26, catalog.center.z + 44);
+	const homeTarget = catalog.center.clone();
 
-	// Fly controls.
 	const controls = createFlyControls(camera, canvas, runtime.cameraSpeed ?? 18);
-	controls.placeLookingAt(HOME_POS, HOME_TARGET);
+	controls.placeLookingAt(homePos, homeTarget);
 
 	bundle.setUpdate((dt) => {
 		controls.update(dt);
@@ -100,12 +97,13 @@ export async function startDemo(canvas, runtime, onProgress) {
 			}
 		},
 		resetView() {
-			controls.placeLookingAt(HOME_POS, HOME_TARGET);
+			controls.placeLookingAt(homePos, homeTarget);
 		},
 		dispose() {
 			controls.dispose();
-			cube.geometry.dispose();
-			pom.material.dispose();
+			catalog.dispose();
+			grid.geometry.dispose();
+			floor.dispose();
 			for (const t of tiles) {
 				t.albedo.dispose();
 				t.normal.dispose();
@@ -113,8 +111,6 @@ export async function startDemo(canvas, runtime, onProgress) {
 				t.rough.dispose();
 				t.depth.dispose();
 			}
-			grid.geometry.dispose();
-			floor.dispose();
 			bundle.dispose();
 		},
 	};
