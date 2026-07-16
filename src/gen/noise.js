@@ -11,7 +11,7 @@
  * ============================================================================
  */
 
-import { makeRng } from "../seed.js";
+import { makeRng, cyrb128 } from "../seed.js";
 
 const F2 = 0.5 * (Math.sqrt(3) - 1);
 const G2 = (3 - Math.sqrt(3)) / 6;
@@ -117,5 +117,44 @@ export function createFbm(seed, opts, salt = "fbm") {
 			freq *= lacunarity;
 		}
 		return sum / norm;
+	};
+}
+
+/**
+ * Seeded Worley / cellular noise. Returns the two nearest feature-point
+ * distances (F1, F2) for a point. `F2 - F1` is small along cell boundaries —
+ * handy for Voronoi-edge "lane" masks.
+ * @param {string} seed Seed string.
+ * @param {string} [salt] Namespacing salt.
+ * @returns {(x: number, y: number) => [number, number]} Returns [F1, F2].
+ */
+export function createWorley2D(seed, salt = "worley") {
+	/** @param {number} i @param {number} j @returns {[number, number]} feature offset in [0,1). */
+	function cell(i, j) {
+		const [a, b] = cyrb128(`${seed}:${salt}:${i}:${j}`);
+		return [(a >>> 0) / 4294967296, (b >>> 0) / 4294967296];
+	}
+	return function worley(x, y) {
+		const xi = Math.floor(x);
+		const yi = Math.floor(y);
+		let f1 = 1e9;
+		let f2 = 1e9;
+		for (let dj = -1; dj <= 1; dj++) {
+			for (let di = -1; di <= 1; di++) {
+				const cx = xi + di;
+				const cy = yi + dj;
+				const [ox, oy] = cell(cx, cy);
+				const dx = cx + ox - x;
+				const dy = cy + oy - y;
+				const d = Math.sqrt(dx * dx + dy * dy);
+				if (d < f1) {
+					f2 = f1;
+					f1 = d;
+				} else if (d < f2) {
+					f2 = d;
+				}
+			}
+		}
+		return [f1, f2];
 	};
 }

@@ -228,9 +228,44 @@ distance-to-polyline: 0 on a path (held at ground level), 1 off, smoothstep shou
 approach chosen over a rasterized image (analytic, smooth, no resolution artifacts); image mask
 remains a possible later experiment. All params wired; `pathsEnabled` toggles.
 
-**Phase 6 — Optimization (optional / as needed)**
-Web workers for generation; optional face-extraction/greedy interior-face culling toggle;
-texture handling if needed.
+**Bonus polish — ✅ DONE**
+Walk/FPS camera (Tab toggle, default; height-field-sampled surface + eye height; slower than
+fly). Full settings persistence (localStorage) + human-scale defaults (maxH 30, renderDist 12,
+noiseScale 60). Baked-mesh .glb export of the ~160 m slice around the camera (single merged mesh
+so GLTFExporter doesn't choke on thousands of InstancedMesh nodes). Live post-FX shader pad
+(persisted, off by default; posterize + depth-atmosphere default).
+
+---
+
+## Phase 7 — Biomes, structures & set pieces (in progress)
+
+"Biomes" = overlapping regional variations that stack. Assets in
+`assets/models/jy_structures_library.glb` (`group_global` / `group_tire` / `group_rust`) named
+`item_{NxN}_(odds_)(mod_)snake_name`; multi-material items import as groups of child meshes.
+New POM sets `jy_rust_*`, `jy_tires_*` (1588², uniform with the base tiles).
+
+**Global biome field** — `biomesAt(wx,wz) → {rust, tire, pits, paths}`, each 0–1: a large-scale
+seeded fBm per biome, thresholded then normalised (threshold→1). Sampled per column for blending
+and at chunk-centre to gate structure spawning. Chunks can be several biomes at once (additive).
+
+**Build order (reordered — risky shader last):**
+1. ✅/⏳ **Biome field + terrain effects** (this step): pits (holey noise punches ground even out
+   east) + paths-biome (Worley/Voronoi F1-edge lanes), multiplied into height scaled by biome-ness.
+   `height = maxH·gradient·noise·spawnPathMask·lerp(1,holey,pits)·lerp(1,voronoiEdges,paths)`.
+2. **Structure placement**: library loader + `item_` parser; per-chunk pool from active biome
+   groups + globals (odds-gated; crane also mod-gated, `odds=3 mod=4`, container `odds=15`).
+   `maxStructuresPerChunk` scaled by biome-ness, additively capped. Claimed-grid + size rules
+   (1×1 random 90° rot; NxN neighbour-fit with seed-random start direction; SW-corner pivot).
+   Instanced per item child-mesh.
+3. **Texture-array + per-instance biome attributes** (done LAST — un-headless-testable shader):
+   pack 6 POM sets (base ×4 + rust + tire) into `DataArrayTexture`s (~400 MB), one InstancedMesh
+   per geometry with `aTexLayer` (highest-biome-over-threshold, else base-by-hash) + `aBiome`
+   vec4 (continuous rust tint / tire desat). Collapses the ×4-material split → the deferred
+   draw-call win, plus biome textures. Dummy 1×1 maps keep MeshStandardMaterial's UV/tangent
+   plumbing; onBeforeCompile swaps samplers for `sampler2DArray` at the per-instance layer.
+
+**Confirmed:** biome key `tire`; un-tagged globals default to a config "global odds"; crane
+`mod=4`; texture-array refactor is on (step 3).
 
 ---
 

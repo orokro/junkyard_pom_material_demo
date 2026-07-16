@@ -81,6 +81,21 @@ export const WORLD_GROUPS = [
 			{ key: "pathBlur", type: "number", label: "Edge blur (m)", value: 6, min: 0, max: 40, step: 1, hint: "0 = sheer cliffs; higher = ramped shoulders." },
 		],
 	},
+	{
+		title: "Biomes",
+		fields: [
+			{ key: "biomesEnabled", type: "bool", label: "Enabled", value: true },
+			{ key: "biomeScale", type: "number", label: "Region size (m)", value: 350, min: 60, max: 1500, step: 10, hint: "Size of biome blobs; bigger = broader regions." },
+			{ key: "rustThreshold", type: "number", label: "Rust cutoff", value: 0.5, min: 0, max: 0.95, step: 0.01 },
+			{ key: "tireThreshold", type: "number", label: "Tire cutoff", value: 0.5, min: 0, max: 0.95, step: 0.01 },
+			{ key: "pitsThreshold", type: "number", label: "Pits cutoff", value: 0.58, min: 0, max: 0.95, step: 0.01 },
+			{ key: "pathThreshold", type: "number", label: "Path-biome cutoff", value: 0.5, min: 0, max: 0.95, step: 0.01 },
+			{ key: "pitsHoleScale", type: "number", label: "Pit hole size (m)", value: 110, min: 20, max: 400, step: 5 },
+			{ key: "pitsDepth", type: "number", label: "Pit coverage (0-1)", value: 0.5, min: 0, max: 1, step: 0.05, hint: "Higher = more of the pit region punches to ground." },
+			{ key: "pathCellScale", type: "number", label: "Path cell size (m)", value: 170, min: 30, max: 600, step: 5 },
+			{ key: "pathWidth", type: "number", label: "Path lane width", value: 0.12, min: 0.02, max: 0.4, step: 0.01 },
+		],
+	},
 ];
 
 /** @type {GroupDef[]} Runtime parameters (live in the sidebar). */
