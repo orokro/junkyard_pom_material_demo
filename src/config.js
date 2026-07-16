@@ -89,11 +89,19 @@ export const WORLD_GROUPS = [
 			{ key: "rustThreshold", type: "number", label: "Rust cutoff", value: 0.5, min: 0, max: 0.95, step: 0.01 },
 			{ key: "tireThreshold", type: "number", label: "Tire cutoff", value: 0.5, min: 0, max: 0.95, step: 0.01 },
 			{ key: "pitsThreshold", type: "number", label: "Pits cutoff", value: 0.58, min: 0, max: 0.95, step: 0.01 },
-			{ key: "pathThreshold", type: "number", label: "Path-biome cutoff", value: 0.4, min: 0, max: 0.95, step: 0.01 },
-			{ key: "pitsHoleScale", type: "number", label: "Pit hole size (m)", value: 45, min: 20, max: 400, step: 5 },
-			{ key: "pitsDepth", type: "number", label: "Pit density (0-1)", value: 0.5, min: 0, max: 1, step: 0.05, hint: "Higher = more/denser pit pockets (capped so it never flattens the whole region)." },
+			{ key: "pathThreshold", type: "number", label: "Path-biome cutoff", value: 0.3, min: 0, max: 0.95, step: 0.01 },
+			{ key: "pitsHoleScale", type: "number", label: "Pit hole size (m)", value: 20, min: 20, max: 400, step: 5 },
+			{ key: "pitsDepth", type: "number", label: "Pit density (0-1)", value: 0.9, min: 0, max: 1, step: 0.05, hint: "Higher = more/denser pit pockets (capped so it never flattens the whole region)." },
 			{ key: "pathCellScale", type: "number", label: "Path cell size (m)", value: 170, min: 30, max: 600, step: 5 },
 			{ key: "pathWidth", type: "number", label: "Path lane width", value: 0.25, min: 0.02, max: 0.6, step: 0.01 },
+		],
+	},
+	{
+		title: "Structures",
+		fields: [
+			{ key: "structuresEnabled", type: "bool", label: "Enabled", value: true },
+			{ key: "maxStructuresPerChunk", type: "number", label: "Max per chunk", value: 8, min: 0, max: 40, step: 1, hint: "Scaled down by how much biome a chunk has." },
+			{ key: "globalOdds", type: "number", label: "Global odds % (default)", value: 8, min: 0, max: 100, step: 1, hint: "Spawn chance for un-tagged global items." },
 		],
 	},
 ];

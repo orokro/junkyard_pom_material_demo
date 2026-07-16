@@ -15,6 +15,7 @@ import { loadAllTiles } from "./textures.js";
 import { createPomMaterial } from "./pomMaterial.js";
 import { createFloor } from "./floor.js";
 import { loadTileRegistry } from "./tiles.js";
+import { loadStructureLibrary } from "./structures.js";
 import { createHeightField } from "../gen/heightField.js";
 import { createChunkManager } from "../gen/chunkManager.js";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
@@ -53,6 +54,7 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	const materials = poms.map((p) => p.material);
 
 	const { registry } = await loadTileRegistry();
+	const structures = await loadStructureLibrary();
 	const heightField = createHeightField(worldConfig);
 
 	const flatMat = new THREE.MeshStandardMaterial({ color: 0x9aa4b2, metalness: 0.1, roughness: 0.85, flatShading: true });
@@ -62,12 +64,13 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	function applyModeToChunk(chunk) {
 		const mode = currentMode();
 		for (const m of chunk.group.children) {
+			if (!m.isInstancedMesh) continue; // skip structure clones — terrain only
 			if (!m.userData.pomMat) m.userData.pomMat = m.material;
 			m.material = mode === "wire" ? wireMat : mode === "flat" ? flatMat : m.userData.pomMat;
 		}
 	}
 
-	const manager = createChunkManager(scene, { worldConfig, heightField, registry, materials }, {
+	const manager = createChunkManager(scene, { worldConfig, heightField, registry, materials, structures }, {
 		renderDistance: worldConfig.renderDistance,
 		budget: 2,
 		onChunkCreated: applyModeToChunk,

@@ -28,6 +28,7 @@
 
 import * as THREE from "three";
 import { cyrb128 } from "../seed.js";
+import { placeStructures } from "./placeStructures.js";
 
 const TILE_BODY = "jyt_flat_33";
 const CAP_FLAT = { 1: "jyt_flat_13", 2: "jyt_flat_23" };
@@ -227,11 +228,24 @@ export function generateChunk(cx, cz, ctx) {
 		group.add(mesh);
 	}
 
+	// Structures placed on the surface (cloned templates from the library).
+	let structureCount = 0;
+	if (ctx.structures) {
+		for (const pl of placeStructures(cx, cz, ctx)) {
+			const obj = pl.item.template.clone(true);
+			obj.position.set(pl.x, pl.y, pl.z);
+			obj.rotation.y = pl.rotY;
+			group.add(obj);
+			structureCount++;
+		}
+	}
+
 	return {
 		group,
 		maxHeight,
 		instanceCount,
 		rampCount,
+		structureCount,
 		dispose() {
 			group.traverse((o) => {
 				if (/** @type {THREE.InstancedMesh} */ (o).isInstancedMesh) {
