@@ -111,6 +111,23 @@ export function createChunkManager(scene, ctx, opts = {}) {
 		getChunks() {
 			return [...active.values()].map((e) => e.chunk);
 		},
+		/**
+		 * Active chunks whose footprint is within `radiusM` of a world point.
+		 * @param {number} x @param {number} z @param {number} radiusM
+		 * @returns {import("./chunk.js").GeneratedChunk[]}
+		 */
+		getChunksNear(x, z, radiusM) {
+			const reach = radiusM + chunkWorld; // pad so partially-covered chunks count
+			const r2 = reach * reach;
+			/** @type {import("./chunk.js").GeneratedChunk[]} */
+			const out = [];
+			for (const { chunk, cx, cz } of active.values()) {
+				const centerX = (cx * cs + cs / 2) * 3;
+				const centerZ = (cz * cs + cs / 2) * 3;
+				if ((centerX - x) ** 2 + (centerZ - z) ** 2 <= r2) out.push(chunk);
+			}
+			return out;
+		},
 		stats() {
 			return { active: active.size, pending: pendingCount };
 		},

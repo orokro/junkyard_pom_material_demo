@@ -107,6 +107,9 @@ async function startRun(worldConfig) {
 		onBackToSetup() {
 			showSetup();
 		},
+		onExport() {
+			demo?.exportGLB();
+		},
 	});
 }
 

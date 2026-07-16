@@ -17,6 +17,7 @@ import { RUNTIME_GROUPS } from "../config.js";
  * @property {(key: string, value: *) => void} [onChange] Fired on any binding change.
  * @property {() => void} [onReturnHome] Fired by the "Return home" button.
  * @property {() => void} [onBackToSetup] Fired by the "Back to setup" button.
+ * @property {() => void} [onExport] Fired by the "Export .glb" button.
  */
 
 /**
@@ -67,6 +68,24 @@ export function mountSidebar(container, runtimeConfig, handlers = {}) {
 	actions.appendChild(homeBtn);
 	actions.appendChild(setupBtn);
 	container.appendChild(actions);
+
+	const exportBtn = document.createElement("button");
+	exportBtn.type = "button";
+	exportBtn.className = "btn";
+	exportBtn.style.cssText = "width:100%;margin-top:8px;";
+	exportBtn.textContent = "⇩ Export nearby as .glb";
+	exportBtn.addEventListener("click", () => {
+		exportBtn.textContent = "Exporting…";
+		// Defer so the label repaint lands before the (blocking) export.
+		setTimeout(() => {
+			try {
+				handlers.onExport?.();
+			} finally {
+				exportBtn.textContent = "⇩ Export nearby as .glb";
+			}
+		}, 30);
+	});
+	container.appendChild(exportBtn);
 
 	return {
 		pane,
