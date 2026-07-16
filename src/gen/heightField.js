@@ -209,9 +209,13 @@ export function createHeightField(cfg) {
 	function pitsFactor(wx, wz, pits) {
 		if (pits <= 0) return 1;
 		const h = (holeFbm(wx / pitsHoleScale, wz / pitsHoleScale) + 1) * 0.5;
-		const holeMask = smoothstep(pitsDepth, Math.min(pitsDepth + 0.15, 1), h); // 0 → hole to ground
-		const eff = smoothstep(0, 0.25, pits); // full effect across the region body, soft edges
-		return mix(1, holeMask, eff);
+		// Pockets form only at the noise *peaks* (isolated), so pit-hole-size
+		// controls pocket size. `pitsDepth` = density, mapped to a cutoff that is
+		// capped at 0.45 so a region can never fully flatten.
+		const cut = mix(0.85, 0.45, clamp(pitsDepth, 0, 1));
+		const pocket = smoothstep(cut, cut + 0.08, h); // 1 at peaks → pocket
+		const eff = smoothstep(0, 0.25, pits); // region body, soft edges
+		return mix(1, 1 - pocket, eff);
 	}
 
 	/** Paths biome: Worley F1-edge lanes drop to ground (0) in the region interior. */
