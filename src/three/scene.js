@@ -62,6 +62,10 @@ export function createScene(canvas, fov = 70) {
 
 	/** @type {(dt: number, elapsed: number) => void} */
 	let update = () => {};
+	/** @type {((dt: number) => void)|null} */
+	let renderOverride = null;
+	/** @type {((w: number, h: number) => void)|null} */
+	let resizeHook = null;
 	const timer = new THREE.Timer();
 	let running = false;
 	let raf = 0;
@@ -73,6 +77,7 @@ export function createScene(canvas, fov = 70) {
 		renderer.setSize(w, h, false);
 		camera.aspect = w / h;
 		camera.updateProjectionMatrix();
+		resizeHook?.(w, h);
 	}
 	window.addEventListener("resize", onResize);
 
@@ -82,7 +87,8 @@ export function createScene(canvas, fov = 70) {
 		timer.update();
 		const dt = Math.min(timer.getDelta(), 0.1);
 		update(dt, timer.getElapsed());
-		renderer.render(scene, camera);
+		if (renderOverride) renderOverride(dt);
+		else renderer.render(scene, camera);
 	}
 
 	return {
@@ -95,6 +101,12 @@ export function createScene(canvas, fov = 70) {
 		},
 		setUpdate(fn) {
 			update = fn;
+		},
+		setRenderOverride(fn) {
+			renderOverride = fn;
+		},
+		setResizeHook(fn) {
+			resizeHook = fn;
 		},
 		start() {
 			if (running) return;

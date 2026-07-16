@@ -110,6 +110,12 @@ async function startRun(worldConfig) {
 		onExport() {
 			demo?.exportGLB();
 		},
+		onPostToggle(enabled) {
+			demo?.setPostEnabled(enabled);
+		},
+		onApplyShader(code) {
+			demo?.setPostShader(code);
+		},
 	});
 }
 

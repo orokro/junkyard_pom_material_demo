@@ -11,6 +11,8 @@
 
 import { Pane } from "tweakpane";
 import { RUNTIME_GROUPS } from "../config.js";
+import { DEFAULT_POST_SHADER } from "../three/postfx.js";
+import { loadPostFX, savePostFX } from "../settings.js";
 
 /**
  * @typedef {object} SidebarHandlers
@@ -18,6 +20,8 @@ import { RUNTIME_GROUPS } from "../config.js";
  * @property {() => void} [onReturnHome] Fired by the "Return home" button.
  * @property {() => void} [onBackToSetup] Fired by the "Back to setup" button.
  * @property {() => void} [onExport] Fired by the "Export .glb" button.
+ * @property {(enabled: boolean) => void} [onPostToggle] Fired when post-FX is toggled.
+ * @property {(code: string) => void} [onApplyShader] Fired to apply pasted post-FX shader.
  */
 
 /**
@@ -86,6 +90,63 @@ export function mountSidebar(container, runtimeConfig, handlers = {}) {
 		}, 30);
 	});
 	container.appendChild(exportBtn);
+
+	// Post-FX section: enable toggle + live-editable fragment shader.
+	const post = loadPostFX();
+	const postWrap = document.createElement("div");
+	postWrap.style.cssText = "margin-top:12px;border-top:1px solid var(--edge);padding-top:10px;";
+
+	const postHead = document.createElement("label");
+	postHead.style.cssText = "display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);cursor:pointer;";
+	const postChk = document.createElement("input");
+	postChk.type = "checkbox";
+	postChk.checked = post.enabled;
+	postChk.style.accentColor = "var(--accent)";
+	const postHeadText = document.createElement("span");
+	postHeadText.textContent = "Post-processing";
+	postHead.appendChild(postChk);
+	postHead.appendChild(postHeadText);
+
+	const ta = document.createElement("textarea");
+	ta.value = post.code || DEFAULT_POST_SHADER;
+	ta.spellcheck = false;
+	ta.style.cssText =
+		"width:100%;height:150px;margin-top:8px;font:11px/1.4 monospace;background:#10141b;" +
+		"color:#cdd6e2;border:1px solid var(--edge);border-radius:8px;padding:8px;resize:vertical;white-space:pre;overflow:auto;";
+
+	const btnRow = document.createElement("div");
+	btnRow.style.cssText = "display:flex;gap:8px;margin-top:8px;";
+	const applyBtn = document.createElement("button");
+	applyBtn.type = "button";
+	applyBtn.className = "btn";
+	applyBtn.style.flex = "1";
+	applyBtn.textContent = "Apply shader";
+	const resetBtn = document.createElement("button");
+	resetBtn.type = "button";
+	resetBtn.className = "btn";
+	resetBtn.textContent = "Reset";
+	btnRow.appendChild(applyBtn);
+	btnRow.appendChild(resetBtn);
+
+	const persist = () => savePostFX({ enabled: postChk.checked, code: ta.value });
+	postChk.addEventListener("change", () => {
+		handlers.onPostToggle?.(postChk.checked);
+		persist();
+	});
+	applyBtn.addEventListener("click", () => {
+		handlers.onApplyShader?.(ta.value);
+		persist();
+	});
+	resetBtn.addEventListener("click", () => {
+		ta.value = DEFAULT_POST_SHADER;
+		handlers.onApplyShader?.(ta.value);
+		persist();
+	});
+
+	postWrap.appendChild(postHead);
+	postWrap.appendChild(ta);
+	postWrap.appendChild(btnRow);
+	container.appendChild(postWrap);
 
 	return {
 		pane,

@@ -18,6 +18,8 @@ import { loadTileRegistry } from "./tiles.js";
 import { createHeightField } from "../gen/heightField.js";
 import { createChunkManager } from "../gen/chunkManager.js";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
+import { createPostFX, DEFAULT_POST_SHADER } from "./postfx.js";
+import { loadPostFX } from "../settings.js";
 
 const SPAWN_X = 6;
 const SPAWN_Z = 0;
@@ -103,6 +105,15 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	controls.placeLookingAt(homePos, homeTarget);
 
 	manager.update(camera.position, PRIME_BUDGET);
+
+	// Post-processing pipeline (off by default; state persisted).
+	const post = createPostFX(renderer);
+	post.setSize(window.innerWidth, window.innerHeight);
+	const savedPost = loadPostFX();
+	post.setShader(savedPost.code || DEFAULT_POST_SHADER);
+	post.setEnabled(savedPost.enabled);
+	bundle.setRenderOverride((dt) => post.render(scene, camera, dt));
+	bundle.setResizeHook((w, h) => post.setSize(w, h));
 
 	let statsClock = 0;
 	bundle.setUpdate((dt) => {
@@ -219,6 +230,12 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 		resetView() {
 			controls.placeLookingAt(homePos, homeTarget);
 		},
+		setPostEnabled(on) {
+			post.setEnabled(on);
+		},
+		setPostShader(code) {
+			post.setShader(code);
+		},
 		exportGLB() {
 			const baked = bakeNearby();
 			if (!baked) return;
@@ -263,6 +280,7 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 			flatMat.dispose();
 			wireMat.dispose();
 			floor.dispose();
+			post.dispose();
 			bundle.dispose();
 		},
 	};
