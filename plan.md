@@ -209,14 +209,18 @@ form into **live runtime controls** (sidebar "Floor" group) since it's dynamic, 
   >3 m spread or saddle → anchor to lowest corner (cliff). Continuous by construction.
   - ⏳ **Revisit later** (Greg to marinate): occasional "pokies" / the 1 m best-fit seams on
     3-level diagonal cells. Model is good enough to build on; polish the top layer later.
-- (3.3) ⏭ **Chunk streaming/unloading** by render distance, seeded per `${seed}_${cx}_${cz}`.
-  Border corners already share world coords → seams continuous for free. Shell/buried-face
-  optimization lands here. Floor already done.
+- (3.3) ✅ **Chunk streaming/unloading** (`gen/chunkManager.js`): active-set keyed by chunk,
+  generate nearest-first within render distance (+X only, cx≥0), dispose out of range, 2/frame
+  budget after a prime, per-chunk frustum culling, live HUD stats. Border corners share world
+  coords → seams continuous. Shell/buried-face optimization still parked for the perf pass.
 
-**Phase 4 — Gradient**
-Enable `gradientEast` term + tuning UI.
+**Phase 4 — Eastward gradient — ✅ DONE**
+`gradientEast(wx)` in the height field: lerps `gradientStart`→`gradientEnd` over
+`gradientWidthMeters` then holds. West spawn starts shallow (~2% height), rises to max potential
+by the gradient width. `gradientEnabled` toggles it. Verified: mean height ~7 m at spawn → ~75 m
+out east (noise still drives peaks).
 
-**Phase 5 — Paths**
+**Phase 5 — Paths** (next)
 Enable `pathMask` term (points-array or image-map approach — TBD in build), sheer/blurred
 toggle + params.
 

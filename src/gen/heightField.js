@@ -42,17 +42,32 @@ export function createHeightField(cfg) {
 	const amplitude = cfg.noiseAmplitude ?? 1;
 	const maxHeight = cfg.maxHeightMeters;
 
+	// Eastward gradient config.
+	const gradEnabled = cfg.gradientEnabled !== false;
+	const gradStart = cfg.gradientStart ?? 0.02;
+	const gradEnd = cfg.gradientEnd ?? 1.0;
+	const gradWidth = Math.max(1, cfg.gradientWidthMeters ?? 200);
+
 	/** @param {number} wx @param {number} wz @returns {number} noise mapped to [0,1]. */
 	function noise01(wx, wz) {
 		const n = fbm(wx / scale, wz / scale) * amplitude;
 		return clamp((n + 1) * 0.5, 0, 1);
 	}
 
-	// Identity stubs — enabled in later phases.
-	/** @returns {number} */
-	function gradientEast() {
-		return 1.0;
+	/**
+	 * Eastward height multiplier: gradStart at the western edge (x=0), lerping to
+	 * gradEnd at gradWidth meters east, then held at gradEnd. Multiplies the
+	 * noise so the junkyard starts shallow at spawn and rises toward max height.
+	 * @param {number} wx World X (east+).
+	 * @returns {number} Multiplier in [gradStart, gradEnd].
+	 */
+	function gradientEast(wx) {
+		if (!gradEnabled) return 1.0;
+		const t = clamp(wx / gradWidth, 0, 1);
+		return gradStart + (gradEnd - gradStart) * t;
 	}
+
+	// Identity stub — enabled in Phase 5.
 	/** @returns {number} */
 	function pathMask() {
 		return 1.0;
