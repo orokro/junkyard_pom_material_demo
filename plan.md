@@ -220,9 +220,13 @@ form into **live runtime controls** (sidebar "Floor" group) since it's dynamic, 
 by the gradient width. `gradientEnabled` toggles it. Verified: mean height ~7 m at spawn → ~75 m
 out east (noise still drives peaks).
 
-**Phase 5 — Paths** (next)
-Enable `pathMask` term (points-array or image-map approach — TBD in build), sheer/blurred
-toggle + params.
+**Phase 5 — Paths — ✅ DONE**
+`pathMask(wx,wz)` in the height field: seeded "lightning" polylines fanning east from spawn
+(0,0), each with min–max segments stepping east and wandering ±range in Z. Mask is a
+distance-to-polyline: 0 on a path (held at ground level), 1 off, smoothstep shoulder over
+`pathBlur` (0 = sheer cliffs). Bbox early-out keeps it cheap outside the path field. Points-array
+approach chosen over a rasterized image (analytic, smooth, no resolution artifacts); image mask
+remains a possible later experiment. All params wired; `pathsEnabled` toggles.
 
 **Phase 6 — Optimization (optional / as needed)**
 Web workers for generation; optional face-extraction/greedy interior-face culling toggle;
