@@ -83,7 +83,7 @@ async function startRun(worldConfig) {
 			onProgress: (loaded, total) => setLoading(true, `Loading textures… ${loaded}/${total}`),
 			onStats: (s) =>
 				updateHudStats(
-					`chunks: ${s.active}${s.pending ? ` (+${s.pending})` : ""} · x ${s.x.toFixed(0)} z ${s.z.toFixed(0)}`
+					`${s.walking ? "walk" : "fly"} · chunks: ${s.active}${s.pending ? ` (+${s.pending})` : ""} · x ${s.x.toFixed(0)} z ${s.z.toFixed(0)}`
 				),
 		});
 	} catch (err) {
@@ -95,7 +95,7 @@ async function startRun(worldConfig) {
 	setLoading(false);
 	sidebarEl.classList.remove("hidden");
 	hudEl.classList.remove("hidden");
-	renderHud(hudEl, String(worldConfig.seed), "Click to look · WASD move · Shift boost · Space/C up-down");
+	renderHud(hudEl, String(worldConfig.seed), "Click to look · WASD move · Shift boost · Tab walk/fly · Space/C fly up-down");
 
 	sidebarHandle = mountSidebar(sidebarEl, runtimeConfig, {
 		onChange(key, value) {

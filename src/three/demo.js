@@ -77,11 +77,33 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	floor.setVisible(runtime.floorVisible ?? true);
 	scene.add(floor.mesh);
 
-	// Spawn at the western edge, facing east (+X).
-	const groundH = heightField.heightAt(SPAWN_X, SPAWN_Z);
-	const homePos = new THREE.Vector3(SPAWN_X, groundH + 22, SPAWN_Z);
-	const homeTarget = new THREE.Vector3(SPAWN_X + 80, groundH + 8, SPAWN_Z);
-	const controls = createFlyControls(camera, canvas, runtime.cameraSpeed ?? 18);
+	// Bilinear surface height from the height field — the walker sticks to this
+	// (matches the ramp/flat tile tops; no raycast needed).
+	const getSurfaceHeight = (x, z) => {
+		const cx = Math.floor(x / 3) * 3;
+		const cz = Math.floor(z / 3) * 3;
+		const u = (x - cx) / 3;
+		const v = (z - cz) / 3;
+		const h00 = heightField.heightAt(cx, cz);
+		const h10 = heightField.heightAt(cx + 3, cz);
+		const h01 = heightField.heightAt(cx, cz + 3);
+		const h11 = heightField.heightAt(cx + 3, cz + 3);
+		const a = h00 + (h10 - h00) * u;
+		const b = h01 + (h11 - h01) * u;
+		return a + (b - a) * v;
+	};
+
+	// Spawn at the western edge, at eye height, facing east (+X).
+	const groundH = getSurfaceHeight(SPAWN_X, SPAWN_Z);
+	const homePos = new THREE.Vector3(SPAWN_X, groundH + 1.7, SPAWN_Z);
+	const homeTarget = new THREE.Vector3(SPAWN_X + 80, groundH + 1.7, SPAWN_Z);
+	const controls = createFlyControls(camera, canvas, {
+		speed: runtime.cameraSpeed ?? 18,
+		walkSpeed: runtime.walkSpeed ?? 4,
+		eyeHeight: 1.7,
+		getSurfaceHeight,
+		startWalking: true,
+	});
 	controls.placeLookingAt(homePos, homeTarget);
 
 	// Prime the chunks around spawn before the first frame.
@@ -96,7 +118,13 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 		if (statsClock >= 0.25) {
 			statsClock = 0;
 			const s = manager.stats();
-			hooks.onStats?.({ active: s.active, pending: s.pending, x: camera.position.x, z: camera.position.z });
+			hooks.onStats?.({
+				active: s.active,
+				pending: s.pending,
+				x: camera.position.x,
+				z: camera.position.z,
+				walking: controls.isWalking(),
+			});
 		}
 	});
 	bundle.start();
@@ -111,6 +139,9 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 					break;
 				case "cameraSpeed":
 					controls.setSpeed(value);
+					break;
+				case "walkSpeed":
+					controls.setWalkSpeed(value);
 					break;
 				case "cameraFov":
 					bundle.setFov(value);

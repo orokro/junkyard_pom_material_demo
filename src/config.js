@@ -43,15 +43,15 @@ export const WORLD_GROUPS = [
 	{
 		title: "Terrain",
 		fields: [
-			{ key: "maxHeightMeters", type: "number", label: "Max height (m)", value: 200, min: 3, max: 600, step: 1, hint: "Ceiling the eastward ramp builds toward." },
+			{ key: "maxHeightMeters", type: "number", label: "Max height (m)", value: 30, min: 3, max: 600, step: 1, hint: "Ceiling the eastward ramp builds toward." },
 			{ key: "chunkSize", type: "number", label: "Chunk size (cols)", value: 10, min: 4, max: 32, step: 1, hint: "Columns per chunk edge (× 3 m)." },
-			{ key: "renderDistance", type: "number", label: "Render distance (chunks)", value: 6, min: 1, max: 20, step: 1 },
+			{ key: "renderDistance", type: "number", label: "Render distance (chunks)", value: 12, min: 1, max: 20, step: 1 },
 		],
 	},
 	{
 		title: "Noise",
 		fields: [
-			{ key: "noiseScale", type: "number", label: "Scale (m/feature)", value: 120, min: 8, max: 600, step: 1, hint: "Larger = broader mounds." },
+			{ key: "noiseScale", type: "number", label: "Scale (m/feature)", value: 60, min: 8, max: 600, step: 1, hint: "Larger = broader mounds." },
 			{ key: "noiseOctaves", type: "number", label: "Octaves", value: 4, min: 1, max: 8, step: 1 },
 			{ key: "noiseLacunarity", type: "number", label: "Lacunarity", value: 2.0, min: 1.5, max: 3.5, step: 0.1 },
 			{ key: "noisePersistence", type: "number", label: "Persistence", value: 0.5, min: 0.1, max: 0.9, step: 0.05 },
@@ -96,6 +96,7 @@ export const RUNTIME_GROUPS = [
 	{
 		title: "Camera",
 		fields: [
+			{ key: "walkSpeed", type: "number", label: "Walk speed (m/s)", value: 4, min: 1, max: 20, step: 0.5 },
 			{ key: "cameraSpeed", type: "number", label: "Fly speed (m/s)", value: 18, min: 2, max: 120, step: 1 },
 			{ key: "cameraFov", type: "number", label: "FOV", value: 70, min: 40, max: 100, step: 1 },
 		],

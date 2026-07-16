@@ -10,7 +10,8 @@
  */
 
 import { WORLD_GROUPS } from "../config.js";
-import { rollSeed, loadLastSeed, saveLastSeed } from "../seed.js";
+import { rollSeed } from "../seed.js";
+import { loadSettings, saveSettings } from "../settings.js";
 
 /**
  * Create a single field control and return { wrapper, read }.
@@ -72,6 +73,9 @@ function createField(field) {
 export function renderStartScreen(host, onStart) {
 	host.innerHTML = "";
 
+	// Restore last-used settings (falling back to defaults per field).
+	const saved = loadSettings() || {};
+
 	/** @type {Record<string, () => (string|number|boolean)>} */
 	const readers = {};
 	/** @type {HTMLInputElement|null} */
@@ -85,7 +89,7 @@ export function renderStartScreen(host, onStart) {
 	header.className = "card__header";
 	header.innerHTML = `
 		<h1 class="card__title">Dumper Cars <span class="spark">·</span> Junkyard Generator</h1>
-		<p class="card__subtitle">Procedural scrap-map POC — set a seed and parameters, then fly through.</p>
+		<p class="card__subtitle">Procedural scrap-map POC — set a seed and parameters, then walk or fly through.</p>
 	`;
 	card.appendChild(header);
 
@@ -103,8 +107,7 @@ export function renderStartScreen(host, onStart) {
 			readers[group.fields[0].key] = seedField.read;
 			seedInput = seedField.input;
 
-			const stored = loadLastSeed();
-			seedInput.value = stored && stored.length ? stored : rollSeed();
+			seedInput.value = saved.seed && String(saved.seed).length ? String(saved.seed) : rollSeed();
 
 			const rollBtn = document.createElement("button");
 			rollBtn.type = "button";
@@ -130,7 +133,8 @@ export function renderStartScreen(host, onStart) {
 		groupEl.appendChild(title);
 
 		for (const field of group.fields) {
-			const control = createField(field);
+			const initial = saved[field.key] !== undefined ? saved[field.key] : field.value;
+			const control = createField({ ...field, value: initial });
 			readers[field.key] = control.read;
 			groupEl.appendChild(control.wrapper);
 		}
@@ -145,7 +149,7 @@ export function renderStartScreen(host, onStart) {
 	footer.className = "card__footer";
 	const note = document.createElement("span");
 	note.className = "note";
-	note.textContent = "Phase 1 — UI only. The 3D scene arrives next phase.";
+	note.textContent = "Settings persist between sessions · Tab toggles walk/fly in-world.";
 	const startBtn = document.createElement("button");
 	startBtn.type = "button";
 	startBtn.className = "btn btn--start";
@@ -167,7 +171,7 @@ export function renderStartScreen(host, onStart) {
 			config.seed = rollSeed();
 		}
 		config.seed = String(config.seed).trim();
-		saveLastSeed(config.seed);
+		saveSettings(config);
 		onStart(config);
 	});
 }
