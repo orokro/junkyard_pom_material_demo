@@ -2,13 +2,11 @@
  * ============================================================================
  * three/demo.js
  * ----------------------------------------------------------------------------
- * Phase 3.2 demo orchestration: loads the tile registry and generates a single
- * chunk from the global noise height field, rendered with per-block texture
- * variety (four POM materials, instanced per geometry+set). Includes the
- * scrolling dirt floor and fly camera.
- *
- * Returns an API the app uses to push runtime-config changes (POM, camera,
- * FOV, floor), reset the view, and tear everything down.
+ * Phase 3.3 demo orchestration: streams an infinite junkyard around the fly
+ * camera. Loads textures + tile registry, builds the global height field, and
+ * hands them to the chunk manager which generates/disposes chunks by render
+ * distance. Includes the scrolling dirt floor, debug material toggles, and a
+ * live HUD stats line.
  * ============================================================================
  */
 
@@ -20,7 +18,11 @@ import { createPomMaterial } from "./pomMaterial.js";
 import { createFloor } from "./floor.js";
 import { loadTileRegistry } from "./tiles.js";
 import { createHeightField } from "../gen/heightField.js";
-import { generateChunk } from "../gen/chunk.js";
+import { createChunkManager } from "../gen/chunkManager.js";
+
+const SPAWN_X = 6;
+const SPAWN_Z = 0;
+const PRIME_BUDGET = 48; // chunks generated up-front (nearest first) before first frame
 
 /**
  * @typedef {object} DemoApi
@@ -30,69 +32,72 @@ import { generateChunk } from "../gen/chunk.js";
  */
 
 /**
- * Boot the Phase 3.2 single-chunk demo.
- * @param {HTMLCanvasElement} canvas Target canvas.
- * @param {Record<string, *>} runtime Runtime config (mutated live by the sidebar).
- * @param {Record<string, *>} worldConfig World-generation config (seed, noise, chunk).
- * @param {(loaded: number, total: number) => void} [onProgress] Texture progress.
- * @returns {Promise<DemoApi>} Demo control API.
+ * Boot the streaming junkyard demo.
+ * @param {HTMLCanvasElement} canvas
+ * @param {Record<string, *>} runtime Runtime config (live sidebar).
+ * @param {Record<string, *>} worldConfig World-generation config.
+ * @param {{ onProgress?: (l: number, t: number) => void, onStats?: (s: {active: number, pending: number, x: number, z: number}) => void }} [hooks]
+ * @returns {Promise<DemoApi>}
  */
-export async function startDemo(canvas, runtime, worldConfig, onProgress) {
+export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	const bundle = createScene(canvas, runtime.cameraFov ?? 70);
 	const { renderer, scene, camera } = bundle;
 	const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
-	// Four POM materials, one per tile set, for per-block variety.
-	const tiles = await loadAllTiles(maxAniso, onProgress);
+	// Textures → four POM materials for per-block variety.
+	const tiles = await loadAllTiles(maxAniso, hooks.onProgress);
 	const poms = tiles.map((t) => createPomMaterial(t, runtime));
 	const materials = poms.map((p) => p.material);
 
-	// Tile geometry registry.
 	const { registry } = await loadTileRegistry();
-
-	// Generate one chunk from the height field.
 	const heightField = createHeightField(worldConfig);
-	const chunk = generateChunk(0, 0, { worldConfig, heightField, registry, materials });
-	scene.add(chunk.group);
-	console.info(`[jy] chunk(0,0): ${chunk.instanceCount} blocks, ${chunk.rampCount} ramps, max height ${chunk.maxHeight} m`);
 
-	// Debug materials: neutral flat-shaded (reveals geometry + lighting) and wireframe.
+	// Debug materials (neutral flat-shaded + wireframe).
 	const flatMat = new THREE.MeshStandardMaterial({ color: 0x9aa4b2, metalness: 0.1, roughness: 0.85, flatShading: true });
 	const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ff88, wireframe: true });
-	for (const m of chunk.group.children) m.userData.pomMat = m.material;
-	const setMaterialMode = () => {
-		const mode = runtime.debugWireframe ? "wire" : runtime.debugFlat ? "flat" : "pom";
+	const currentMode = () => (runtime.debugWireframe ? "wire" : runtime.debugFlat ? "flat" : "pom");
+	/** @param {*} chunk Apply the current material mode to a chunk's meshes. */
+	function applyModeToChunk(chunk) {
+		const mode = currentMode();
 		for (const m of chunk.group.children) {
+			if (!m.userData.pomMat) m.userData.pomMat = m.material;
 			m.material = mode === "wire" ? wireMat : mode === "flat" ? flatMat : m.userData.pomMat;
 		}
-	};
-	setMaterialMode();
+	}
 
-	const cs = Math.round(worldConfig.chunkSize);
-	const spanM = cs * 3;
-	const centerX = spanM / 2;
-	const centerZ = spanM / 2;
-
-	// Reference grid at the chunk footprint.
-	const grid = new THREE.GridHelper(Math.max(60, spanM * 2), 24, 0x2b3441, 0x1c232d);
-	grid.position.set(centerX, 0.02, centerZ);
-	scene.add(grid);
+	// Chunk streaming.
+	const manager = createChunkManager(scene, { worldConfig, heightField, registry, materials }, {
+		renderDistance: worldConfig.renderDistance,
+		budget: 2,
+		onChunkCreated: applyModeToChunk,
+	});
 
 	// Scrolling dirt floor.
 	const floor = await createFloor(maxAniso, runtime.floorTileMeters ?? 8);
 	floor.setVisible(runtime.floorVisible ?? true);
 	scene.add(floor.mesh);
 
-	// Frame the chunk.
-	const homePos = new THREE.Vector3(centerX, chunk.maxHeight + 25, centerZ + spanM + 55);
-	const homeTarget = new THREE.Vector3(centerX, chunk.maxHeight * 0.4, centerZ);
-
+	// Spawn at the western edge, facing east (+X).
+	const groundH = heightField.heightAt(SPAWN_X, SPAWN_Z);
+	const homePos = new THREE.Vector3(SPAWN_X, groundH + 22, SPAWN_Z);
+	const homeTarget = new THREE.Vector3(SPAWN_X + 80, groundH + 8, SPAWN_Z);
 	const controls = createFlyControls(camera, canvas, runtime.cameraSpeed ?? 18);
 	controls.placeLookingAt(homePos, homeTarget);
 
+	// Prime the chunks around spawn before the first frame.
+	manager.update(camera.position, PRIME_BUDGET);
+
+	let statsClock = 0;
 	bundle.setUpdate((dt) => {
 		controls.update(dt);
 		floor.update(camera);
+		manager.update(camera.position);
+		statsClock += dt;
+		if (statsClock >= 0.25) {
+			statsClock = 0;
+			const s = manager.stats();
+			hooks.onStats?.({ active: s.active, pending: s.pending, x: camera.position.x, z: camera.position.z });
+		}
 	});
 	bundle.start();
 
@@ -118,7 +123,7 @@ export async function startDemo(canvas, runtime, worldConfig, onProgress) {
 					break;
 				case "debugFlat":
 				case "debugWireframe":
-					setMaterialMode();
+					for (const c of manager.getChunks()) applyModeToChunk(c);
 					break;
 				default:
 					break;
@@ -129,7 +134,7 @@ export async function startDemo(canvas, runtime, worldConfig, onProgress) {
 		},
 		dispose() {
 			controls.dispose();
-			chunk.dispose();
+			manager.dispose();
 			for (const entry of registry.values()) entry.geometry.dispose();
 			for (const m of materials) m.dispose();
 			for (const t of tiles) {
@@ -141,7 +146,6 @@ export async function startDemo(canvas, runtime, worldConfig, onProgress) {
 			}
 			flatMat.dispose();
 			wireMat.dispose();
-			grid.geometry.dispose();
 			floor.dispose();
 			bundle.dispose();
 		},

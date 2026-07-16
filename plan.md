@@ -199,10 +199,19 @@ Pseudo-infinite dirt floor at Y=0: a large plane recentered under the camera eac
 world-locked scrolling UVs (`three/floor.js`). Tile size + visibility moved out of the world-gen
 form into **live runtime controls** (sidebar "Floor" group) since it's dynamic, not chunk-based.
 
-**Phase 3 — ThreeJS: noise map generation** (next)
-Staged: (3.1) load GLB + build re-zeroed tile registry + render one of each; (3.2) single chunk
-from the global height field (noise only), visible-shell columns, buried-column skip; (3.3) chunk
-streaming/unloading by render distance, seeded per `${seed}_${cx}_${cz}`. Floor already done.
+**Phase 3 — ThreeJS: noise map generation**
+- (3.1) ✅ GLB loaded, tile registry re-zeroed to `[0,0,0]` min corner, catalog view verified.
+- (3.2) ✅ Single chunk from the global height field (noise only), per-block texture variety via
+  4 POM materials instanced per (tile, set). Debug flat-shade + wireframe toggles added.
+- (3.2b top-tiling) ✅ **Corner (vertex) height model.** Height sampled at cell corners; each cell
+  best-fits its 4 corners against all 12 tile signatures (edge/convex/concave — signatures
+  verified against the GLB geometry). Exact where possible; ≤1 m seam otherwise (`MAX_SEAM`);
+  >3 m spread or saddle → anchor to lowest corner (cliff). Continuous by construction.
+  - ⏳ **Revisit later** (Greg to marinate): occasional "pokies" / the 1 m best-fit seams on
+    3-level diagonal cells. Model is good enough to build on; polish the top layer later.
+- (3.3) ⏭ **Chunk streaming/unloading** by render distance, seeded per `${seed}_${cx}_${cz}`.
+  Border corners already share world coords → seams continuous for free. Shell/buried-face
+  optimization lands here. Floor already done.
 
 **Phase 4 — Gradient**
 Enable `gradientEast` term + tuning UI.

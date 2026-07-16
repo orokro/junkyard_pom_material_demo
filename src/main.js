@@ -11,7 +11,7 @@
 import "./styles.css";
 import { renderStartScreen } from "./ui/startScreen.js";
 import { mountSidebar } from "./ui/sidebar.js";
-import { renderHud } from "./ui/hud.js";
+import { renderHud, updateHudStats } from "./ui/hud.js";
 import { makeRuntimeConfig } from "./config.js";
 import { startDemo } from "./three/demo.js";
 
@@ -79,8 +79,12 @@ async function startRun(worldConfig) {
 	setLoading(true);
 
 	try {
-		demo = await startDemo(canvasEl, runtimeConfig, worldConfig, (loaded, total) => {
-			setLoading(true, `Loading textures… ${loaded}/${total}`);
+		demo = await startDemo(canvasEl, runtimeConfig, worldConfig, {
+			onProgress: (loaded, total) => setLoading(true, `Loading textures… ${loaded}/${total}`),
+			onStats: (s) =>
+				updateHudStats(
+					`chunks: ${s.active}${s.pending ? ` (+${s.pending})` : ""} · x ${s.x.toFixed(0)} z ${s.z.toFixed(0)}`
+				),
 		});
 	} catch (err) {
 		console.error("[jy] demo failed to start:", err);

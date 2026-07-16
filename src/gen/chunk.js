@@ -216,13 +216,14 @@ export function generateChunk(cx, cz, ctx) {
 			continue;
 		}
 		const mesh = new THREE.InstancedMesh(entry.geometry, materials[set], positions.length);
-		mesh.frustumCulled = false;
 		for (let i = 0; i < positions.length; i++) {
 			dummy.position.set(positions[i][0], positions[i][1], positions[i][2]);
 			dummy.updateMatrix();
 			mesh.setMatrixAt(i, dummy.matrix);
 		}
 		mesh.instanceMatrix.needsUpdate = true;
+		// Per-instance bounding sphere so frustum culling works per chunk mesh.
+		mesh.computeBoundingSphere();
 		group.add(mesh);
 	}
 
