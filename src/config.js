@@ -132,6 +132,7 @@ export const RUNTIME_GROUPS = [
 		title: "Floor",
 		fields: [
 			{ key: "floorVisible", type: "bool", label: "Show floor", value: true },
+			{ key: "wallVisible", type: "bool", label: "Show edge wall", value: true, hint: "Infinite boundary wall along the western edge." },
 			{ key: "floorTileMeters", type: "number", label: "Dirt tile (m)", value: 8, min: 1, max: 64, step: 1, hint: "World size of one dirt repeat; scrolls to stay world-locked." },
 		],
 	},

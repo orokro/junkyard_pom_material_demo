@@ -34,7 +34,7 @@ const BOOST = 3.0;
  * Attach camera controls.
  * @param {THREE.PerspectiveCamera} camera
  * @param {HTMLElement} dom Pointer-lock target (canvas).
- * @param {{ speed?: number, walkSpeed?: number, eyeHeight?: number, getSurfaceHeight?: (x: number, z: number) => number, startWalking?: boolean }} [opts]
+ * @param {{ speed?: number, walkSpeed?: number, eyeHeight?: number, getSurfaceHeight?: (x: number, z: number) => number, startWalking?: boolean, minX?: number }} [opts]
  * @returns {FlyControls}
  */
 export function createFlyControls(camera, dom, opts = {}) {
@@ -44,6 +44,7 @@ export function createFlyControls(camera, dom, opts = {}) {
 	let walkSpeed = opts.walkSpeed ?? 4;
 	const eyeHeight = opts.eyeHeight ?? 1.7;
 	const getSurfaceHeight = opts.getSurfaceHeight ?? (() => 0);
+	const minX = opts.minX ?? -Infinity; // western boundary (edge wall)
 	let walking = opts.startWalking ?? true;
 	let locked = false;
 
@@ -112,6 +113,7 @@ export function createFlyControls(camera, dom, opts = {}) {
 					move.normalize();
 					camera.position.addScaledVector(move, walkSpeed * boost * dt);
 				}
+				if (camera.position.x < minX) camera.position.x = minX; // hold at the edge wall
 				// Stick to the surface.
 				camera.position.y = getSurfaceHeight(camera.position.x, camera.position.z) + eyeHeight;
 			} else {
@@ -128,6 +130,7 @@ export function createFlyControls(camera, dom, opts = {}) {
 					move.normalize();
 					camera.position.addScaledVector(move, flySpeed * boost * dt);
 				}
+				if (camera.position.x < minX) camera.position.x = minX; // hold at the edge wall
 			}
 		},
 		setSpeed(next) {

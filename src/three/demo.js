@@ -14,6 +14,7 @@ import { createFlyControls } from "./flyCamera.js";
 import { loadAllTiles, loadBiomeSet } from "./textures.js";
 import { createPomMaterial } from "./pomMaterial.js";
 import { createFloor } from "./floor.js";
+import { createWallEdge } from "./wallEdge.js";
 import { loadTileRegistry } from "./tiles.js";
 import { loadStructureLibrary } from "./structures.js";
 import { createHeightField } from "../gen/heightField.js";
@@ -24,6 +25,7 @@ import { loadPostFX } from "../settings.js";
 
 const SPAWN_X = 6;
 const SPAWN_Z = 0;
+const WALL_X = 0; // yard's western edge — the boundary wall + camera clamp live here
 const PRIME_BUDGET = 48;
 const EXPORT_RADIUS_M = 160; // slice of terrain around the camera to export
 
@@ -85,6 +87,13 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	floor.setVisible(runtime.floorVisible ?? true);
 	scene.add(floor.mesh);
 
+	// Infinite boundary wall along the western edge (faked like the floor).
+	const chunkWorld = Math.round(worldConfig.chunkSize) * 3;
+	const wallReach = Math.max(1, Math.round(worldConfig.renderDistance)) * chunkWorld;
+	const wall = await createWallEdge(WALL_X, wallReach, wallReach);
+	wall.setVisible(runtime.wallVisible !== false);
+	scene.add(wall.mesh);
+
 	// Bilinear surface height (walker sticks to this — matches ramp/flat tile tops).
 	const getSurfaceHeight = (x, z) => {
 		const cx = Math.floor(x / 3) * 3;
@@ -109,6 +118,7 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 		eyeHeight: 1.7,
 		getSurfaceHeight,
 		startWalking: true,
+		minX: WALL_X + 0.6, // can't cross west through the edge wall
 	});
 	controls.placeLookingAt(homePos, homeTarget);
 
@@ -127,6 +137,7 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	bundle.setUpdate((dt) => {
 		controls.update(dt);
 		floor.update(camera);
+		wall.update(camera);
 		manager.update(camera.position);
 		statsClock += dt;
 		if (statsClock >= 0.25) {
@@ -255,6 +266,9 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 				case "floorVisible":
 					floor.setVisible(value);
 					break;
+				case "wallVisible":
+					wall.setVisible(value);
+					break;
 				case "debugFlat":
 				case "debugWireframe":
 					for (const c of manager.getChunks()) applyModeToChunk(c);
@@ -315,6 +329,7 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 			flatMat.dispose();
 			wireMat.dispose();
 			floor.dispose();
+			wall.dispose();
 			post.dispose();
 			bundle.dispose();
 		},
