@@ -47,12 +47,12 @@ export async function createWallEdge(wallX, rangeZ, hideBeyondX) {
 	});
 	if (!src) throw new Error("jy_wall.glb has no mesh");
 
-	// Bake world orientation, rotate the 6 m span from X to Z (face ±Z → ±X, so
-	// the wall runs north-south and faces into the yard), then re-zero: centred
-	// on X/Z with its base at Y=0.
+	// Bake world orientation, rotate the 6 m span from X to Z (face ±Z → ∓X, so
+	// the wall runs north-south with its detailed/paneled side facing east into
+	// the yard), then re-zero: centred on X/Z with its base at Y=0.
 	const geo = src.geometry.clone();
 	geo.applyMatrix4(src.matrixWorld);
-	geo.rotateY(Math.PI / 2);
+	geo.rotateY(-Math.PI / 2);
 	geo.computeBoundingBox();
 	const bb = geo.boundingBox;
 	const cx = (bb.min.x + bb.max.x) / 2;
