@@ -137,6 +137,8 @@ export function createHeightField(cfg) {
 
 	// Biomes.
 	const biomesEnabled = cfg.biomesEnabled !== false;
+	const clearSpawnBiomes = cfg.clearSpawnBiomes !== false;
+	const biomeEastStart = Math.max(0, cfg.biomeEastStartMeters ?? 150);
 	const biomeScale = Math.max(1, cfg.biomeScale ?? 350);
 	const rustThreshold = cfg.rustThreshold ?? 0.5;
 	const tireThreshold = cfg.tireThreshold ?? 0.5;
@@ -163,14 +165,26 @@ export function createHeightField(cfg) {
 		return n <= threshold ? 0 : (n - threshold) / (1 - threshold);
 	}
 
+	/**
+	 * Eastward gate for the terrain-carving biomes (pits/paths): 0 at the spawn
+	 * edge, ramping to 1 by `biomeEastStart` metres east. Keeps spawn smooth so
+	 * the clean spawn-path lanes aren't fighting pits + voronoi canyons.
+	 * @param {number} wx @returns {number}
+	 */
+	function eastGate(wx) {
+		if (!clearSpawnBiomes || biomeEastStart <= 0) return 1;
+		return smoothstep(0, biomeEastStart, wx);
+	}
+
 	/** @param {number} wx @param {number} wz @returns {Biomes} */
 	function biomesAt(wx, wz) {
 		if (!biomesEnabled) return { rust: 0, tire: 0, pits: 0, paths: 0 };
+		const gate = eastGate(wx);
 		return {
 			rust: biomeScalar(bRust, rustThreshold, wx, wz),
 			tire: biomeScalar(bTire, tireThreshold, wx, wz),
-			pits: biomeScalar(bPits, pitsThreshold, wx, wz),
-			paths: biomeScalar(bPaths, pathBiomeThreshold, wx, wz),
+			pits: biomeScalar(bPits, pitsThreshold, wx, wz) * gate,
+			paths: biomeScalar(bPaths, pathBiomeThreshold, wx, wz) * gate,
 		};
 	}
 
@@ -233,8 +247,9 @@ export function createHeightField(cfg) {
 	function heightAt(wx, wz) {
 		let h = maxHeight * gradientEast(wx) * noise01(wx, wz) * spawnPathMask(wx, wz);
 		if (biomesEnabled) {
-			const pits = biomeScalar(bPits, pitsThreshold, wx, wz);
-			const paths = biomeScalar(bPaths, pathBiomeThreshold, wx, wz);
+			const gate = eastGate(wx);
+			const pits = biomeScalar(bPits, pitsThreshold, wx, wz) * gate;
+			const paths = biomeScalar(bPaths, pathBiomeThreshold, wx, wz) * gate;
 			if (pits > 0) h *= pitsFactor(wx, wz, pits);
 			if (paths > 0) h *= pathsBiomeFactor(wx, wz, paths);
 		}

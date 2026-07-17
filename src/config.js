@@ -85,6 +85,8 @@ export const WORLD_GROUPS = [
 		title: "Biomes",
 		fields: [
 			{ key: "biomesEnabled", type: "bool", label: "Enabled", value: true },
+			{ key: "clearSpawnBiomes", type: "bool", label: "Clear spawn (delay pits/paths)", value: true, hint: "Keep terrain-carving biomes out of spawn; ramp them in eastward." },
+			{ key: "biomeEastStartMeters", type: "number", label: "Pits/paths start east (m)", value: 150, min: 0, max: 2000, step: 10, hint: "How far east before pits & path canyons reach full strength." },
 			{ key: "biomeScale", type: "number", label: "Region size (m)", value: 350, min: 60, max: 1500, step: 10, hint: "Size of biome blobs; bigger = broader regions." },
 			{ key: "rustThreshold", type: "number", label: "Rust cutoff", value: 0.5, min: 0, max: 0.95, step: 0.01 },
 			{ key: "tireThreshold", type: "number", label: "Tire cutoff", value: 0.5, min: 0, max: 0.95, step: 0.01 },
