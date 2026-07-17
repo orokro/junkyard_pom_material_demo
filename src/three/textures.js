@@ -94,6 +94,24 @@ export async function loadAllTiles(maxAniso, onProgress) {
 }
 
 /**
+ * Load a biome POM set by filename prefix (e.g. "jy_rust", "jy_tires").
+ * Same 5 maps as a tile set, but a flat prefix instead of a numbered one.
+ * @param {string} prefix Filename prefix in assets/tex.
+ * @param {number} maxAniso Max anisotropy.
+ * @returns {Promise<TileTextures>} Loaded biome textures.
+ */
+export async function loadBiomeSet(prefix, maxAniso) {
+	const [albedo, normal, metal, rough, depth] = await Promise.all([
+		loadTex(`${prefix}_albedo.png`, true, maxAniso),
+		loadTex(`${prefix}_normal.png`, false, maxAniso),
+		loadTex(`${prefix}_metal.png`, false, maxAniso),
+		loadTex(`${prefix}_rough.png`, false, maxAniso),
+		loadTex(`${prefix}_depth.png`, false, maxAniso),
+	]);
+	return { index: 0, albedo, normal, metal, rough, depth };
+}
+
+/**
  * @typedef {object} DirtTextures
  * @property {THREE.Texture} albedo
  * @property {THREE.Texture} normal

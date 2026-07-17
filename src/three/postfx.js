@@ -30,13 +30,15 @@ void main() {
 }
 `;
 
-/** Default effect: posterize + depth-based atmospheric haze. */
+/** Default effect: desaturate + shadow tint + depth edges + gradient distance fog. */
 export const DEFAULT_POST_SHADER = /* glsl */ `// ---- settings ----
-const float LEVELS    = 6.0;                 // posterize colour bands
-const vec3  HAZE       = vec3(0.80, 0.83, 0.90);
-const float FOG_START  = 40.0;               // metres — haze begins
-const float FOG_END    = 500.0;              // metres — full haze
-const float FOG_AMOUNT = 0.85;               // 0..1 max haze
+const float EDGE_THICKNESS = 0.0;                    // width of the sketchy outlines
+const vec3  SHADOW_TINT    = vec3(0.15, 0.05, 0.05);
+const vec3  LINE_COLOR     = vec3(0.20, 0.15, 0.35);
+const vec3  FOG_NEAR       = vec3(1.00, 0.75, 0.85);
+const vec3  FOG_FAR        = vec3(0.65, 0.85, 1.00);
+const float FOG_START      = 10.0;
+const float FOG_END        = 90.0;
 // -------------------
 varying vec2 vUv;
 uniform sampler2D tDiffuse;
@@ -51,17 +53,51 @@ float linearDepth( float d ) {
 	return ( 2.0 * uNear * uFar ) / ( uFar + uNear - z * ( uFar - uNear ) );
 }
 
+vec3 rgb2hsv( vec3 c ) {
+	vec4 K = vec4( 0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0 );
+	vec4 p = mix( vec4( c.bg, K.wz ), vec4( c.gb, K.xy ), step( c.b, c.g ) );
+	vec4 q = mix( vec4( p.xyw, c.r ), vec4( c.r, p.yzx ), step( p.x, c.r ) );
+	float d = q.x - min( q.w, q.y );
+	float e = 1.0e-10;
+	return vec3( abs( q.z + ( q.w - q.y ) / ( 6.0 * d + e ) ), d / ( q.x + e ), q.x );
+}
+
+vec3 hsv2rgb( vec3 c ) {
+	vec4 K = vec4( 1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0 );
+	vec3 p = abs( fract( c.xxx + K.xyz ) * 6.0 - K.www );
+	return c.z * mix( K.xxx, clamp( p - K.xxx, 0.0, 1.0 ), c.y );
+}
+
 void main() {
+	vec2 wobble = vec2( sin( vUv.y * 150.0 + uTime * 6.0 ), cos( vUv.x * 150.0 + uTime * 6.0 ) ) * 0.0003;
+	vec2 edgeUv = vUv + wobble;
 	vec3 col = texture2D( tDiffuse, vUv ).rgb;
+	float rawDepth = texture2D( tDepth, vUv ).x;
+	float depth = linearDepth( rawDepth );
+	vec3 hsv = rgb2hsv( col );
 
-	// posterize
-	col = floor( col * LEVELS + 0.5 ) / LEVELS;
+	float satFactor = smoothstep( 0.3, 0.8, hsv.y );
+	hsv.y = mix( hsv.y, hsv.y * 0.5, satFactor );
+	hsv.z = mix( hsv.z, min( hsv.z + 0.3, 1.0 ), satFactor );
+	float darkFactor = ( 1.0 - smoothstep( 0.0, 0.3, hsv.z ) ) * ( 1.0 - smoothstep( 0.0, 0.4, hsv.y ) );
+	vec3 shadowHsv = rgb2hsv( SHADOW_TINT );
+	hsv = mix( hsv, shadowHsv, darkFactor * 0.8 );
 
-	// depth haze — lighten distant geometry
-	float dist = linearDepth( texture2D( tDepth, vUv ).x );
-	float fog = clamp( ( dist - FOG_START ) / ( FOG_END - FOG_START ), 0.0, 1.0 );
-	col = mix( col, HAZE, fog * FOG_AMOUNT );
+	col = hsv2rgb( hsv );
+	vec2 texel = ( 1.0 / uResolution ) * EDGE_THICKNESS;
 
+	float d1 = linearDepth( texture2D( tDepth, edgeUv + vec2( -texel.x, 0.0 ) ).x );
+	float d2 = linearDepth( texture2D( tDepth, edgeUv + vec2( texel.x, 0.0 ) ).x );
+	float d3 = linearDepth( texture2D( tDepth, edgeUv + vec2( 0.0, -texel.y ) ).x );
+	float d4 = linearDepth( texture2D( tDepth, edgeUv + vec2( 0.0, texel.y ) ).x );
+
+	float edge = abs( d1 - d2 ) + abs( d3 - d4 );
+	float edgeWeight = smoothstep( 0.02, 0.1, edge / ( depth * 0.15 + 1.0 ) );
+	col = mix( col, LINE_COLOR, edgeWeight );
+
+	float fogFactor = clamp( ( depth - FOG_START ) / ( FOG_END - FOG_START ), 0.0, 1.0 );
+	vec3 fogColor = mix( FOG_NEAR, FOG_FAR, vUv.y );
+	col = mix( col, fogColor, fogFactor );
 	gl_FragColor = vec4( col, 1.0 );
 }
 `;

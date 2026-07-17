@@ -44,6 +44,21 @@ function pickSet(seed, gx, gz, y) {
 	return a % SETS;
 }
 
+/** Minimum biome scalar for a cell to swap to that biome's texture family. */
+const FAMILY_SWAP = 0.35;
+
+/**
+ * Pick a cell's texture family from its biome scalars. Whichever of rust/tire
+ * is strongest (and past the swap threshold) wins; otherwise the default sets.
+ * @param {import("./heightField.js").Biomes} b
+ * @returns {"def"|"rust"|"tire"}
+ */
+function pickFamily(b) {
+	if (b.rust >= b.tire && b.rust > FAMILY_SWAP) return "rust";
+	if (b.tire > FAMILY_SWAP) return "tire";
+	return "def";
+}
+
 /**
  * Pick a cell's top tile from its 4 corner heights.
  * @param {number} nw @param {number} ne @param {number} sw @param {number} se
@@ -77,7 +92,7 @@ export function chooseTile(nw, ne, sw, se) {
 /**
  * Generate a chunk (terrain + structures).
  * @param {number} cx @param {number} cz
- * @param {{worldConfig: Record<string, *>, heightField: *, registry: Map<string, *>, materials: THREE.Material[], structures?: *}} ctx
+ * @param {{worldConfig: Record<string, *>, heightField: *, registry: Map<string, *>, materials: {def: THREE.Material[], rust: THREE.Material, tire: THREE.Material}, structures?: *}} ctx
  * @returns {{group: THREE.Group, maxHeight: number, instanceCount: number, rampCount: number, structureCount: number, dispose: () => void}}
  */
 export function generateChunk(cx, cz, ctx) {
@@ -94,9 +109,9 @@ export function generateChunk(cx, cz, ctx) {
 
 	/** @type {Map<string, Array<[number, number, number, number, number, number, number]>>} */
 	const buckets = new Map();
-	/** @param {string} tile @param {number} set @param {number} x @param {number} y @param {number} z @param {import("./heightField.js").Biomes} b */
-	function push(tile, set, x, y, z, b) {
-		const key = `${tile}|${set}`;
+	/** @param {string} tile @param {"def"|"rust"|"tire"} family @param {number} set @param {number} x @param {number} y @param {number} z @param {import("./heightField.js").Biomes} b */
+	function push(tile, family, set, x, y, z, b) {
+		const key = `${tile}|${family}|${set}`;
 		let arr = buckets.get(key);
 		if (!arr) {
 			arr = [];
@@ -121,23 +136,25 @@ export function generateChunk(cx, cz, ctx) {
 			const wx = gx * 3;
 			const wz = gz * 3;
 			const b = heightField.biomesAt(wx + 1.5, wz + 1.5); // once per cell
+			const family = pickFamily(b); // rust/tire piles get their own POM set
+			const setOf = (y) => (family === "def" ? pickSet(seed, gx, gz, y) : 0);
 			const top = t.base + t.delta;
 			if (top > maxHeight) maxHeight = top;
 
 			const fullBlocks = Math.floor(t.base / 3);
 			for (let bl = 0; bl < fullBlocks; bl++) {
 				const y = bl * 3;
-				push(TILE_BODY, pickSet(seed, gx, gz, y), wx, y, wz, b);
+				push(TILE_BODY, family, setOf(y), wx, y, wz, b);
 				instanceCount++;
 			}
 			const rem = t.base % 3;
 			if (rem > 0) {
 				const y = fullBlocks * 3;
-				push(CAP_FLAT[rem], pickSet(seed, gx, gz, y), wx, y, wz, b);
+				push(CAP_FLAT[rem], family, setOf(y), wx, y, wz, b);
 				instanceCount++;
 			}
 			if (t.kind === "ramp") {
-				push(t.tile, pickSet(seed, gx, gz, t.base + 1), wx, t.base, wz, b);
+				push(t.tile, family, setOf(t.base + 1), wx, t.base, wz, b);
 				instanceCount++;
 				rampCount++;
 			}
@@ -147,14 +164,14 @@ export function generateChunk(cx, cz, ctx) {
 	const group = new THREE.Group();
 	const dummy = new THREE.Object3D();
 	for (const [key, positions] of buckets) {
-		const sep = key.indexOf("|");
-		const tileName = key.slice(0, sep);
-		const set = Number(key.slice(sep + 1));
+		const [tileName, family, setStr] = key.split("|");
+		const set = Number(setStr);
 		const entry = registry.get(tileName);
 		if (!entry) {
 			console.warn("[jy] missing tile geometry:", tileName);
 			continue;
 		}
+		const material = family === "def" ? materials.def[set] : materials[family];
 		// Share the registry's vertex buffers (uploaded to the GPU once) and add
 		// only a small per-chunk aBiome instanced attribute. Cloning the geometry
 		// re-uploaded all vertex data every chunk, which stuttered on fast flight.
@@ -165,7 +182,7 @@ export function generateChunk(cx, cz, ctx) {
 		if (src.attributes.uv) geo.setAttribute("uv", src.attributes.uv);
 		if (src.index) geo.setIndex(src.index);
 		const biomeAttr = new THREE.InstancedBufferAttribute(new Float32Array(positions.length * 4), 4);
-		const mesh = new THREE.InstancedMesh(geo, materials[set], positions.length);
+		const mesh = new THREE.InstancedMesh(geo, material, positions.length);
 		for (let i = 0; i < positions.length; i++) {
 			const p = positions[i];
 			dummy.position.set(p[0], p[1], p[2]);

@@ -11,7 +11,7 @@
 import * as THREE from "three";
 import { createScene } from "./scene.js";
 import { createFlyControls } from "./flyCamera.js";
-import { loadAllTiles } from "./textures.js";
+import { loadAllTiles, loadBiomeSet } from "./textures.js";
 import { createPomMaterial } from "./pomMaterial.js";
 import { createFloor } from "./floor.js";
 import { loadTileRegistry } from "./tiles.js";
@@ -50,8 +50,13 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	const maxAniso = renderer.capabilities.getMaxAnisotropy();
 
 	const tiles = await loadAllTiles(maxAniso, hooks.onProgress);
-	const poms = tiles.map((t) => createPomMaterial(t, runtime));
-	const materials = poms.map((p) => p.material);
+	const rustTile = await loadBiomeSet("jy_rust", maxAniso);
+	const tireTile = await loadBiomeSet("jy_tires", maxAniso);
+	const allTiles = [...tiles, rustTile, tireTile];
+	const poms = allTiles.map((t) => createPomMaterial(t, runtime));
+	// Texture families: 4 default sets + one rust + one tire set. Chunk gen picks
+	// a family per cell from the biome scalars (see chunk.js pickFamily).
+	const materials = { def: [poms[0].material, poms[1].material, poms[2].material, poms[3].material], rust: poms[4].material, tire: poms[5].material };
 
 	const { registry } = await loadTileRegistry();
 	const structures = await loadStructureLibrary();
@@ -274,8 +279,8 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 			controls.dispose();
 			manager.dispose();
 			for (const entry of registry.values()) entry.geometry.dispose();
-			for (const m of materials) m.dispose();
-			for (const t of tiles) {
+			for (const p of poms) p.material.dispose();
+			for (const t of allTiles) {
 				t.albedo.dispose();
 				t.normal.dispose();
 				t.metal.dispose();

@@ -44,11 +44,11 @@ export function saveSettings(config) {
 export function loadPostFX() {
 	try {
 		const raw = localStorage.getItem(POST_KEY);
-		if (!raw) return { enabled: false, code: null };
+		if (!raw) return { enabled: true, code: null };
 		const p = JSON.parse(raw);
 		return { enabled: Boolean(p.enabled), code: typeof p.code === "string" ? p.code : null };
 	} catch {
-		return { enabled: false, code: null };
+		return { enabled: true, code: null };
 	}
 }
 
