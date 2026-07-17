@@ -77,7 +77,8 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 
 	const manager = createChunkManager(scene, { worldConfig, heightField, registry, materials, structures }, {
 		renderDistance: worldConfig.renderDistance,
-		budget: 2,
+		budget: 6,
+		timeBudgetMs: 4,
 		onChunkCreated: applyModeToChunk,
 	});
 
@@ -112,7 +113,7 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	});
 	controls.placeLookingAt(homePos, homeTarget);
 
-	manager.update(camera.position, PRIME_BUDGET);
+	manager.update(camera.position, PRIME_BUDGET, false); // prime fully during load
 
 	// Post-processing pipeline (off by default; state persisted).
 	const post = createPostFX(renderer);

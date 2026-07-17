@@ -33,7 +33,9 @@ export function createChunkManager(scene, ctx, opts = {}) {
 	const cs = Math.round(ctx.worldConfig.chunkSize);
 	const chunkWorld = cs * 3;
 	const R = Math.max(1, Math.round(opts.renderDistance ?? 6));
-	const defaultBudget = opts.budget ?? 2;
+	const defaultBudget = opts.budget ?? 6; // hard cap on chunks per frame
+	const timeBudgetMs = opts.timeBudgetMs ?? 4; // soft per-frame time slice
+	const nowMs = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
 
 	/** @type {Map<string, { chunk: *, cx: number, cz: number }>} */
 	const active = new Map();
@@ -67,9 +69,11 @@ export function createChunkManager(scene, ctx, opts = {}) {
 	 * Reconcile the active set with the camera position.
 	 * @param {{x: number, z: number}} camPos
 	 * @param {number} [budget] Max chunks to generate this call (Infinity to prime).
+	 * @param {boolean} [timeSliced] Stop early once the per-frame time budget is spent
+	 *   (always makes at least one chunk of progress). Pass false to prime fully.
 	 * @returns {void}
 	 */
-	function update(camPos, budget = defaultBudget) {
+	function update(camPos, budget = defaultBudget, timeSliced = true) {
 		const set = desiredSet(camPos.x, camPos.z);
 
 		// Dispose chunks that left range.
@@ -94,9 +98,13 @@ export function createChunkManager(scene, ctx, opts = {}) {
 		pending.sort((a, b) => a.d - b.d);
 		pendingCount = pending.length;
 
+		const start = nowMs();
 		let made = 0;
 		for (const p of pending) {
 			if (made >= budget) break;
+			// Time slice: after at least one chunk, bail if we've blown the frame
+			// budget — the rest stream in over subsequent frames, keeping fps smooth.
+			if (timeSliced && made >= 1 && nowMs() - start >= timeBudgetMs) break;
 			const chunk = generateChunk(p.cx, p.cz, ctx);
 			scene.add(chunk.group);
 			active.set(p.k, { chunk, cx: p.cx, cz: p.cz });
