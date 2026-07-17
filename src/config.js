@@ -114,6 +114,8 @@ export const RUNTIME_GROUPS = [
 			{ key: "pomStrength", type: "number", label: "Parallax strength", value: 0.115, min: 0, max: 0.3, step: 0.005 },
 			{ key: "pomSteps", type: "number", label: "Ray steps", value: 30, min: 4, max: 64, step: 1 },
 			{ key: "pomInvertDepth", type: "bool", label: "Invert depth", value: false, hint: "Toggle if the surface pushes the wrong way." },
+			{ key: "rustTint", type: "number", label: "Rust tint", value: 1.0, min: 0, max: 1, step: 0.05, hint: "Orange tint strength in rust biome." },
+			{ key: "tireDesat", type: "number", label: "Tire desaturate", value: 1.0, min: 0, max: 1, step: 0.05, hint: "Desaturation strength in tire biome." },
 		],
 	},
 	{

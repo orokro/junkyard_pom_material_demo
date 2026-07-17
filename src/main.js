@@ -83,7 +83,8 @@ async function startRun(worldConfig) {
 			onProgress: (loaded, total) => setLoading(true, `Loading textures… ${loaded}/${total}`),
 			onStats: (s) =>
 				updateHudStats(
-					`${s.walking ? "walk" : "fly"} · chunks: ${s.active}${s.pending ? ` (+${s.pending})` : ""} · x ${s.x.toFixed(0)} z ${s.z.toFixed(0)}`
+					`${s.walking ? "walk" : "fly"} · chunks: ${s.active}${s.pending ? ` (+${s.pending})` : ""} · x ${s.x.toFixed(0)} z ${s.z.toFixed(0)}` +
+						(s.biome ? ` · rust ${s.biome.rust.toFixed(2)} tire ${s.biome.tire.toFixed(2)} pits ${s.biome.pits.toFixed(2)} path ${s.biome.paths.toFixed(2)}` : "")
 				),
 		});
 	} catch (err) {

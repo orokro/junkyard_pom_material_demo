@@ -127,7 +127,7 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 		if (statsClock >= 0.25) {
 			statsClock = 0;
 			const s = manager.stats();
-			hooks.onStats?.({ active: s.active, pending: s.pending, x: camera.position.x, z: camera.position.z, walking: controls.isWalking() });
+			hooks.onStats?.({ active: s.active, pending: s.pending, x: camera.position.x, z: camera.position.z, walking: controls.isWalking(), biome: heightField.biomesAt(camera.position.x, camera.position.z) });
 		}
 	});
 	bundle.start();
@@ -205,6 +205,8 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 				case "pomStrength":
 				case "pomSteps":
 				case "pomInvertDepth":
+				case "rustTint":
+				case "tireDesat":
 					for (const p of poms) p.applyRuntime({ [key]: value });
 					break;
 				case "cameraSpeed":

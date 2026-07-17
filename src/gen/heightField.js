@@ -157,7 +157,9 @@ export function createHeightField(cfg) {
 
 	/** @param {(x:number,y:number)=>number} fn @param {number} threshold @param {number} wx @param {number} wz */
 	function biomeScalar(fn, threshold, wx, wz) {
-		const n = (fn(wx / biomeScale, wz / biomeScale) + 1) * 0.5;
+		// fBm is bell-distributed (~[0.15,0.85] around 0.5); stretch it for contrast
+		// so biome cores reach ~1 and cutoffs behave over the full 0-1 range.
+		const n = smoothstep(0.35, 0.65, (fn(wx / biomeScale, wz / biomeScale) + 1) * 0.5);
 		return n <= threshold ? 0 : (n - threshold) / (1 - threshold);
 	}
 
