@@ -26,7 +26,6 @@ const SPAWN_X = 6;
 const SPAWN_Z = 0;
 const PRIME_BUDGET = 48;
 const EXPORT_RADIUS_M = 160; // slice of terrain around the camera to export
-const EXPORT_CAP_TILES = 60000; // safety cap on baked tiles (memory)
 
 /**
  * @typedef {object} DemoApi
@@ -139,70 +138,96 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 	bundle.start();
 
 	/**
-	 * Bake all instances in the nearby chunks into one merged BufferGeometry.
-	 * (GLTFExporter chokes on thousands of InstancedMesh nodes, so we flatten to
-	 * a single mesh — the vertex total is small.)
-	 * @returns {{ geometry: THREE.BufferGeometry, tiles: number, capped: boolean }|null}
+	 * Bake nearby chunks into an exportable Group: terrain instances + structure
+	 * meshes are flattened to world space and merged **per material**, so the GLB
+	 * keeps distinct biome terrain (default / rust / tire) and structure materials
+	 * with their textures — instead of one generic blob. GLTFExporter chokes on
+	 * thousands of InstancedMesh nodes, so we bake to one Mesh per material.
+	 * @returns {{ root: THREE.Group, disposables: THREE.BufferGeometry[], verts: number, meshes: number, capped: boolean }|null}
 	 */
 	function bakeNearby() {
 		const chunks = manager.getChunksNear(camera.position.x, camera.position.z, EXPORT_RADIUS_M);
 		if (chunks.length === 0) return null;
+		scene.updateMatrixWorld(true);
 
-		/** @type {number[]} */ const position = [];
-		/** @type {number[]} */ const normal = [];
-		/** @type {number[]} */ const uv = [];
-		/** @type {number[]} */ const index = [];
-		let vertBase = 0;
-		let tiles = 0;
-		let capped = false;
-
+		const CAP_VERTS = 6_000_000; // safety ceiling on baked vertices
+		/** @type {Map<THREE.Material, {position: number[], normal: number[], uv: number[], index: number[], base: number, tag: string}>} */
+		const groups = new Map();
 		const m4 = new THREE.Matrix4();
+		const im4 = new THREE.Matrix4();
 		const m3 = new THREE.Matrix3();
 		const v = new THREE.Vector3();
 		const n = new THREE.Vector3();
+		let verts = 0;
+		let capped = false;
 
-		outer: for (const c of chunks) {
-			for (const mesh of c.group.children) {
-				if (!(/** @type {THREE.InstancedMesh} */ (mesh).isInstancedMesh)) continue;
-				const im = /** @type {THREE.InstancedMesh} */ (mesh);
-				const g = im.geometry;
-				const pos = g.attributes.position;
-				const nrm = g.attributes.normal;
-				const uvA = g.attributes.uv;
-				const idx = g.index;
-				for (let i = 0; i < im.count; i++) {
-					if (tiles >= EXPORT_CAP_TILES) {
-						capped = true;
-						break outer;
-					}
-					im.getMatrixAt(i, m4);
-					m3.getNormalMatrix(m4);
-					for (let vi = 0; vi < pos.count; vi++) {
-						v.fromBufferAttribute(pos, vi).applyMatrix4(m4);
-						position.push(v.x, v.y, v.z);
-						n.fromBufferAttribute(nrm, vi).applyMatrix3(m3).normalize();
-						normal.push(n.x, n.y, n.z);
-						if (uvA) uv.push(uvA.getX(vi), uvA.getY(vi));
-						else uv.push(0, 0);
-					}
-					if (idx) {
-						for (let k = 0; k < idx.count; k++) index.push(idx.getX(k) + vertBase);
-					} else {
-						for (let vi = 0; vi < pos.count; vi++) index.push(vi + vertBase);
-					}
-					vertBase += pos.count;
-					tiles++;
-				}
+		/** Append a geometry (transformed by `matrix`) into `material`'s bucket. */
+		function bake(geom, matrix, material, tag) {
+			const pos = geom.attributes.position;
+			if (!pos) return;
+			const nrm = geom.attributes.normal;
+			const uvA = geom.attributes.uv;
+			const idx = geom.index;
+			let grp = groups.get(material);
+			if (!grp) {
+				grp = { position: [], normal: [], uv: [], index: [], base: 0, tag };
+				groups.set(material, grp);
 			}
+			m3.getNormalMatrix(matrix);
+			for (let vi = 0; vi < pos.count; vi++) {
+				v.fromBufferAttribute(pos, vi).applyMatrix4(matrix);
+				grp.position.push(v.x, v.y, v.z);
+				if (nrm) {
+					n.fromBufferAttribute(nrm, vi).applyMatrix3(m3).normalize();
+					grp.normal.push(n.x, n.y, n.z);
+				} else grp.normal.push(0, 1, 0);
+				if (uvA) grp.uv.push(uvA.getX(vi), uvA.getY(vi));
+				else grp.uv.push(0, 0);
+			}
+			if (idx) for (let k = 0; k < idx.count; k++) grp.index.push(idx.getX(k) + grp.base);
+			else for (let vi = 0; vi < pos.count; vi++) grp.index.push(vi + grp.base);
+			grp.base += pos.count;
+			verts += pos.count;
 		}
 
-		if (tiles === 0) return null;
-		const geometry = new THREE.BufferGeometry();
-		geometry.setAttribute("position", new THREE.Float32BufferAttribute(position, 3));
-		geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normal, 3));
-		geometry.setAttribute("uv", new THREE.Float32BufferAttribute(uv, 2));
-		geometry.setIndex(index);
-		return { geometry, tiles, capped };
+		for (const c of chunks) {
+			if (capped) break;
+			c.group.traverse((o) => {
+				if (capped) return;
+				if (/** @type {THREE.InstancedMesh} */ (o).isInstancedMesh) {
+					const im = /** @type {THREE.InstancedMesh} */ (o);
+					const mat = im.userData.pomMat || im.material; // real POM even in debug view
+					for (let i = 0; i < im.count; i++) {
+						if (verts >= CAP_VERTS) { capped = true; return; }
+						im.getMatrixAt(i, im4);
+						m4.multiplyMatrices(im.matrixWorld, im4);
+						bake(im.geometry, m4, mat, "terrain");
+					}
+				} else if (/** @type {THREE.Mesh} */ (o).isMesh) {
+					if (verts >= CAP_VERTS) { capped = true; return; }
+					const mesh = /** @type {THREE.Mesh} */ (o);
+					bake(mesh.geometry, mesh.matrixWorld, mesh.material, mesh.name || "structure");
+				}
+			});
+		}
+
+		if (verts === 0) return null;
+		const root = new THREE.Group();
+		root.name = `jy_world_${String(worldConfig.seed)}`;
+		/** @type {THREE.BufferGeometry[]} */ const disposables = [];
+		let mi = 0;
+		for (const [material, grp] of groups) {
+			const geometry = new THREE.BufferGeometry();
+			geometry.setAttribute("position", new THREE.Float32BufferAttribute(grp.position, 3));
+			geometry.setAttribute("normal", new THREE.Float32BufferAttribute(grp.normal, 3));
+			geometry.setAttribute("uv", new THREE.Float32BufferAttribute(grp.uv, 2));
+			geometry.setIndex(grp.index);
+			const mesh = new THREE.Mesh(geometry, material);
+			mesh.name = `${grp.tag}_${mi++}`;
+			root.add(mesh);
+			disposables.push(geometry);
+		}
+		return { root, disposables, verts, meshes: groups.size, capped };
 	}
 
 	return {
@@ -250,13 +275,13 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 		exportGLB() {
 			const baked = bakeNearby();
 			if (!baked) return;
-			const mesh = new THREE.Mesh(baked.geometry, new THREE.MeshStandardMaterial({ color: 0x9a8f80, roughness: 0.9, metalness: 0.0 }));
-			mesh.name = "junkyard";
+			// Materials stay shared with the live scene — dispose only the merged
+			// geometries we created, never the materials/textures still in use.
+			const cleanup = () => baked.disposables.forEach((g) => g.dispose());
 			new GLTFExporter().parse(
-				mesh,
+				baked.root,
 				(result) => {
-					baked.geometry.dispose();
-					mesh.material.dispose();
+					cleanup();
 					const blob = new Blob([/** @type {ArrayBuffer} */ (result)], { type: "model/gltf-binary" });
 					const url = URL.createObjectURL(blob);
 					const a = document.createElement("a");
@@ -266,11 +291,10 @@ export async function startDemo(canvas, runtime, worldConfig, hooks = {}) {
 					a.click();
 					a.remove();
 					setTimeout(() => URL.revokeObjectURL(url), 2000);
-					console.info(`[jy] exported ${baked.tiles} tiles (${(baked.geometry.attributes.position.count / 1000).toFixed(0)}k verts)${baked.capped ? " [capped]" : ""}`);
+					console.info(`[jy] exported ${baked.meshes} material groups (${(baked.verts / 1000).toFixed(0)}k verts)${baked.capped ? " [capped]" : ""}`);
 				},
 				(err) => {
-					baked.geometry.dispose();
-					mesh.material.dispose();
+					cleanup();
 					console.error("[jy] export failed:", err);
 				},
 				{ binary: true }
