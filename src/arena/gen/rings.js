@@ -70,9 +70,31 @@ export function buildRings(dims, params, seed) {
 	});
 
 	// --- Inward pokes (break the rectangle) ---
+	// Pokes are containers poking into the arena. We must NOT create a 1-wide
+	// dead-end (a ground cell walled on 3 sides), because no tire piece can close
+	// one — so each candidate poke is validated and rejected if it would.
 	/** @type {Container[]} */
 	const pokes = [];
 	const used = new Set();
+	/** in-bounds cells occupied by an accepted poke (frame is out-of-bounds → wall). */
+	const pokeCells = new Set();
+	const DIRS4 = [ [1, 0], [-1, 0], [0, 1], [0, -1] ];
+	/** A cell is a "wall" for dead-end purposes if it's outside the arena (ring/OOB) or has a poke. */
+	const isWall = (x, z) => !isInbounds(x, z, dims) || pokeCells.has(key(x, z));
+	/** Would these (already-added) poke cells leave any open neighbor walled on ≥3 sides? */
+	const createsDeadEnd = (cells) => {
+		for (const [cx0, cz0] of cells) {
+			for (const [dx, dz] of DIRS4) {
+				const nx = cx0 + dx, nz = cz0 + dz;
+				if (isWall(nx, nz)) continue; // only open in-bounds cells can be dead-ends
+				let w = 0;
+				for (const [ex, ez] of DIRS4) if (isWall(nx + ex, nz + ez)) w++;
+				if (w >= 3) return true;
+			}
+		}
+		return false;
+	};
+
 	const perim = [];
 	for (let cx = 0; cx < dims.Wc; cx++) {
 		for (let cz = 0; cz < dims.Dc; cz++) {
@@ -85,15 +107,17 @@ export function buildRings(dims, params, seed) {
 		attempts++;
 		const a = perim[Math.floor(rng() * perim.length)];
 		if (!a || used.has(key(a[0], a[1]))) continue;
-		const dirs = [
-			[1, 0],
-			[-1, 0],
-			[0, 1],
-			[0, -1],
-		];
-		const dir = pick(rng, dirs);
+		const dir = pick(rng, DIRS4);
 		const b = [a[0] + dir[0], a[1] + dir[1]];
 		if (!isInbounds(b[0], b[1], dims) || used.has(key(b[0], b[1]))) continue;
+		// Tentatively occupy, then reject if it forms a dead-end.
+		pokeCells.add(key(a[0], a[1]));
+		pokeCells.add(key(b[0], b[1]));
+		if (createsDeadEnd([a, b])) {
+			pokeCells.delete(key(a[0], a[1]));
+			pokeCells.delete(key(b[0], b[1]));
+			continue;
+		}
 		used.add(key(a[0], a[1]));
 		used.add(key(b[0], b[1]));
 		pokes.push({

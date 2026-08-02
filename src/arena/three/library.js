@@ -74,6 +74,7 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 		const cacheKey = m.file;
 		if (texCache.has(cacheKey)) return texCache.get(cacheKey);
 		const t = texLoader.load(TEX_URLS[m.file]);
+		t.flipY = false; // glTF UV convention (GLTFLoader does this); TextureLoader defaults to true
 		t.colorSpace = m.colorSpace === "srgb" ? THREE.SRGBColorSpace : THREE.NoColorSpace;
 		t.wrapS = WRAP[m.wrapS] ?? THREE.RepeatWrapping;
 		t.wrapT = WRAP[m.wrapT] ?? THREE.RepeatWrapping;
@@ -133,8 +134,10 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 			if (!o.isMesh) return;
 			const geo = o.geometry.clone();
 			M.copy(o.matrixWorld).premultiply(Tinv); // world → pivot-local (no rotation of the frame)
-			geo.applyMatrix4(M);
-			geo.computeVertexNormals();
+			geo.applyMatrix4(M); // transforms position + normal correctly
+			// Keep the GLB's authored (smooth) normals; only synthesize if missing.
+			// Recomputing here would flatten/streak curved parts (e.g. chair tubing).
+			if (!geo.getAttribute("normal")) geo.computeVertexNormals();
 			const matName = Array.isArray(o.material) ? o.material[0]?.name : o.material?.name;
 			entries.push({ geometry: geo, material: material(matName) });
 		});

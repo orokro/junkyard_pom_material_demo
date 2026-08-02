@@ -21,6 +21,8 @@ import { CELL, cellCenter } from "./grid.js";
 const CHAIR_TYPES = ["Bench", "FoldingChair", "LawnChair", "PlasticChair"];
 const JITTER = (15 * Math.PI) / 180; // ±15 degrees
 const INSET = 0.7; // keep chairs off the very edge of the container top
+const MIN_DIST = 1.0; // min spacing (m) between chairs on the same top
+const MAX_TRIES = 10; // give up placing a chair after this many attempts
 
 /** @param {() => number} rng @param {number} lo @param {number} hi @returns {number} */
 const randInt = (rng, lo, hi) => lo + Math.floor(rng() * (hi - lo + 1));
@@ -69,12 +71,18 @@ export function placeChairs(rings, dims, params, seed) {
 		const maxZ = (Math.max(...zs) + 1) * CELL;
 
 		const count = randInt(rng, 1, 2);
+		/** @type {[number, number][]} points already used on this top */
+		const placed = [];
 		for (let i = 0; i < count; i++) {
-			const x = randRange(rng, minX + INSET, maxX - INSET);
-			const z = randRange(rng, minZ + INSET, maxZ - INSET);
-			const dirX = cxWorld - x;
-			const dirZ = czWorld - z;
-			const rotY = Math.atan2(dirX, dirZ) + (rng() * 2 - 1) * JITTER;
+			let x = 0, z = 0, ok = false;
+			for (let attempt = 0; attempt < MAX_TRIES && !ok; attempt++) {
+				x = randRange(rng, minX + INSET, maxX - INSET);
+				z = randRange(rng, minZ + INSET, maxZ - INSET);
+				ok = placed.every(([px, pz]) => (px - x) ** 2 + (pz - z) ** 2 >= MIN_DIST * MIN_DIST);
+			}
+			if (!ok) continue; // no clear spot found — skip rather than overlap
+			placed.push([x, z]);
+			const rotY = Math.atan2(cxWorld - x, czWorld - z) + (rng() * 2 - 1) * JITTER;
 			chairs.push({ chairType: CHAIR_TYPES[Math.floor(rng() * CHAIR_TYPES.length)], pos: [x, top.y, z], rotY });
 		}
 	}

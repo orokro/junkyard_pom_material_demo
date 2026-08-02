@@ -198,6 +198,22 @@ connect two levels.
 ramp slope render check in P5; player-bounds clamp behavior on overhanging
 in-bounds container tops (decide in P5).
 
+**P5 fixes (post-review):**
+- Inward pokes are validated to never create a 1×1 dead-end (rings.js rejects a
+  poke that would wall a ground cell on 3 sides). The tire dead-end pass (P7)
+  still handles island-induced dead-ends.
+- library.js keeps the GLB's authored normals (only synthesizes if missing) —
+  recomputing flattened/streaked curved parts (chairs).
+- Chairs enforce ≥1 m spacing on a top (retry ≤10×, else skip) — no overlaps.
+
+**P6 design note — inward pokes are pre-existing level 3:** a poked-in container
+is a 4 m wall, so its TOP (Y=4) is already a drivable level-3 surface inside the
+bounds. Island generation must (a) treat poke-top cells as existing L3 the
+islands can merge with, (b) put metal barriers on their bounds-facing edges, and
+(c) NOT require them to have their own ramp — if an island doesn't reach them
+they simply remain part of the map's shape (unreachable is fine for these,
+unlike generated islands).
+
 ---
 
 ## 9. Phase roadmap
