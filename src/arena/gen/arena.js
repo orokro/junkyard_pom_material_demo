@@ -16,7 +16,7 @@
 import { computeDims, inboundsRect, key } from "./grid.js";
 import { buildRings } from "./rings.js";
 import { placeChairs } from "./chairs.js";
-import { generateLevel2 } from "./islands.js";
+import { generateLevel2, generateLevel3, makeBarriers } from "./islands.js";
 
 /**
  * @typedef {object} ArenaModel
@@ -29,7 +29,9 @@ import { generateLevel2 } from "./islands.js";
  * @property {import("./chairs.js").Chair[]} chairs
  * @property {string[]} solidCells  Ground-solid cell keys (walls) for later passes/overlay.
  * @property {string[]} level2  Cell keys raised to level 2 (half-platforms).
- * @property {{cx:number,cz:number,dir:string,from:number,to:number}[]} ramps
+ * @property {string[]} level3  Cell keys raised to level 3 (generated container tops).
+ * @property {{cx:number,cz:number,dir:string,from:number,to:number}[]} ramps  All ramps (1→2 and 2→3).
+ * @property {{cx:number,cz:number,dir:string}[]} barriers  Metal barriers on Y4 surface edges facing OOB.
  */
 
 /**
@@ -49,16 +51,32 @@ export function generateArena(seed, params) {
 	for (const p of rings.pokes) for (const [x, z] of p.cells) pokeCells.add(key(x, z));
 	const l2 = generateLevel2(dims, params, seed, pokeCells);
 
+	// Level 3: container-top islands + 2→3 ramps, grown on the ground beneath.
+	const l3 = generateLevel3(dims, params, seed, {
+		pokeCells,
+		level2: l2.level2,
+		ramps: l2.ramps,
+		reservedL1: l2.reservedL1,
+	});
+	// L3 dominoes are ground-standing single containers (top forms the Y4 surface);
+	// tag them level3 so consumers (overlay/tests) can tell them from ring/poke walls.
+	const l3Containers = l3.containers.map((c) => ({ ...c, story: 1, ring: false, level3: true }));
+
+	// Metal barriers on every Y4 surface edge (L3 islands + inward pokes) facing OOB.
+	const barriers = makeBarriers(dims, l3.level3Cells, [...pokeCells]);
+
 	return {
 		seed,
 		params,
 		dims,
 		ratio: dims.ratio,
 		bounds,
-		containers: rings.containers,
+		containers: [...rings.containers, ...l3Containers],
 		chairs,
 		solidCells: rings.solidCells,
 		level2: l2.level2,
-		ramps: l2.ramps,
+		level3: l3.level3Cells,
+		ramps: [...l2.ramps, ...l3.ramps23],
+		barriers,
 	};
 }

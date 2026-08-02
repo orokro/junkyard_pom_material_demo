@@ -189,3 +189,220 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 	});
 	return { level2: [...level2], ramps, reservedL1: [...reservedL1] };
 }
+
+/**
+ * @typedef {object} Level3Result
+ * @property {string[]} level3Cells  Cell keys covered by generated L3 containers.
+ * @property {{cells:[[number,number],[number,number]],orient:"H"|"V",color:string}[]} containers  L3 domino containers.
+ * @property {{cx:number,cz:number,dir:"N"|"E"|"S"|"W",from:number,to:number}[]} ramps23  2→3 ramps.
+ */
+
+/**
+ * Generate level-3 islands + 2→3 ramps (Phase 6 Step 2a).
+ *
+ * A 2→3 ramp-run is [ lower-lead @L2 ][ ramp on a half-platform (Y2→Y4) ][ landing @L3 ].
+ * L3 islands are grown by appending whole CONTAINERS (dominoes) onto the ground
+ * (the container base sits at Y0, its top forms the Y4 surface) — so the island is
+ * domino-tileable by construction. L3 containers block the ground beneath them
+ * (bridges, added later, will re-open it). Connectivity spans L1+L2+L3 via the
+ * ramp edges, so nothing gets trapped and every L3 island is reachable.
+ *
+ * @param {import("./grid.js").Dims} dims
+ * @param {Record<string, *>} params
+ * @param {string} seed
+ * @param {{ pokeCells:Set<string>, level2:string[], ramps:{cx:number,cz:number,dir:string,from:number,to:number}[], reservedL1:string[] }} ctx
+ * @returns {Level3Result}
+ */
+export function generateLevel3(dims, params, seed, ctx) {
+	const rng = makeRng(seed, "level3");
+	const pokeCells = ctx.pokeCells;
+	const L2 = new Set(ctx.level2);
+	const reservedL1 = new Set(ctx.reservedL1);
+	const ramp12 = new Set(ctx.ramps.filter((r) => r.from === 0).map((r) => key(r.cx, r.cz)));
+	const ramps12 = ctx.ramps.filter((r) => r.from === 0);
+
+	const L3 = new Set();
+	const dominoes = [];
+	const rampCells23 = new Map();
+	const reservedL2 = new Set();
+	const COLORS = ["Blue", "Red", "White", "Green"];
+	const pick = (a) => a[Math.floor(rng() * a.length)];
+
+	const inB = (x, z) => isInbounds(x, z, dims);
+	const isL2 = (x, z) => L2.has(key(x, z));
+	const isL3 = (x, z) => L3.has(key(x, z));
+	/** drivable ground node (reserved leads included): not poke/L2/L3/1→2-ramp. */
+	const isGround = (x, z) => inB(x, z) && !pokeCells.has(key(x, z)) && !isL2(x, z) && !isL3(x, z) && !ramp12.has(key(x, z));
+	/** a ground cell that may be consumed by an L3 container (not a reserved ramp lead). */
+	const canL3 = (x, z) => isGround(x, z) && !reservedL1.has(key(x, z));
+	/** blocks a car at ground level. Ramps + reserved ground are OPEN. */
+	const isBlockingGround = (x, z) => !inB(x, z) || pokeCells.has(key(x, z)) || isL2(x, z) || isL3(x, z);
+
+	/** All drivable cells (L1+L2+L3, linked by 1→2 and 2→3 ramps) one component? */
+	function connected() {
+		const edges = new Map();
+		const addE = (a, b) => { (edges.get(a) || edges.set(a, []).get(a)).push(b); };
+		for (const r of ramps12) {
+			const [dx, dz] = DIR_VEC[r.dir];
+			addE(`1:${r.cx - dx},${r.cz - dz}`, `2:${r.cx + dx},${r.cz + dz}`);
+			addE(`2:${r.cx + dx},${r.cz + dz}`, `1:${r.cx - dx},${r.cz - dz}`);
+		}
+		for (const [rk, dName] of rampCells23) {
+			const [rx, rz] = unkey(rk);
+			const [dx, dz] = DIR_VEC[dName];
+			addE(`2:${rx - dx},${rz - dz}`, `3:${rx + dx},${rz + dz}`);
+			addE(`3:${rx + dx},${rz + dz}`, `2:${rx - dx},${rz - dz}`);
+		}
+		let total = 0;
+		let start = null;
+		for (let x = 0; x < dims.Wc; x++) for (let z = 0; z < dims.Dc; z++) {
+			if (isGround(x, z)) { total++; start = start || `1:${x},${z}`; }
+			if (isL2(x, z)) { total++; start = start || `2:${x},${z}`; }
+			if (isL3(x, z)) { total++; start = start || `3:${x},${z}`; }
+		}
+		if (!start) return true;
+		const seen = new Set([start]);
+		const st = [start];
+		while (st.length) {
+			const cur = st.pop();
+			const lvl = cur[0];
+			const [x, z] = cur.slice(2).split(",").map(Number);
+			for (const [dx, dz] of Object.values(DIR_VEC)) {
+				const nx = x + dx, nz = z + dz;
+				let nk = null;
+				if (lvl === "1" && isGround(nx, nz)) nk = `1:${nx},${nz}`;
+				else if (lvl === "2" && isL2(nx, nz)) nk = `2:${nx},${nz}`;
+				else if (lvl === "3" && isL3(nx, nz)) nk = `3:${nx},${nz}`;
+				if (nk && !seen.has(nk)) { seen.add(nk); st.push(nk); }
+			}
+			const re = edges.get(cur);
+			if (re) for (const nk of re) if (!seen.has(nk)) { seen.add(nk); st.push(nk); }
+		}
+		return seen.size === total;
+	}
+
+	/** Would newly-L3 cells leave an open ground cell walled on ≥3 sides? */
+	function createsGroundDeadEnd(cells) {
+		for (const [cx0, cz0] of cells) {
+			for (const [dx, dz] of Object.values(DIR_VEC)) {
+				const nx = cx0 + dx, nz = cz0 + dz;
+				if (!isGround(nx, nz)) continue;
+				let b = 0;
+				for (const [ex, ez] of Object.values(DIR_VEC)) if (isBlockingGround(nx + ex, nz + ez)) b++;
+				if (b >= 3) return true;
+			}
+		}
+		return false;
+	}
+
+	/** Commit a container domino (two ground cells → L3) if it keeps things valid. */
+	function tryDomino(a, b) {
+		L3.add(key(a[0], a[1]));
+		L3.add(key(b[0], b[1]));
+		if (!connected() || createsGroundDeadEnd([a, b])) {
+			L3.delete(key(a[0], a[1]));
+			L3.delete(key(b[0], b[1]));
+			return false;
+		}
+		dominoes.push({ cells: [a, b], orient: a[1] === b[1] ? "H" : "V", color: pick(COLORS) });
+		return true;
+	}
+
+	/** Place one 2→3 ramp + its first (landing) container domino; return landing or null. */
+	function placeRamp23() {
+		const l2cells = [...L2].map(unkey);
+		shuffle(l2cells, rng);
+		for (const [rx, rz] of l2cells) {
+			if (rampCells23.has(key(rx, rz))) continue;
+			for (const [dName, [dx, dz]] of shuffle(Object.entries(DIR_VEC), rng)) {
+				const lead = [rx - dx, rz - dz];
+				const land = [rx + dx, rz + dz];
+				if (!isL2(lead[0], lead[1]) || reservedL2.has(key(lead[0], lead[1]))) continue;
+				if (!canL3(land[0], land[1])) continue;
+				let partner = null;
+				for (const [ex, ez] of shuffle(Object.values(DIR_VEC), rng)) {
+					const p = [land[0] + ex, land[1] + ez];
+					if (p[0] === rx && p[1] === rz) continue;
+					if (canL3(p[0], p[1])) { partner = p; break; }
+				}
+				if (!partner) continue;
+				rampCells23.set(key(rx, rz), dName);
+				reservedL2.add(key(lead[0], lead[1]));
+				if (!tryDomino(land, partner)) {
+					rampCells23.delete(key(rx, rz));
+					reservedL2.delete(key(lead[0], lead[1]));
+					continue;
+				}
+				return land;
+			}
+		}
+		return null;
+	}
+
+	/** Grow an L3 island by appending dominoes around it. */
+	function growL3(seedCell, budget) {
+		let added = 0;
+		const frontier = [seedCell];
+		while (added < budget && frontier.length) {
+			const fi = Math.floor(rng() * frontier.length);
+			const [fx, fz] = frontier[fi];
+			let grew = false;
+			outer:
+			for (const [dx, dz] of shuffle(Object.values(DIR_VEC), rng)) {
+				const g1 = [fx + dx, fz + dz];
+				if (!canL3(g1[0], g1[1])) continue;
+				for (const [ex, ez] of shuffle(Object.values(DIR_VEC), rng)) {
+					const g2 = [g1[0] + ex, g1[1] + ez];
+					if (g2[0] === fx && g2[1] === fz) continue;
+					if (!canL3(g2[0], g2[1])) continue;
+					if (tryDomino(g1, g2)) { frontier.push(g1, g2); added++; grew = true; break outer; }
+				}
+			}
+			if (!grew) frontier.splice(fi, 1);
+		}
+		return added;
+	}
+
+	const area = dims.Wc * dims.Dc;
+	const covMin = params.level3CoverageMin ?? 0.05;
+	const covMax = params.level3CoverageMax ?? 0.18;
+	const targetCells = Math.round(area * (covMin + rng() * (covMax - covMin)));
+	const maxIslands = params.maxIslandsL3 ?? 2;
+	const numIslands = 1 + Math.floor(rng() * maxIslands);
+
+	const seeds = [];
+	for (let i = 0; i < numIslands; i++) {
+		const s = placeRamp23();
+		if (!s) break;
+		seeds.push(s);
+	}
+	if (seeds.length) {
+		const budget = Math.ceil(Math.max(0, targetCells - seeds.length * 2) / 2 / seeds.length);
+		for (const s of seeds) growL3(s, budget);
+	}
+
+	const ramps23 = [...rampCells23.entries()].map(([k, dir]) => { const [cx, cz] = unkey(k); return { cx, cz, dir, from: 2, to: 4 }; });
+	return { level3Cells: [...L3], containers: dominoes, ramps23 };
+}
+
+/**
+ * Metal barriers: on every level-3 surface cell (generated islands + inward-poke
+ * tops) whose edge faces out of the playable bounds — so you can't drive off a
+ * Y4 surface into the ring / grandstands.
+ * @param {import("./grid.js").Dims} dims
+ * @param {string[]} level3Cells
+ * @param {string[]} pokeCells
+ * @returns {{cx:number,cz:number,dir:"N"|"E"|"S"|"W"}[]}
+ */
+export function makeBarriers(dims, level3Cells, pokeCells) {
+	const barriers = [];
+	const surfaces = new Set([...level3Cells, ...pokeCells]);
+	for (const k of surfaces) {
+		const [cx, cz] = unkey(k);
+		for (const [dName, [dx, dz]] of Object.entries(DIR_VEC)) {
+			if (!isInbounds(cx + dx, cz + dz, dims)) barriers.push({ cx, cz, dir: dName });
+		}
+	}
+	return barriers;
+}
+

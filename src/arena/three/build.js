@@ -20,6 +20,13 @@ import { CELL, cellCenter } from "../gen/grid.js";
 const RAMP_ROT = { N: 0, E: -Math.PI / 2, S: Math.PI, W: Math.PI / 2 };
 
 /**
+ * Metal-barrier facing → Y rotation. The part authors its wall on the NORTH
+ * (−Z) edge of its cell (pivot = cell center); this rotation swings that wall to
+ * the requested edge. Same mapping as the ramp up-direction, by construction.
+ */
+const MB_ROT = { N: 0, E: -Math.PI / 2, S: Math.PI, W: Math.PI / 2 };
+
+/**
  * @param {[[number,number],[number,number]]} cells @param {"H"|"V"} orient @param {number} baseY
  * @returns {{x:number,y:number,z:number,rotY:number}}
  */
@@ -73,6 +80,12 @@ export function buildArena(model, registry) {
 	for (const r of model.ramps || []) {
 		const [x, z] = cellCenter(r.cx, r.cz);
 		add("Arena_Ramp", x, r.from === 2 ? 2 : 0, z, RAMP_ROT[r.dir] ?? 0);
+	}
+
+	// Metal barriers guard Y4 surface edges (L3 tops / poke tops) that face OOB.
+	for (const b of model.barriers || []) {
+		const [x, z] = cellCenter(b.cx, b.cz);
+		add("Arena_Metal_Barrier", x, 4, z, MB_ROT[b.dir] ?? 0);
 	}
 
 	// Materialize: one InstancedMesh per (part, sub-mesh), sharing the transforms.

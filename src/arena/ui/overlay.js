@@ -71,8 +71,9 @@ export function createOverlay(host) {
 		ctx.lineWidth = 1.5;
 		ctx.strokeRect(px(0), py(0), model.dims.Wc * s, model.dims.Dc * s);
 
-		// Ground containers (filled) then second story (inset outline).
-		for (const c of model.containers.filter((c) => c.story === 1)) {
+		// Ground WALL containers (rings + pokes) filled, then second story inset.
+		// Level-3 island containers are drawn later as their own tinted layer.
+		for (const c of model.containers.filter((c) => c.story === 1 && !c.level3)) {
 			drawDomino(c, "fill");
 		}
 		for (const c of model.containers.filter((c) => c.story === 2)) {
@@ -96,10 +97,18 @@ export function createOverlay(host) {
 			ctx.fillRect(px(cx) + 1, py(cz) + 1, s - 2, s - 2);
 		}
 
-		// Ramps: yellow triangle pointing up-slope.
+		// Level-3 container tops (generated islands) — darker slate tint over ground.
+		ctx.fillStyle = "rgba(150,120,220,0.62)";
+		for (const k of model.level3 || []) {
+			const [cx, cz] = k.split(",").map(Number);
+			ctx.fillRect(px(cx) + 1, py(cz) + 1, s - 2, s - 2);
+		}
+
 		const DIRC = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
-		ctx.fillStyle = "#ffe14d";
+
+		// Ramps: triangle pointing up-slope. 1→2 yellow, 2→3 orange.
 		for (const r of model.ramps || []) {
+			ctx.fillStyle = r.from === 2 ? "#ff9a3d" : "#ffe14d";
 			const cxp = px(r.cx) + s / 2;
 			const cyp = py(r.cz) + s / 2;
 			const [dxc, dyc] = DIRC[r.dir] || [0, -1];
@@ -113,6 +122,29 @@ export function createOverlay(host) {
 			ctx.closePath();
 			ctx.fill();
 		}
+
+		// Metal barriers: thick red segment along the guarded cell edge.
+		ctx.strokeStyle = "#ff4d4d";
+		ctx.lineWidth = Math.max(2, s * 0.14);
+		ctx.lineCap = "round";
+		for (const b of model.barriers || []) {
+			const x0 = px(b.cx), y0 = py(b.cz);
+			const [dxc, dyc] = DIRC[b.dir] || [0, -1];
+			// Endpoints of the edge on the (dxc,dyc) side of the cell.
+			let ax, ay, bx, by;
+			if (dxc !== 0) { // east / west edge (vertical segment)
+				const ex = dxc > 0 ? x0 + s : x0;
+				ax = ex; ay = y0; bx = ex; by = y0 + s;
+			} else { // north / south edge (horizontal segment)
+				const ey = dyc > 0 ? y0 + s : y0;
+				ax = x0; ay = ey; bx = x0 + s; by = ey;
+			}
+			ctx.beginPath();
+			ctx.moveTo(ax, ay);
+			ctx.lineTo(bx, by);
+			ctx.stroke();
+		}
+		ctx.lineCap = "butt";
 
 		// Legend.
 		ctx.fillStyle = "#93a1b3";

@@ -53,6 +53,14 @@ export const WORLD_GROUPS = [
 			{ key: "maxIslandsL2", type: "number", label: "Max islands", value: 3, min: 1, max: 8, step: 1, hint: "Upper bound on distinct level-2 islands (each gets ≥1 ramp)." },
 		],
 	},
+	{
+		title: "Level 3 (container tops)",
+		fields: [
+			{ key: "level3CoverageMin", type: "number", label: "Coverage min", value: 0.05, min: 0, max: 0.5, step: 0.01, hint: "Min fraction of the arena raised to level 3 (container tops)." },
+			{ key: "level3CoverageMax", type: "number", label: "Coverage max", value: 0.18, min: 0, max: 0.5, step: 0.01, hint: "Max fraction raised to level 3." },
+			{ key: "maxIslandsL3", type: "number", label: "Max islands", value: 2, min: 1, max: 6, step: 1, hint: "Upper bound on distinct level-3 islands (each reached by a 2→3 ramp)." },
+		],
+	},
 ];
 
 /** @type {GroupDef[]} Runtime parameters (live sidebar). */
