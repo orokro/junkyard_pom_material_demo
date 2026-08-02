@@ -1,0 +1,36 @@
+<!doctype html>
+<!--
+	============================================================================
+	arena.html
+	----------------------------------------------------------------------------
+	Entry document for the Dumper Cars ARENA generation POC.
+
+	Independent from the junkyard POC: all wiring lives under src/arena/ and
+	nothing here imports junkyard code. Same overlay layout (start-screen, HUD,
+	Tweakpane sidebar mount, canvas) so the arena inherits the shared look/feel.
+	============================================================================
+-->
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Dumper Cars — Arena Generation POC</title>
+	</head>
+	<body>
+		<div id="app">
+			<!-- ThreeJS renders here. -->
+			<canvas id="viewport"></canvas>
+
+			<!-- Runtime controls (Tweakpane mounts inside). -->
+			<aside id="sidebar" class="hidden"></aside>
+
+			<!-- Minimal heads-up display. -->
+			<div id="hud" class="hidden"></div>
+
+			<!-- Start-screen overlay (populated by src/arena/ui/startScreen.js). -->
+			<div id="start-screen"></div>
+		</div>
+
+		<script type="module" src="/src/arena/main.js"></script>
+	</body>
+</html>

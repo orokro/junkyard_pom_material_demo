@@ -1,0 +1,34 @@
+<!doctype html>
+<!--
+	============================================================================
+	index.html
+	----------------------------------------------------------------------------
+	Entry document for the Dumper Cars junkyard generation POC.
+	Hosts the start-screen overlay, the (future) ThreeJS canvas, the HUD, and
+	the Tweakpane runtime sidebar mount. All wiring happens in src/main.js.
+	============================================================================
+-->
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Dumper Cars — Junkyard Generation POC</title>
+	</head>
+	<body>
+		<div id="app">
+			<!-- ThreeJS renders here in a later phase. -->
+			<canvas id="viewport"></canvas>
+
+			<!-- Runtime controls (Tweakpane mounts inside). -->
+			<aside id="sidebar" class="hidden"></aside>
+
+			<!-- Minimal heads-up display. -->
+			<div id="hud" class="hidden"></div>
+
+			<!-- Start-screen overlay (populated by src/ui/startScreen.js). -->
+			<div id="start-screen"></div>
+		</div>
+
+		<script type="module" src="/src/main.js"></script>
+	</body>
+</html>

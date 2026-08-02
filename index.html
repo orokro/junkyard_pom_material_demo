@@ -1,34 +1,185 @@
 <!doctype html>
 <!--
 	============================================================================
-	index.html
+	index.html  (landing / picker)
 	----------------------------------------------------------------------------
-	Entry document for the Dumper Cars junkyard generation POC.
-	Hosts the start-screen overlay, the (future) ThreeJS canvas, the HUD, and
-	the Tweakpane runtime sidebar mount. All wiring happens in src/main.js.
+	Umbrella landing page for the Dumper Cars proof-of-concept collection.
+
+	Each POC is a standalone page (multi-page app), so deep-linking and refresh
+	work naturally: refreshing while on a POC reloads that POC, never this
+	landing page. Links are relative so the static build works from any subpath
+	(GitHub Pages project sites, a nested folder, or a file:// preview).
+
+	  ./junkyard.html  → the junkyard generation POC (unchanged)
+	  ./arena.html     → the arena generation POC
+
+	This page is intentionally dependency-free (inline CSS, no build step of its
+	own) so it stays trivial and never touches the individual POCs.
 	============================================================================
 -->
 <html lang="en">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Dumper Cars — Junkyard Generation POC</title>
+		<title>Dumper Cars — Proof-of-Concept Hub</title>
+		<style>
+			:root {
+				--bg: #0e1116;
+				--panel: #171c24;
+				--panel-2: #1e2530;
+				--edge: #2b3441;
+				--text: #e7ecf3;
+				--muted: #93a1b3;
+				--accent: #ff8a3d;
+				--accent-2: #ffd23d;
+				--radius: 14px;
+				--font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+			}
+			* { box-sizing: border-box; }
+			html, body {
+				margin: 0;
+				min-height: 100%;
+				background: radial-gradient(120% 120% at 50% 0%, #10151d 0%, #0a0d12 70%);
+				color: var(--text);
+				font-family: var(--font);
+				-webkit-font-smoothing: antialiased;
+			}
+			.wrap {
+				min-height: 100vh;
+				display: grid;
+				place-items: center;
+				padding: 32px 24px;
+			}
+			.hub { width: min(920px, 100%); }
+			.hub__head { text-align: center; margin-bottom: 30px; }
+			.hub__title {
+				margin: 0;
+				font-size: 30px;
+				letter-spacing: 0.2px;
+			}
+			.hub__title .spark { color: var(--accent); }
+			.hub__subtitle {
+				margin: 10px auto 0;
+				max-width: 560px;
+				color: var(--muted);
+				font-size: 14px;
+				line-height: 1.5;
+			}
+			.cards {
+				display: grid;
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+				gap: 20px;
+			}
+			.poc {
+				display: flex;
+				flex-direction: column;
+				text-decoration: none;
+				color: inherit;
+				background: var(--panel);
+				border: 1px solid var(--edge);
+				border-radius: var(--radius);
+				overflow: hidden;
+				box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+				transition: border-color 0.15s, transform 0.08s, box-shadow 0.15s;
+			}
+			.poc:hover {
+				border-color: var(--accent);
+				transform: translateY(-3px);
+				box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55);
+			}
+			.poc:active { transform: translateY(-1px); }
+			.poc__art {
+				height: 148px;
+				display: grid;
+				place-items: center;
+				font-size: 54px;
+				border-bottom: 1px solid var(--edge);
+			}
+			.poc--junk .poc__art { background: linear-gradient(160deg, #2a2016, #14100b); }
+			.poc--arena .poc__art { background: linear-gradient(160deg, #16222a, #0b1116); }
+			.poc__body { padding: 18px 20px 20px; }
+			.poc__name {
+				margin: 0;
+				font-size: 18px;
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+			.tag {
+				font-size: 10px;
+				text-transform: uppercase;
+				letter-spacing: 1px;
+				padding: 3px 8px;
+				border-radius: 999px;
+				border: 1px solid var(--edge);
+				color: var(--muted);
+			}
+			.tag--live { color: var(--accent-2); border-color: #5a4a1e; }
+			.tag--wip { color: var(--accent); border-color: #5a3418; }
+			.poc__desc {
+				margin: 10px 0 0;
+				color: var(--muted);
+				font-size: 13px;
+				line-height: 1.5;
+			}
+			.poc__cta {
+				margin-top: 16px;
+				font-size: 13px;
+				font-weight: 600;
+				color: var(--accent);
+			}
+			.hub__foot {
+				margin-top: 26px;
+				text-align: center;
+				color: #6c7887;
+				font-size: 12px;
+			}
+			@media (max-width: 720px) {
+				.cards { grid-template-columns: 1fr; }
+			}
+		</style>
 	</head>
 	<body>
-		<div id="app">
-			<!-- ThreeJS renders here in a later phase. -->
-			<canvas id="viewport"></canvas>
+		<div class="wrap">
+			<main class="hub">
+				<div class="hub__head">
+					<h1 class="hub__title">Dumper Cars <span class="spark">·</span> POC Hub</h1>
+					<p class="hub__subtitle">
+						A collection of seed-driven proof-of-concept sandboxes for the Dumper
+						Cars project. Pick one to explore — each opens as its own page, so a
+						refresh keeps you right where you are.
+					</p>
+				</div>
 
-			<!-- Runtime controls (Tweakpane mounts inside). -->
-			<aside id="sidebar" class="hidden"></aside>
+				<div class="cards">
+					<a class="poc poc--junk" href="./junkyard.html">
+						<div class="poc__art">🗑️</div>
+						<div class="poc__body">
+							<h2 class="poc__name">Junkyard POC <span class="tag tag--live">Live</span></h2>
+							<p class="poc__desc">
+								Procedurally generated, infinite seed-driven junkyard — POM PBR
+								scrap textures, chunk streaming, biomes, and structures. Walk or
+								fly through the piles.
+							</p>
+							<div class="poc__cta">Enter the junkyard ▸</div>
+						</div>
+					</a>
 
-			<!-- Minimal heads-up display. -->
-			<div id="hud" class="hidden"></div>
+					<a class="poc poc--arena" href="./arena.html">
+						<div class="poc__art">🏟️</div>
+						<div class="poc__body">
+							<h2 class="poc__name">Arena POC <span class="tag tag--wip">Early</span></h2>
+							<p class="poc__desc">
+								Seed-driven bumper-car / demolition-derby arena generator. Currently
+								a walkable infinite arena floor — arena generation lands here next.
+							</p>
+							<div class="poc__cta">Enter the arena ▸</div>
+						</div>
+					</a>
+				</div>
 
-			<!-- Start-screen overlay (populated by src/ui/startScreen.js). -->
-			<div id="start-screen"></div>
+				<p class="hub__foot">More proofs-of-concept will appear here under the same umbrella.</p>
+			</main>
 		</div>
-
-		<script type="module" src="/src/main.js"></script>
 	</body>
 </html>
