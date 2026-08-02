@@ -13,9 +13,10 @@
  * ============================================================================
  */
 
-import { computeDims, inboundsRect } from "./grid.js";
+import { computeDims, inboundsRect, key } from "./grid.js";
 import { buildRings } from "./rings.js";
 import { placeChairs } from "./chairs.js";
+import { generateLevel2 } from "./islands.js";
 
 /**
  * @typedef {object} ArenaModel
@@ -27,6 +28,8 @@ import { placeChairs } from "./chairs.js";
  * @property {import("./rings.js").Container[]} containers  Ring + poke containers (all stories).
  * @property {import("./chairs.js").Chair[]} chairs
  * @property {string[]} solidCells  Ground-solid cell keys (walls) for later passes/overlay.
+ * @property {string[]} level2  Cell keys raised to level 2 (half-platforms).
+ * @property {{cx:number,cz:number,dir:string,from:number,to:number}[]} ramps
  */
 
 /**
@@ -41,6 +44,11 @@ export function generateArena(seed, params) {
 	const chairs = placeChairs(rings, dims, params, seed);
 	const bounds = inboundsRect(dims);
 
+	// In-bounds cells blocked for island building = poke (inward wall) cells.
+	const pokeCells = new Set();
+	for (const p of rings.pokes) for (const [x, z] of p.cells) pokeCells.add(key(x, z));
+	const l2 = generateLevel2(dims, params, seed, pokeCells);
+
 	return {
 		seed,
 		params,
@@ -50,5 +58,7 @@ export function generateArena(seed, params) {
 		containers: rings.containers,
 		chairs,
 		solidCells: rings.solidCells,
+		level2: l2.level2,
+		ramps: l2.ramps,
 	};
 }

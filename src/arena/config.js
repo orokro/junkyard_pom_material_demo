@@ -45,6 +45,14 @@ export const WORLD_GROUPS = [
 			{ key: "chairChance", type: "number", label: "Chair chance / top", value: 0.55, min: 0, max: 1, step: 0.05, hint: "Chance an eligible ring-top spawns grandstand chairs." },
 		],
 	},
+	{
+		title: "Level 2 (raised platforms)",
+		fields: [
+			{ key: "level2CoverageMin", type: "number", label: "Coverage min", value: 0.08, min: 0, max: 0.6, step: 0.01, hint: "Min fraction of the arena raised to level 2." },
+			{ key: "level2CoverageMax", type: "number", label: "Coverage max", value: 0.25, min: 0, max: 0.6, step: 0.01, hint: "Max fraction raised to level 2." },
+			{ key: "maxIslandsL2", type: "number", label: "Max islands", value: 3, min: 1, max: 8, step: 1, hint: "Upper bound on distinct level-2 islands (each gets ≥1 ramp)." },
+		],
+	},
 ];
 
 /** @type {GroupDef[]} Runtime parameters (live sidebar). */

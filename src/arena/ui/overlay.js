@@ -89,6 +89,31 @@ export function createOverlay(host) {
 			ctx.fill();
 		}
 
+		// Level-2 half-platforms.
+		ctx.fillStyle = "rgba(80,200,255,0.55)";
+		for (const k of model.level2 || []) {
+			const [cx, cz] = k.split(",").map(Number);
+			ctx.fillRect(px(cx) + 1, py(cz) + 1, s - 2, s - 2);
+		}
+
+		// Ramps: yellow triangle pointing up-slope.
+		const DIRC = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
+		ctx.fillStyle = "#ffe14d";
+		for (const r of model.ramps || []) {
+			const cxp = px(r.cx) + s / 2;
+			const cyp = py(r.cz) + s / 2;
+			const [dxc, dyc] = DIRC[r.dir] || [0, -1];
+			const apex = [cxp + dxc * s * 0.38, cyp + dyc * s * 0.38];
+			const bc = [cxp - dxc * s * 0.28, cyp - dyc * s * 0.28];
+			const perp = [-dyc, dxc];
+			ctx.beginPath();
+			ctx.moveTo(apex[0], apex[1]);
+			ctx.lineTo(bc[0] + perp[0] * s * 0.28, bc[1] + perp[1] * s * 0.28);
+			ctx.lineTo(bc[0] - perp[0] * s * 0.28, bc[1] - perp[1] * s * 0.28);
+			ctx.closePath();
+			ctx.fill();
+		}
+
 		// Legend.
 		ctx.fillStyle = "#93a1b3";
 		ctx.font = "10px monospace";

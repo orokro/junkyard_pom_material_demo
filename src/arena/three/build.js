@@ -14,7 +14,10 @@
  */
 
 import * as THREE from "three";
-import { CELL } from "../gen/grid.js";
+import { CELL, cellCenter } from "../gen/grid.js";
+
+/** Ramp up-direction (N=-Z default) → Y rotation. */
+const RAMP_ROT = { N: 0, E: -Math.PI / 2, S: Math.PI, W: Math.PI / 2 };
 
 /**
  * @param {[[number,number],[number,number]]} cells @param {"H"|"V"} orient @param {number} baseY
@@ -56,6 +59,20 @@ export function buildArena(model, registry) {
 	}
 	for (const ch of model.chairs) {
 		add(`Arena_${ch.chairType}`, ch.pos[0], ch.pos[1], ch.pos[2], ch.rotY);
+	}
+
+	// Level-2 half-platforms.
+	for (const k of model.level2 || []) {
+		const [cx, cz] = k.split(",").map(Number);
+		const [x, z] = cellCenter(cx, cz);
+		add("Arena_HalfPlatform", x, 0, z, 0);
+	}
+
+	// Ramps. from=0 → 1→2 ramp sits on the ground (Y=0); from=2 → 2→3 ramp sits
+	// on a half-platform (Y=2). Rotation aims the high side along the up direction.
+	for (const r of model.ramps || []) {
+		const [x, z] = cellCenter(r.cx, r.cz);
+		add("Arena_Ramp", x, r.from === 2 ? 2 : 0, z, RAMP_ROT[r.dir] ?? 0);
 	}
 
 	// Materialize: one InstancedMesh per (part, sub-mesh), sharing the transforms.
