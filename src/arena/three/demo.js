@@ -17,6 +17,7 @@ import { createFloor } from "./floor.js";
 import { createPostFX, DEFAULT_POST_SHADER } from "./postfx.js";
 import { loadPostFX } from "../settings.js";
 import { generateArena } from "../gen/arena.js";
+import { makeSurfaceSampler } from "../gen/surface.js";
 import { loadArenaLibrary } from "./library.js";
 import { buildArena } from "./build.js";
 import { createOverlay } from "../ui/overlay.js";
@@ -46,6 +47,7 @@ export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) 
 
 	// 1) Generate the arena (pure data).
 	const model = generateArena(String(worldConfig.seed), worldConfig);
+	const surfaceAt = makeSurfaceSampler(model);
 	const centerX = (model.bounds.minX + model.bounds.maxX) / 2;
 	const centerZ = (model.bounds.minZ + model.bounds.maxZ) / 2;
 
@@ -67,7 +69,7 @@ export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) 
 		speed: runtimeConfig.cameraSpeed,
 		walkSpeed: runtimeConfig.walkSpeed,
 		eyeHeight: EYE_HEIGHT,
-		getSurfaceHeight: () => 0,
+		getSurfaceHeight: surfaceAt,
 		startWalking: true,
 		bounds: model.bounds,
 		boundsMargin: 0.8,

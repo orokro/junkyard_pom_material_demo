@@ -59,28 +59,59 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 	const isRamp = (x, z) => rampCells.has(key(x, z));
 	/** plain drivable ground: in-bounds, not a poke/wall, not L2, not a ramp. */
 	const isL1 = (x, z) => inB(x, z) && !pokeCells.has(key(x, z)) && !isL2(x, z) && !isRamp(x, z);
-
-	/** All current L1 cells reachable (4-conn via L1) from a border L1 cell? (no enclosed pockets) */
-	function holeFree() {
-		const seen = new Set();
-		const stack = [];
-		let total = 0;
-		for (let x = 0; x < dims.Wc; x++) {
-			for (let z = 0; z < dims.Dc; z++) {
-				if (!isL1(x, z)) continue;
-				total++;
-				if ((x === 0 || z === 0 || x === dims.Wc - 1 || z === dims.Dc - 1) && !seen.has(key(x, z))) {
-					seen.add(key(x, z));
-					stack.push([x, z]);
-				}
+	/** blocks a car at ground level (walls/pokes/L2). Ramps are OPEN (drivable) → not blocking. */
+	const isBlocking = (x, z) => !inB(x, z) || pokeCells.has(key(x, z)) || isL2(x, z);
+	/** Would these newly-L2 cells leave an open ground cell walled on ≥3 sides (a tire dead-end)? */
+	const createsDeadEnd = (cells) => {
+		for (const [cx0, cz0] of cells) {
+			for (const [dx, dz] of Object.values(DIR_VEC)) {
+				const nx = cx0 + dx, nz = cz0 + dz;
+				if (!isL1(nx, nz)) continue; // only open ground cells can be dead-ends
+				let b = 0;
+				for (const [ex, ez] of Object.values(DIR_VEC)) if (isBlocking(nx + ex, nz + ez)) b++;
+				if (b >= 3) return true;
 			}
 		}
-		while (stack.length) {
-			const [x, z] = stack.pop();
+		return false;
+	};
+
+	/**
+	 * Are all drivable cells one connected component (no traps)? Drivable = L1
+	 * ground + L2 platforms; L1↔L1 and L2↔L2 by adjacency, and each ramp links its
+	 * lower-lead (L1) to its landing (L2). You can only fall DOWN (one-way), so any
+	 * separate component is a trap — even one touching the arena border (which is a
+	 * wall, not an exit). This replaces the earlier border-based hole check.
+	 */
+	function connected() {
+		const rampEdge = new Map();
+		const link = (a, b) => { (rampEdge.get(a) || rampEdge.set(a, []).get(a)).push(b); };
+		for (const [rk, d] of rampCells) {
+			const [rx, rz] = unkey(rk);
+			const [dx, dz] = DIR_VEC[d];
+			const lead = key(rx - dx, rz - dz);
+			const land = key(rx + dx, rz + dz);
+			link(lead, land);
+			link(land, lead);
+		}
+		let total = 0;
+		let start = null;
+		for (let x = 0; x < dims.Wc; x++) for (let z = 0; z < dims.Dc; z++) {
+			if (isL1(x, z) || isL2(x, z)) { total++; if (!start) start = [x, z]; }
+		}
+		if (!start) return true;
+		const seen = new Set([key(start[0], start[1])]);
+		const st = [start];
+		while (st.length) {
+			const [x, z] = st.pop();
+			const cur = key(x, z);
+			const curL1 = isL1(x, z);
 			for (const [dx, dz] of Object.values(DIR_VEC)) {
-				const nx = x + dx, nz = z + dz;
-				if (isL1(nx, nz) && !seen.has(key(nx, nz))) { seen.add(key(nx, nz)); stack.push([nx, nz]); }
+				const nx = x + dx, nz = z + dz, nk = key(nx, nz);
+				if (seen.has(nk)) continue;
+				if (curL1 ? isL1(nx, nz) : isL2(nx, nz)) { seen.add(nk); st.push([nx, nz]); }
 			}
+			const re = rampEdge.get(cur);
+			if (re) for (const nk of re) { if (!seen.has(nk)) { const [nx, nz] = unkey(nk); seen.add(nk); st.push([nx, nz]); } }
 		}
 		return seen.size === total;
 	}
@@ -106,7 +137,7 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 				level2.add(key(ax, az));
 				rampCells.set(key(rx, rz), dName);
 				reservedL1.add(key(lx, lz));
-				if (!holeFree()) {
+				if (!connected() || createsDeadEnd([[ax, az]])) {
 					level2.delete(key(ax, az));
 					rampCells.delete(key(rx, rz));
 					reservedL1.delete(key(lx, lz));
@@ -130,7 +161,7 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 				const nx = fx + dx, nz = fz + dz;
 				if (!isL1(nx, nz) || reservedL1.has(key(nx, nz))) continue;
 				level2.add(key(nx, nz));
-				if (!holeFree()) { level2.delete(key(nx, nz)); continue; }
+				if (!connected() || createsDeadEnd([[nx, nz]])) { level2.delete(key(nx, nz)); continue; }
 				frontier.push([nx, nz]);
 				added++;
 				grew = true;
