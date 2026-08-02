@@ -2,11 +2,9 @@
  * ============================================================================
  * arena/main.js
  * ----------------------------------------------------------------------------
- * Arena POC entry point. Wires the start screen, HUD, Tweakpane sidebar, and
- * the ThreeJS arena demo together, managing the top-level view state
- * (setup ⇄ running).
- *
- * Independent of the junkyard POC: everything it imports lives under src/arena/.
+ * Arena POC entry point: wires the start screen, HUD, Tweakpane sidebar, and the
+ * ThreeJS arena demo, managing the setup ⇄ running view state. Independent of the
+ * junkyard POC (everything imported lives under src/arena/).
  * ============================================================================
  */
 
@@ -27,14 +25,10 @@ let sidebarHandle = null;
 /** @type {import("./three/demo.js").DemoApi|null} */
 let demo = null;
 
-/** Runtime config persists across setup ⇄ running so live tweaks are retained. */
 const runtimeConfig = makeRuntimeConfig();
 
 /**
- * Toggle a simple full-screen loading overlay.
- * @param {boolean} on Show/hide.
- * @param {string} [text] Message.
- * @returns {void}
+ * @param {boolean} on @param {string} [text] @returns {void}
  */
 function setLoading(on, text = "Preparing arena…") {
 	let el = document.getElementById("loading");
@@ -53,10 +47,7 @@ function setLoading(on, text = "Preparing arena…") {
 	}
 }
 
-/**
- * Show the setup (start-screen) view, tearing down the running view.
- * @returns {void}
- */
+/** @returns {void} */
 function showSetup() {
 	sidebarHandle?.dispose();
 	sidebarHandle = null;
@@ -69,21 +60,22 @@ function showSetup() {
 }
 
 /**
- * Enter the running view with an assembled world config.
- * @param {Record<string, *>} worldConfig World-generation parameters.
- * @returns {Promise<void>}
+ * @param {Record<string, *>} worldConfig @returns {Promise<void>}
  */
 async function startRun(worldConfig) {
 	window.__arenaWorld = worldConfig;
 	console.info("[arena] world config:", worldConfig);
 
 	startScreenEl.classList.add("hidden");
-	setLoading(true);
+	setLoading(true, "Generating arena…");
 
 	try {
 		demo = await startDemo(canvasEl, runtimeConfig, worldConfig, {
-			onProgress: (loaded, total) => setLoading(true, `Preparing arena… ${loaded}/${total}`),
-			onStats: (s) => updateHudStats(`${s.walking ? "walk" : "fly"} · x ${s.x.toFixed(0)} z ${s.z.toFixed(0)}`),
+			onProgress: (loaded, total) => {
+				const mb = total > 1 ? ` ${(loaded / 1e6).toFixed(0)}/${(total / 1e6).toFixed(0)} MB` : "";
+				setLoading(true, `Loading arena parts…${mb}`);
+			},
+			onStats: (st) => updateHudStats(`${st.walking ? "walk" : "fly"} · x ${st.x.toFixed(0)} z ${st.z.toFixed(0)}`),
 		});
 	} catch (err) {
 		console.error("[arena] demo failed to start:", err);
@@ -95,10 +87,12 @@ async function startRun(worldConfig) {
 	sidebarEl.classList.remove("hidden");
 	hudEl.classList.remove("hidden");
 
-	const hint =
-		"Click to look · WASD move · Shift boost · Tab walk/fly · Space/C fly up-down" +
-		(demo.usingFallbackFloor ? " · placeholder floor (drop arena_floor_* into assets/tex)" : "");
-	renderHud(hudEl, `${worldConfig.seed}  ·  arena ${worldConfig.arenaSizeMeters} m`, hint);
+	const d = demo.model.dims;
+	renderHud(
+		hudEl,
+		`${worldConfig.seed}  ·  ${d.Wc}×${d.Dc} cells (${worldConfig.arenaSizeMeters} m diag)`,
+		"Click to look · WASD move · Shift boost · Tab walk/fly · Space/C fly up-down · overlay in sidebar"
+	);
 
 	sidebarHandle = mountSidebar(sidebarEl, runtimeConfig, {
 		onChange(key, value) {

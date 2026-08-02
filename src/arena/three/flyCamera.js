@@ -2,17 +2,14 @@
  * ============================================================================
  * arena/three/flyCamera.js
  * ----------------------------------------------------------------------------
- * Camera controls with two modes, toggled by Tab:
+ * Two-mode camera (Tab toggles):
+ *   - Walk (default): FPS walker; Y locked to surface + eye height.
+ *   - Fly: free 6-DOF (WASD + Space/C, faster).
+ * Mouse look (pointer lock) + Shift-boost in both.
  *
- *   - Walk (default): an FPS-style walker. Horizontal WASD from the yaw only
- *     (looking up/down doesn't move you vertically); the camera Y is locked to
- *     the surface + eye height, sampled from getSurfaceHeight (flat 0 for the
- *     arena floor).
- *   - Fly: free 6-DOF flight (WASD + Space/C, faster).
- *
- * Mouse look (pointer lock) and Shift-boost apply in both modes. Unlike the
- * junkyard, the arena has NO western boundary — movement is unbounded in every
- * direction (no minX clamp).
+ * Arena addition: an optional HARD BOUNDS CLAMP. The playable area is a fixed
+ * rectangle; the player/fly camera is clamped inside it (with a margin) and can
+ * never leave or peek OOB — even though walls/props render beyond the bounds.
  * ============================================================================
  */
 
@@ -25,18 +22,18 @@ const BOOST = 3.0;
 /**
  * @typedef {object} FlyControls
  * @property {(dt: number) => void} update
- * @property {(speed: number) => void} setSpeed Fly speed (m/s).
- * @property {(speed: number) => void} setWalkSpeed Walk speed (m/s).
+ * @property {(speed: number) => void} setSpeed
+ * @property {(speed: number) => void} setWalkSpeed
+ * @property {(bounds: {minX:number,maxX:number,minZ:number,maxZ:number}|null) => void} setBounds
  * @property {(pos: THREE.Vector3Like, target: THREE.Vector3Like) => void} placeLookingAt
  * @property {() => boolean} isWalking
  * @property {() => void} dispose
  */
 
 /**
- * Attach camera controls.
  * @param {THREE.PerspectiveCamera} camera
- * @param {HTMLElement} dom Pointer-lock target (canvas).
- * @param {{ speed?: number, walkSpeed?: number, eyeHeight?: number, getSurfaceHeight?: (x: number, z: number) => number, startWalking?: boolean }} [opts]
+ * @param {HTMLElement} dom
+ * @param {{ speed?:number, walkSpeed?:number, eyeHeight?:number, getSurfaceHeight?:(x:number,z:number)=>number, startWalking?:boolean, bounds?:{minX:number,maxX:number,minZ:number,maxZ:number}|null, boundsMargin?:number }} [opts]
  * @returns {FlyControls}
  */
 export function createFlyControls(camera, dom, opts = {}) {
@@ -48,23 +45,22 @@ export function createFlyControls(camera, dom, opts = {}) {
 	const getSurfaceHeight = opts.getSurfaceHeight ?? (() => 0);
 	let walking = opts.startWalking ?? true;
 	let locked = false;
+	let bounds = opts.bounds ?? null;
+	const margin = opts.boundsMargin ?? 0.6;
 
 	/** @type {Record<string, boolean>} */
 	const keys = {};
-
 	const forward = new THREE.Vector3();
 	const right = new THREE.Vector3();
 	const move = new THREE.Vector3();
 	const euler = new THREE.Euler(0, 0, 0, "YXZ");
 
-	/** @param {MouseEvent} e */
 	const onMouseMove = (e) => {
 		if (!locked) return;
 		yaw -= e.movementX * SENSITIVITY;
 		pitch -= e.movementY * SENSITIVITY;
 		pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch));
 	};
-	/** @param {KeyboardEvent} e */
 	const onKeyDown = (e) => {
 		if (e.code === "Tab") {
 			e.preventDefault();
@@ -73,7 +69,6 @@ export function createFlyControls(camera, dom, opts = {}) {
 		}
 		keys[e.code] = true;
 	};
-	/** @param {KeyboardEvent} e */
 	const onKeyUp = (e) => {
 		keys[e.code] = false;
 	};
@@ -88,15 +83,20 @@ export function createFlyControls(camera, dom, opts = {}) {
 	window.addEventListener("keydown", onKeyDown);
 	window.addEventListener("keyup", onKeyUp);
 
+	/** @returns {void} Clamp camera XZ inside the playable bounds. */
+	function clampBounds() {
+		if (!bounds) return;
+		camera.position.x = Math.min(Math.max(camera.position.x, bounds.minX + margin), bounds.maxX - margin);
+		camera.position.z = Math.min(Math.max(camera.position.z, bounds.minZ + margin), bounds.maxZ - margin);
+	}
+
 	return {
 		update(dt) {
 			euler.set(pitch, yaw, 0, "YXZ");
 			camera.quaternion.setFromEuler(euler);
-
 			const boost = keys.ShiftLeft || keys.ShiftRight ? BOOST : 1;
 
 			if (walking) {
-				// Horizontal heading only (ignore pitch), so looking up/down doesn't fly.
 				forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
 				forward.y = 0;
 				if (forward.lengthSq() < 1e-6) forward.set(0, 0, -1);
@@ -104,7 +104,6 @@ export function createFlyControls(camera, dom, opts = {}) {
 				right.set(1, 0, 0).applyQuaternion(camera.quaternion);
 				right.y = 0;
 				right.normalize();
-
 				move.set(0, 0, 0);
 				if (keys.KeyW) move.add(forward);
 				if (keys.KeyS) move.sub(forward);
@@ -114,7 +113,7 @@ export function createFlyControls(camera, dom, opts = {}) {
 					move.normalize();
 					camera.position.addScaledVector(move, walkSpeed * boost * dt);
 				}
-				// Stick to the surface.
+				clampBounds();
 				camera.position.y = getSurfaceHeight(camera.position.x, camera.position.z) + eyeHeight;
 			} else {
 				forward.set(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -130,6 +129,7 @@ export function createFlyControls(camera, dom, opts = {}) {
 					move.normalize();
 					camera.position.addScaledVector(move, flySpeed * boost * dt);
 				}
+				clampBounds();
 			}
 		},
 		setSpeed(next) {
@@ -137,6 +137,9 @@ export function createFlyControls(camera, dom, opts = {}) {
 		},
 		setWalkSpeed(next) {
 			walkSpeed = next;
+		},
+		setBounds(next) {
+			bounds = next;
 		},
 		placeLookingAt(pos, target) {
 			camera.position.set(pos.x, pos.y, pos.z);

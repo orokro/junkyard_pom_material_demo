@@ -1,9 +1,8 @@
 # Dumper Cars — Arena Generator POC — Plan
 
-> Status: **Phase 3 locked → Phase 4 draft (ready for sign-off).** §4 verified
-> against the re-exported `arena_parts.glb`. Generation approach locked:
-> **ramps-first, grow islands, domino-tiled level 3.** Awaiting Greg's OK to
-> start Phase 5 dev.
+> Status: **Phase 4 LOCKED — Phase 5 in progress.** §4 verified against the
+> re-exported `arena_parts.glb`. Generation approach locked: **ramps-first, grow
+> islands, domino-tiled level 3.** Signed off; dev underway.
 
 ---
 
@@ -121,12 +120,14 @@ InstancedMeshes.
 Per **ground cell**, against a "solid/high" mask where **walls, L2, L3, bridges =
 solid** but **ramps = open (L0)** (never block ramp access):
 
-- **Straight** — each orthogonal edge whose neighbor is solid.
-- **InnerCorner** — two adjacent orthogonal edges solid (concave); the `1×1` mesh.
+- **InnerCorner** — two adjacent orthogonal edges solid (concave); default N+E.
+- **Straight** — each solid orthogonal edge **that is NOT already consumed by an
+  InnerCorner**. Precedence: if two adjacent edges are solid, the InnerCorner
+  covers both and **suppresses** the straights on those two edges (no doubling).
 - **OuterCorner** — diagonal neighbor solid AND both shared orthogonals open
-  (kitty-corner only, avoid doubling); the `4×4` mesh.
-- Multiple pieces per cell allowed (image 8: a cell can carry inner+outer, or two
-  straights on opposite edges).
+  (kitty-corner only), default NE.
+- Multiple pieces per cell allowed and common (images 7ca266f6 & 8: e.g. an inner
+  corner + a straight on the far edge + an outer corner = 3 pieces in one cell).
 - **No 1×1 dead-ends** (image 2): no tile closes 3 walls. Pass detects 1-wide
   dead-end pockets → fix (open a side / fill). 1-wide through-corridors OK.
 - Bridge underpass cells + pillar bases get tires (bridge counts as L1 here).
@@ -204,7 +205,7 @@ in-bounds container tops (decide in P5).
 - **P1** digest + doc ✅
 - **P2** discovery (`arena_discover.mjs`), §4 verified ✅ (re-verified after re-export)
 - **P3** logic locked: ramps-first, domino L3, tire autotiling, densities ✅
-- **P4** lock the plan — this doc; **awaiting sign-off** ←
-- **P5** dev: arena shape + outer rings + chairs + debug overlay
+- **P4** lock the plan — this doc ✅ (signed off)
+- **P5** dev: arena shape + outer rings + chairs + debug overlay ← in progress
 - **P6** dev: inner levels (islands, domino fill, ramps, bridges, metal barriers)
 - **P7** dev: tires + dead-end pass

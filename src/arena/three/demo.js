@@ -2,14 +2,12 @@
  * ============================================================================
  * arena/three/demo.js
  * ----------------------------------------------------------------------------
- * Orchestration for the Arena POC: wires the scene, the scrolling arena floor,
- * the walk/fly camera, and the post-processing pass together and exposes a
- * small control API to main.js (live runtime tweaks, reset view, post-FX).
+ * Orchestration for the Arena POC (Phase 5): generate the arena model, load the
+ * parts library, build InstancedMeshes, wire the walk/fly camera (clamped to the
+ * playable bounds), the scrolling floor, post-FX, and the debug overlay.
  *
- * This is the arena equivalent of the junkyard's three/demo.js. It shares no
- * code with the junkyard — it only composes the arena's own modules. Arena
- * generation (seed-driven geometry) will grow inside here; for now the "world"
- * is an open, walkable infinite floor.
+ * Later phases extend the generator (islands/ramps/bridges/tires/barriers); this
+ * file only grows the build + overlay calls, not the plumbing.
  * ============================================================================
  */
 
@@ -18,51 +16,70 @@ import { createFlyControls } from "./flyCamera.js";
 import { createFloor } from "./floor.js";
 import { createPostFX, DEFAULT_POST_SHADER } from "./postfx.js";
 import { loadPostFX } from "../settings.js";
+import { generateArena } from "../gen/arena.js";
+import { loadArenaLibrary } from "./library.js";
+import { buildArena } from "./build.js";
+import { createOverlay } from "../ui/overlay.js";
 
 const EYE_HEIGHT = 1.7;
 
 /**
  * @typedef {object} DemoApi
- * @property {(key: string, value: *) => void} applyRuntime Apply a live runtime tweak.
- * @property {() => void} resetView Return to the spawn pose.
- * @property {(on: boolean) => void} setPostEnabled Toggle post-processing.
- * @property {(code: string) => void} setPostShader Apply a post-FX fragment shader.
- * @property {boolean} usingFallbackFloor True if the arena_floor texture set is missing.
- * @property {() => void} dispose Tear everything down.
+ * @property {(key: string, value: *) => void} applyRuntime
+ * @property {() => void} resetView
+ * @property {(on: boolean) => void} setPostEnabled
+ * @property {(code: string) => void} setPostShader
+ * @property {import("../gen/arena.js").ArenaModel} model
+ * @property {() => void} dispose
  */
 
 /**
- * Start the arena demo on a canvas.
- * @param {HTMLCanvasElement} canvas Target canvas.
- * @param {Record<string, *>} runtimeConfig Live runtime config (mutated by the sidebar).
- * @param {Record<string, *>} worldConfig Assembled world config (seed, arena size, …).
- * @param {{ onProgress?: (loaded: number, total: number) => void, onStats?: (s: *) => void }} [hooks]
- * @returns {Promise<DemoApi>} Control API.
+ * @param {HTMLCanvasElement} canvas
+ * @param {Record<string, *>} runtimeConfig
+ * @param {Record<string, *>} worldConfig
+ * @param {{ onProgress?:(loaded:number,total:number)=>void, onStats?:(s:*)=>void }} [hooks]
+ * @returns {Promise<DemoApi>}
  */
 export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) {
 	const { onProgress, onStats } = hooks;
 	onProgress?.(0, 1);
 
+	// 1) Generate the arena (pure data).
+	const model = generateArena(String(worldConfig.seed), worldConfig);
+	const centerX = (model.bounds.minX + model.bounds.maxX) / 2;
+	const centerZ = (model.bounds.minZ + model.bounds.maxZ) / 2;
+
+	// 2) Scene + floor.
 	const s = createScene(canvas, runtimeConfig.cameraFov);
 	const { renderer, scene, camera } = s;
 	const maxAniso = renderer.capabilities.getMaxAnisotropy();
-
-	// Infinite scrolling arena floor (no bounds, no boundary wall).
 	const floor = await createFloor(maxAniso, runtimeConfig.floorTileMeters);
 	floor.setVisible(Boolean(runtimeConfig.floorVisible));
 	scene.add(floor.mesh);
-	onProgress?.(1, 1);
 
-	// Walk/fly camera. Flat surface at Y=0 → walk mode rides eye height above 0.
+	// 3) Load parts + build instanced meshes.
+	const { registry } = await loadArenaLibrary(maxAniso, (loaded, total) => onProgress?.(loaded, total));
+	const build = buildArena(model, registry);
+	scene.add(build);
+
+	// 4) Camera (clamped to playable bounds).
 	const controls = createFlyControls(camera, canvas, {
 		speed: runtimeConfig.cameraSpeed,
 		walkSpeed: runtimeConfig.walkSpeed,
 		eyeHeight: EYE_HEIGHT,
 		getSurfaceHeight: () => 0,
 		startWalking: true,
+		bounds: model.bounds,
+		boundsMargin: 0.8,
 	});
 
-	// Post-processing (same default shader + toggle as the junkyard).
+	/** @returns {void} Spawn at arena center, looking north (−Z). */
+	function resetView() {
+		controls.placeLookingAt({ x: centerX, y: EYE_HEIGHT, z: centerZ }, { x: centerX, y: EYE_HEIGHT, z: centerZ - 10 });
+	}
+	resetView();
+
+	// 5) Post-FX.
 	const post = createPostFX(renderer);
 	const savedPost = loadPostFX();
 	post.setShader(savedPost.code || DEFAULT_POST_SHADER);
@@ -70,11 +87,10 @@ export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) 
 	post.setSize(window.innerWidth, window.innerHeight);
 	s.setResizeHook((w, h) => post.setSize(w, h));
 
-	/** @returns {void} Place the camera at spawn (origin), looking east (+X). */
-	function resetView() {
-		controls.placeLookingAt({ x: 0, y: EYE_HEIGHT, z: 0 }, { x: 1, y: EYE_HEIGHT, z: 0 });
-	}
-	resetView();
+	// 6) Debug overlay.
+	const overlay = createOverlay(document.getElementById("app"));
+	overlay.update(model);
+	overlay.setVisible(Boolean(runtimeConfig.debugOverlay));
 
 	let statAccum = 0;
 	s.setUpdate((dt) => {
@@ -83,49 +99,36 @@ export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) 
 		statAccum += dt;
 		if (statAccum >= 0.1) {
 			statAccum = 0;
-			onStats?.({
-				walking: controls.isWalking(),
-				x: camera.position.x,
-				z: camera.position.z,
-			});
+			onStats?.({ walking: controls.isWalking(), x: camera.position.x, z: camera.position.z, dims: model.dims });
 		}
 	});
 	s.setRenderOverride((dt) => post.render(scene, camera, dt));
 	s.start();
 
 	return {
+		model,
 		applyRuntime(key, value) {
 			switch (key) {
-				case "walkSpeed":
-					controls.setWalkSpeed(value);
-					break;
-				case "cameraSpeed":
-					controls.setSpeed(value);
-					break;
-				case "cameraFov":
-					s.setFov(value);
-					break;
-				case "floorVisible":
-					floor.setVisible(Boolean(value));
-					break;
-				case "floorTileMeters":
-					floor.setTile(value);
-					break;
-				default:
-					break;
+				case "walkSpeed": controls.setWalkSpeed(value); break;
+				case "cameraSpeed": controls.setSpeed(value); break;
+				case "cameraFov": s.setFov(value); break;
+				case "floorVisible": floor.setVisible(Boolean(value)); break;
+				case "floorTileMeters": floor.setTile(value); break;
+				case "debugOverlay": overlay.setVisible(Boolean(value)); break;
+				default: break;
 			}
 		},
 		resetView,
-		setPostEnabled(on) {
-			post.setEnabled(on);
-		},
-		setPostShader(code) {
-			post.setShader(code);
-		},
-		usingFallbackFloor: floor.usingFallback,
+		setPostEnabled(on) { post.setEnabled(on); },
+		setPostShader(code) { post.setShader(code); },
 		dispose() {
 			controls.dispose();
 			post.dispose();
+			overlay.dispose();
+			scene.remove(build);
+			build.traverse((o) => {
+				if (o.isInstancedMesh) o.dispose?.();
+			});
 			scene.remove(floor.mesh);
 			floor.dispose();
 			s.dispose();

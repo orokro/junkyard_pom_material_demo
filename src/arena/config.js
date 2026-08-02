@@ -2,65 +2,52 @@
  * ============================================================================
  * arena/config.js
  * ----------------------------------------------------------------------------
- * Single source of truth for the Arena POC's tunable parameters.
+ * Single source of truth for the Arena POC's tunable parameters. The start-
+ * screen form (WORLD) and the Tweakpane sidebar (RUNTIME) are generated from
+ * these descriptors.
  *
- * Declared once as grouped field descriptors; the start-screen form
- * (arena/ui/startScreen.js) and the Tweakpane runtime sidebar
- * (arena/ui/sidebar.js) are both generated from these, so adding a knob in one
- * place surfaces it in the UI automatically.
- *
- * WORLD fields describe the arena and (later) require regeneration when changed.
- * RUNTIME fields are safe to tweak live (camera + view + floor).
- *
- * This is deliberately a sibling of the junkyard's config.js — the Arena POC
- * owns its own schema and shares no code with the junkyard.
+ * WORLD fields define the arena (require regeneration on change). RUNTIME fields
+ * are live (camera / floor / debug view). Sibling of the junkyard config — the
+ * arena owns its own schema.
  * ============================================================================
  */
 
 /**
  * @typedef {object} FieldDef
- * @property {string} key      Config property name.
- * @property {"number"|"text"|"bool"} type Field kind.
- * @property {string} label    Human label for the UI.
- * @property {*} value         Default value.
- * @property {number} [min]    Min (number fields).
- * @property {number} [max]    Max (number fields).
- * @property {number} [step]   Step (number fields).
- * @property {string} [hint]   Optional helper text.
+ * @property {string} key
+ * @property {"number"|"text"|"bool"} type
+ * @property {string} label
+ * @property {*} value
+ * @property {number} [min] @property {number} [max] @property {number} [step]
+ * @property {string} [hint]
  */
+/** @typedef {{ title: string, fields: FieldDef[] }} GroupDef */
 
-/**
- * @typedef {object} GroupDef
- * @property {string} title    Group heading.
- * @property {FieldDef[]} fields Fields in the group.
- */
-
-/** @type {GroupDef[]} World-generation parameters (set on the start screen). */
+/** @type {GroupDef[]} World-generation parameters (start screen). */
 export const WORLD_GROUPS = [
 	{
 		title: "Seed",
-		fields: [
-			{ key: "seed", type: "text", label: "Seed", value: "", hint: "Same seed → same arena. Roll for a new one." },
-		],
+		fields: [{ key: "seed", type: "text", label: "Seed", value: "", hint: "Same seed → same arena. Roll for a new one." }],
 	},
 	{
 		title: "Arena",
 		fields: [
-			{
-				key: "arenaSizeMeters",
-				type: "number",
-				label: "Arena size (diagonal m)",
-				value: 60,
-				min: 10,
-				max: 400,
-				step: 1,
-				hint: "Diagonal in meters, like a TV size — the aspect ratio can vary, but this diameter sets the scale.",
-			},
+			{ key: "arenaSizeMeters", type: "number", label: "Arena size (diagonal m)", value: 60, min: 20, max: 400, step: 1, hint: "Diagonal in meters (TV-size analogy); aspect ratio varies." },
+			{ key: "aspectMin", type: "number", label: "Aspect min (w/d)", value: 0.5, min: 0.25, max: 1, step: 0.05, hint: "Lower = allow taller (portrait) arenas." },
+			{ key: "aspectMax", type: "number", label: "Aspect max (w/d)", value: 2.0, min: 1, max: 4, step: 0.05, hint: "Higher = allow wider (landscape) arenas." },
+		],
+	},
+	{
+		title: "Outer walls",
+		fields: [
+			{ key: "secondStoryChance", type: "number", label: "2nd-story chance", value: 0.5, min: 0, max: 1, step: 0.05, hint: "Fraction of ring containers that get a second story." },
+			{ key: "maxInwardPokes", type: "number", label: "Max inward pokes", value: 4, min: 0, max: 16, step: 1, hint: "Containers poking into the arena to break the rectangle." },
+			{ key: "chairChance", type: "number", label: "Chair chance / top", value: 0.55, min: 0, max: 1, step: 0.05, hint: "Chance an eligible ring-top spawns grandstand chairs." },
 		],
 	},
 ];
 
-/** @type {GroupDef[]} Runtime parameters (live in the sidebar). */
+/** @type {GroupDef[]} Runtime parameters (live sidebar). */
 export const RUNTIME_GROUPS = [
 	{
 		title: "Camera",
@@ -74,33 +61,30 @@ export const RUNTIME_GROUPS = [
 		title: "Floor",
 		fields: [
 			{ key: "floorVisible", type: "bool", label: "Show floor", value: true },
-			{ key: "floorTileMeters", type: "number", label: "Floor tile (m)", value: 8, min: 1, max: 64, step: 1, hint: "World size of one arena-floor repeat; scrolls to stay world-locked." },
+			{ key: "floorTileMeters", type: "number", label: "Floor tile (m)", value: 8, min: 1, max: 64, step: 1 },
 		],
+	},
+	{
+		title: "Debug",
+		fields: [{ key: "debugOverlay", type: "bool", label: "Top-down overlay", value: true, hint: "Schematic map of the generated arena." }],
 	},
 ];
 
 /**
- * Flatten grouped descriptors into a plain defaults object.
- * @param {GroupDef[]} groups Group descriptors.
- * @returns {Record<string, *>} Key → default value map.
+ * @param {GroupDef[]} groups @returns {Record<string, *>}
  */
 export function defaultsFrom(groups) {
 	/** @type {Record<string, *>} */
 	const out = {};
-	for (const group of groups) {
-		for (const field of group.fields) {
-			out[field.key] = field.value;
-		}
-	}
+	for (const g of groups) for (const f of g.fields) out[f.key] = f.value;
 	return out;
 }
 
-/** @returns {Record<string, *>} A fresh world-config object with defaults. */
+/** @returns {Record<string, *>} */
 export function makeWorldConfig() {
 	return defaultsFrom(WORLD_GROUPS);
 }
-
-/** @returns {Record<string, *>} A fresh runtime-config object with defaults. */
+/** @returns {Record<string, *>} */
 export function makeRuntimeConfig() {
 	return defaultsFrom(RUNTIME_GROUPS);
 }
