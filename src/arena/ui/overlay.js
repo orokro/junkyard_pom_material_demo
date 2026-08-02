@@ -97,11 +97,30 @@ export function createOverlay(host) {
 			ctx.fillRect(px(cx) + 1, py(cz) + 1, s - 2, s - 2);
 		}
 
-		// Level-3 container tops (generated islands) — darker slate tint over ground.
+		// Level-3 container tops (generated islands) — purple tint over ground.
 		ctx.fillStyle = "rgba(150,120,220,0.62)";
 		for (const k of model.level3 || []) {
 			const [cx, cz] = k.split(",").map(Number);
 			ctx.fillRect(px(cx) + 1, py(cz) + 1, s - 2, s - 2);
+		}
+
+		// Bridges: teal outline + a lane line across the long sides (drive-under axis).
+		ctx.strokeStyle = "#38e0c0";
+		ctx.lineWidth = Math.max(1.5, s * 0.08);
+		for (const c of (model.containers || []).filter((c) => c.bridge)) {
+			const xs = c.cells.map((p) => p[0]);
+			const zs = c.cells.map((p) => p[1]);
+			const x = px(Math.min(...xs)), y = py(Math.min(...zs));
+			const w = (Math.max(...xs) - Math.min(...xs) + 1) * s;
+			const h = (Math.max(...zs) - Math.min(...zs) + 1) * s;
+			ctx.strokeRect(x + 1.5, y + 1.5, w - 3, h - 3);
+			ctx.beginPath(); // tunnel runs across the domino's long sides (cross axis)
+			for (const [cx, cz] of c.cells) {
+				const mx = px(cx) + s / 2, my = py(cz) + s / 2;
+				if (c.orient === "H") { ctx.moveTo(mx, my - s * 0.42); ctx.lineTo(mx, my + s * 0.42); }
+				else { ctx.moveTo(mx - s * 0.42, my); ctx.lineTo(mx + s * 0.42, my); }
+			}
+			ctx.stroke();
 		}
 
 		const DIRC = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };

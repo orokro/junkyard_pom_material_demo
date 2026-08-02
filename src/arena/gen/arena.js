@@ -17,6 +17,7 @@ import { computeDims, inboundsRect, key } from "./grid.js";
 import { buildRings } from "./rings.js";
 import { placeChairs } from "./chairs.js";
 import { generateLevel2, generateLevel3, makeBarriers } from "./islands.js";
+import { promoteBridges } from "./bridges.js";
 
 /**
  * @typedef {object} ArenaModel
@@ -30,6 +31,7 @@ import { generateLevel2, generateLevel3, makeBarriers } from "./islands.js";
  * @property {string[]} solidCells  Ground-solid cell keys (walls) for later passes/overlay.
  * @property {string[]} level2  Cell keys raised to level 2 (half-platforms).
  * @property {string[]} level3  Cell keys raised to level 3 (generated container tops).
+ * @property {string[]} bridges  L3 cell keys that are bridges (drivable over AND under).
  * @property {{cx:number,cz:number,dir:string,from:number,to:number}[]} ramps  All ramps (1→2 and 2→3).
  * @property {{cx:number,cz:number,dir:string}[]} barriers  Metal barriers on Y4 surface edges facing OOB.
  */
@@ -58,9 +60,26 @@ export function generateArena(seed, params) {
 		ramps: l2.ramps,
 		reservedL1: l2.reservedL1,
 	});
+	// Bridges: promote eligible L3 dominoes so cars drive under (ground) AND over (top).
+	const bridge = promoteBridges(dims, params, seed, {
+		pokeCells,
+		level2: l2.level2,
+		level3: l3.level3Cells,
+		ramps: [...l2.ramps, ...l3.ramps23],
+		level3Containers: l3.containers,
+	});
+	const bridgeSet = new Set(bridge.bridgeCells);
+
 	// L3 dominoes are ground-standing single containers (top forms the Y4 surface);
-	// tag them level3 so consumers (overlay/tests) can tell them from ring/poke walls.
-	const l3Containers = l3.containers.map((c) => ({ ...c, story: 1, ring: false, level3: true }));
+	// tag them level3 so consumers (overlay/tests) can tell them from ring/poke walls,
+	// and flag bridge dominoes so build.js renders the open-underside bridge mesh.
+	const l3Containers = l3.containers.map((c) => ({
+		...c,
+		story: 1,
+		ring: false,
+		level3: true,
+		bridge: bridgeSet.has(key(c.cells[0][0], c.cells[0][1])),
+	}));
 
 	// Metal barriers on every Y4 surface edge (L3 islands + inward pokes) facing OOB.
 	const barriers = makeBarriers(dims, l3.level3Cells, [...pokeCells]);
@@ -76,6 +95,7 @@ export function generateArena(seed, params) {
 		solidCells: rings.solidCells,
 		level2: l2.level2,
 		level3: l3.level3Cells,
+		bridges: bridge.bridgeCells,
 		ramps: [...l2.ramps, ...l3.ramps23],
 		barriers,
 	};

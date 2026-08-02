@@ -62,7 +62,9 @@ export function buildArena(model, registry) {
 
 	for (const c of model.containers) {
 		const t = dominoTransform(c.cells, c.orient, c.story === 2 ? 4 : 0);
-		add(`Arena_ShippingContainer_${c.color}`, t.x, t.y, t.z, t.rotY);
+		// Bridges share the container footprint/pivot but use the open-underside mesh.
+		if (c.bridge) add("Arena_Bridge", t.x, t.y, t.z, t.rotY);
+		else add(`Arena_ShippingContainer_${c.color}`, t.x, t.y, t.z, t.rotY);
 	}
 	for (const ch of model.chairs) {
 		add(`Arena_${ch.chairType}`, ch.pos[0], ch.pos[1], ch.pos[2], ch.rotY);

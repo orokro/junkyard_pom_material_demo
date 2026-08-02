@@ -222,6 +222,13 @@ unlike generated islands).
 - **P2** discovery (`arena_discover.mjs`), §4 verified ✅ (re-verified after re-export)
 - **P3** logic locked: ramps-first, domino L3, tire autotiling, densities ✅
 - **P4** lock the plan — this doc ✅ (signed off)
-- **P5** dev: arena shape + outer rings + chairs + debug overlay ← in progress
-- **P6** dev: inner levels (islands, domino fill, ramps, bridges, metal barriers)
-- **P7** dev: tires + dead-end pass
+- **P5** dev: arena shape + outer rings + chairs + debug overlay ✅
+- **P6** dev: inner levels ✅
+  - Step 1 — L2 islands + 1→2 ramps ✅
+  - Step 2a — L3 islands + 2→3 ramps + metal barriers ✅
+  - Step 2b — bridges pass (`gen/bridges.js`): L3 dominoes with a through-lane
+    beneath (drivable ground on both long sides) promoted to `Arena_Bridge`
+    (drive over + under); dead-end-safe; double bridges via fixed-point iteration.
+    Tunnel runs across the domino's long sides (pillars at the short ends);
+    `bridgeChance` param. Bridge cells stay L3 tops for the walk sampler ✅
+- **P7** dev: tires + dead-end pass ← next

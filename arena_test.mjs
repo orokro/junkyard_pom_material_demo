@@ -12,12 +12,13 @@ const fail = (m) => { console.log("  ✗", m); failures++; };
 const seeds = [];
 for (let i = 0; i < 120; i++) seeds.push("s_" + i.toString(36) + "_arena");
 
-let noL2 = 0, noL3 = 0, totalCov2 = 0, totalCov3 = 0, totalRamps = 0, totalRamps23 = 0, totalBarriers = 0;
+let noL2 = 0, noL3 = 0, totalCov2 = 0, totalCov3 = 0, totalRamps = 0, totalRamps23 = 0, totalBarriers = 0, totalBridges = 0, seedsWithBridge = 0;
 for (const seed of seeds) {
 	const m = generateArena(seed, params);
 	const dims = m.dims;
 	const l2 = new Set(m.level2);
 	const l3 = new Set(m.level3);
+	const bridges = new Set(m.bridges);
 	const rampSet = new Set(m.ramps.map((r) => key(r.cx, r.cz)));
 	// Pokes = ground WALL containers that poke inward (NOT the L3 island containers).
 	const pokeSet = new Set();
@@ -46,6 +47,8 @@ for (const seed of seeds) {
 	totalRamps += m.ramps.filter((r) => r.from === 0).length;
 	totalRamps23 += m.ramps.filter((r) => r.from === 2).length;
 	totalBarriers += m.barriers.length;
+	totalBridges += m.containers.filter((c) => c.bridge).length;
+	if (m.bridges.length) seedsWithBridge++;
 
 	// Ramp runs valid (both 1→2 and 2→3).
 	for (const r of m.ramps) {
@@ -67,8 +70,9 @@ for (const seed of seeds) {
 		}
 	}
 
-	// Connectivity: all drivable cells (L1 + L2 + L3, linked by ramps) = one component.
-	const isL1 = (x, z) => isInbounds(x, z, dims) && !pokeSet.has(key(x, z)) && !l2.has(key(x, z)) && !l3.has(key(x, z)) && !rampSet.has(key(x, z));
+	// Connectivity: all drivable surfaces one component. A bridge cell is BOTH an
+	// open ground node (drive under) AND an L3 top node (drive over) — two nodes.
+	const isL1 = (x, z) => isInbounds(x, z, dims) && !pokeSet.has(key(x, z)) && !l2.has(key(x, z)) && !rampSet.has(key(x, z)) && !(l3.has(key(x, z)) && !bridges.has(key(x, z)));
 	{
 		const edges = new Map();
 		const addE = (a, b) => { (edges.get(a) || edges.set(a, []).get(a)).push(b); };
@@ -79,10 +83,10 @@ for (const seed of seeds) {
 			addE(lead, land); addE(land, lead);
 		}
 		let total = 0, start = null;
-		const lvlAt = (x, z) => (isL1(x, z) ? "1" : l2.has(key(x, z)) ? "2" : l3.has(key(x, z)) ? "3" : null);
 		for (let x = 0; x < dims.Wc; x++) for (let z = 0; z < dims.Dc; z++) {
-			const lv = lvlAt(x, z);
-			if (lv) { total++; if (!start) start = `${lv}:${x},${z}`; }
+			if (isL1(x, z)) { total++; start = start || `1:${x},${z}`; }
+			if (l2.has(key(x, z))) { total++; start = start || `2:${x},${z}`; }
+			if (l3.has(key(x, z))) { total++; start = start || `3:${x},${z}`; }
 		}
 		if (start) {
 			const seen = new Set([start]);
@@ -130,13 +134,27 @@ for (const seed of seeds) {
 		}
 	}
 
-	// No 1x1 dead-ends anywhere (ramps count as OPEN; L3 blocks the ground it stands on).
-	const blocking = (x, z) => !isInbounds(x, z, dims) || pokeSet.has(key(x, z)) || l2.has(key(x, z)) || l3.has(key(x, z));
+	// No 1x1 dead-ends anywhere (ramps count as OPEN; solid L3 blocks the ground it
+	// stands on, but a bridge is open below → not blocking).
+	const blocking = (x, z) => !isInbounds(x, z, dims) || pokeSet.has(key(x, z)) || l2.has(key(x, z)) || (l3.has(key(x, z)) && !bridges.has(key(x, z)));
 	const openGround = (x, z) => isL1(x, z);
 	for (let x = 0; x < dims.Wc && failures < 50; x++) for (let z = 0; z < dims.Dc; z++) {
 		if (!openGround(x, z)) continue;
 		let b = 0; for (const [dx, dz] of DIRS) if (blocking(x + dx, z + dz)) b++;
 		if (b >= 3) { fail(`${seed}: island dead-end at ${x},${z}`); break; }
+	}
+
+	// Bridges: every bridge cell is an L3 top, and each bridge domino has a real
+	// through-lane beneath it (drivable ground on both long sides of some cell).
+	for (const k of m.bridges) if (!l3.has(k)) fail(`${seed}: bridge cell not L3 @${k}`);
+	{
+		const CROSS = { H: [[0, -1], [0, 1]], V: [[-1, 0], [1, 0]] };
+		const og = (x, z) => isL1(x, z); // drivable ground (bridge undersides included)
+		for (const c of m.containers.filter((c) => c.bridge)) {
+			const [cd0, cd1] = CROSS[c.orient];
+			const lane = c.cells.some(([x, z]) => og(x + cd0[0], z + cd0[1]) && og(x + cd1[0], z + cd1[1]));
+			if (!lane) fail(`${seed}: bridge with no through-lane`);
+		}
 	}
 
 	// Barriers: each guards a Y4-surface cell (L3 or poke) on an edge that faces OOB.
@@ -155,7 +173,7 @@ for (const seed of seeds) {
 	for (const kk of m.level3) { if (rampSet.has(kk)) continue; const [cx, cz] = kk.split(",").map(Number); const [wx, wz] = cellCenter(cx, cz); if (samp(wx, wz) !== 4) { fail(`${seed}: sampler L3 != 4`); break; } }
 }
 
-console.log(`\nSeeds: ${seeds.length} | no-L2: ${noL2} | no-L3: ${noL3}`);
-console.log(`avg L2 cov: ${(100 * totalCov2 / seeds.length).toFixed(1)}% | avg L3 cov: ${(100 * totalCov3 / seeds.length).toFixed(1)}% | avg 1→2 ramps: ${(totalRamps / seeds.length).toFixed(1)} | avg 2→3 ramps: ${(totalRamps23 / seeds.length).toFixed(1)} | avg barriers: ${(totalBarriers / seeds.length).toFixed(1)}`);
+console.log(`\nSeeds: ${seeds.length} | no-L2: ${noL2} | no-L3: ${noL3} | seeds w/ bridge: ${seedsWithBridge}`);
+console.log(`avg L2 cov: ${(100 * totalCov2 / seeds.length).toFixed(1)}% | avg L3 cov: ${(100 * totalCov3 / seeds.length).toFixed(1)}% | avg 1→2 ramps: ${(totalRamps / seeds.length).toFixed(1)} | avg 2→3 ramps: ${(totalRamps23 / seeds.length).toFixed(1)} | avg bridges: ${(totalBridges / seeds.length).toFixed(1)} | avg barriers: ${(totalBarriers / seeds.length).toFixed(1)}`);
 console.log(failures === 0 ? "ALL CHECKS PASSED" : `${failures} FAILURE(S)`);
 process.exit(failures === 0 ? 0 : 1);
