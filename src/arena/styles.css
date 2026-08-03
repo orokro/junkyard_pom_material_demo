@@ -238,6 +238,79 @@ body {
 	white-space: nowrap;
 }
 
+/* ---- Presets ------------------------------------------------------------- */
+
+.presets {
+	margin-top: 18px;
+	border: 1px solid var(--edge);
+	border-radius: 10px;
+	padding: 12px 14px 14px;
+	background: var(--panel-2);
+}
+
+.presets__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 10px;
+}
+
+.presets__head .group__title {
+	margin: 0;
+}
+
+.presets__actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.presets__list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.presets__empty {
+	font-size: 12px;
+	color: #6c7887;
+}
+
+.preset {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 8px;
+	background: #10141b;
+	border: 1px solid var(--edge);
+	border-radius: 8px;
+}
+
+.preset__name {
+	flex: 1;
+	font-size: 13px;
+	color: var(--text);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.btn--sm {
+	padding: 5px 10px;
+	font-size: 12px;
+}
+
+.btn--danger {
+	color: #ff9a8f;
+}
+
+.btn--danger:hover {
+	border-color: #e2574a;
+	background: rgba(226, 87, 74, 0.12);
+}
+
 .card__footer {
 	display: flex;
 	justify-content: space-between;

@@ -14,7 +14,45 @@
 
 import { WORLD_GROUPS } from "../config.js";
 import { rollSeed } from "../seed.js";
-import { loadSettings, saveSettings } from "../settings.js";
+import { loadSettings, saveSettings, loadPresets, savePresets } from "../settings.js";
+
+/**
+ * Copy text to the clipboard (async API with a legacy fallback).
+ * @param {string} text
+ * @returns {Promise<boolean>} whether the copy appears to have succeeded.
+ */
+async function copyText(text) {
+	try {
+		await navigator.clipboard.writeText(text);
+		return true;
+	} catch {
+		try {
+			const ta = document.createElement("textarea");
+			ta.value = text;
+			ta.style.position = "fixed";
+			ta.style.opacity = "0";
+			document.body.appendChild(ta);
+			ta.select();
+			const ok = document.execCommand("copy");
+			ta.remove();
+			return ok;
+		} catch {
+			return false;
+		}
+	}
+}
+
+/**
+ * Briefly show confirmation text on a button, then restore the original label.
+ * @param {HTMLButtonElement} btn @param {string} msg
+ * @returns {void}
+ */
+function flashButton(btn, msg) {
+	const prev = btn.textContent;
+	btn.textContent = msg;
+	btn.disabled = true;
+	setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1200);
+}
 
 /**
  * Create a single field control and return { wrapper, read, input }.
@@ -64,7 +102,14 @@ function createField(field) {
 		return input.value;
 	};
 
-	return { wrapper, read, input };
+	/** @param {*} value Write a value back into the control. */
+	const set = (value) => {
+		if (value === undefined || value === null) return;
+		if (field.type === "bool") input.checked = Boolean(value);
+		else input.value = String(value);
+	};
+
+	return { wrapper, read, set, input };
 }
 
 /**
@@ -81,6 +126,8 @@ export function renderStartScreen(host, onStart) {
 
 	/** @type {Record<string, () => (string|number|boolean)>} */
 	const readers = {};
+	/** @type {Record<string, (v:*) => void>} */
+	const setters = {};
 	/** @type {HTMLInputElement|null} */
 	let seedInput = null;
 
@@ -109,6 +156,7 @@ export function renderStartScreen(host, onStart) {
 			// Seed gets a dedicated full-width row with a roll button.
 			const seedField = createField(group.fields[0]);
 			readers[group.fields[0].key] = seedField.read;
+			setters[group.fields[0].key] = seedField.set;
 			seedInput = seedField.input;
 
 			seedInput.value = saved.seed && String(saved.seed).length ? String(saved.seed) : rollSeed();
@@ -140,12 +188,152 @@ export function renderStartScreen(host, onStart) {
 			const initial = saved[field.key] !== undefined ? saved[field.key] : field.value;
 			const control = createField({ ...field, value: initial });
 			readers[field.key] = control.read;
+			setters[field.key] = control.set;
 			groupEl.appendChild(control.wrapper);
 		}
 		groupsWrap.appendChild(groupEl);
 	}
 
 	body.appendChild(groupsWrap);
+
+	/** @returns {Record<string, *>} Current form values as a world config (seed included). */
+	function readConfig() {
+		/** @type {Record<string, *>} */
+		const config = {};
+		for (const [key, read] of Object.entries(readers)) config[key] = read();
+		if (!config.seed || String(config.seed).trim() === "") config.seed = rollSeed();
+		config.seed = String(config.seed).trim();
+		return config;
+	}
+
+	/** @param {Record<string, *>} cfg Write known keys from a config back into the form. */
+	function applyConfig(cfg) {
+		if (!cfg || typeof cfg !== "object") return;
+		for (const [key, set] of Object.entries(setters)) {
+			if (cfg[key] !== undefined) set(cfg[key]);
+		}
+	}
+
+	// ---- Presets (save/load named configs + JSON import/export) --------------
+	let presets = loadPresets();
+
+	const presetsWrap = document.createElement("div");
+	presetsWrap.className = "presets";
+
+	const presetsHead = document.createElement("div");
+	presetsHead.className = "presets__head";
+	const presetsTitle = document.createElement("h2");
+	presetsTitle.className = "group__title";
+	presetsTitle.textContent = "Presets";
+	presetsHead.appendChild(presetsTitle);
+
+	const presetsActions = document.createElement("div");
+	presetsActions.className = "presets__actions";
+
+	const saveBtn = document.createElement("button");
+	saveBtn.type = "button";
+	saveBtn.className = "btn";
+	saveBtn.textContent = "💾 Save preset";
+
+	const copyBtn = document.createElement("button");
+	copyBtn.type = "button";
+	copyBtn.className = "btn";
+	copyBtn.textContent = "📋 Copy JSON";
+
+	const loadJsonBtn = document.createElement("button");
+	loadJsonBtn.type = "button";
+	loadJsonBtn.className = "btn";
+	loadJsonBtn.textContent = "📥 Load JSON";
+
+	presetsActions.appendChild(saveBtn);
+	presetsActions.appendChild(copyBtn);
+	presetsActions.appendChild(loadJsonBtn);
+	presetsHead.appendChild(presetsActions);
+	presetsWrap.appendChild(presetsHead);
+
+	const presetsList = document.createElement("div");
+	presetsList.className = "presets__list";
+	presetsWrap.appendChild(presetsList);
+
+	/** @returns {void} Redraw the saved-preset rows. */
+	function renderPresets() {
+		presetsList.innerHTML = "";
+		if (!presets.length) {
+			const empty = document.createElement("span");
+			empty.className = "presets__empty";
+			empty.textContent = "No saved presets yet. Configure an arena and hit “Save preset”.";
+			presetsList.appendChild(empty);
+			return;
+		}
+		presets.forEach((preset, i) => {
+			const row = document.createElement("div");
+			row.className = "preset";
+
+			const name = document.createElement("span");
+			name.className = "preset__name";
+			name.textContent = preset.name;
+			name.title = `${preset.config.seed ?? ""}`;
+
+			const loadBtn = document.createElement("button");
+			loadBtn.type = "button";
+			loadBtn.className = "btn btn--sm";
+			loadBtn.textContent = "Load";
+			loadBtn.addEventListener("click", () => {
+				applyConfig(preset.config);
+				flashButton(loadBtn, "Loaded ✓");
+			});
+
+			const delBtn = document.createElement("button");
+			delBtn.type = "button";
+			delBtn.className = "btn btn--sm btn--danger";
+			delBtn.textContent = "✕";
+			delBtn.title = "Delete preset";
+			delBtn.addEventListener("click", () => {
+				if (!confirm(`Delete preset “${preset.name}”?`)) return;
+				presets.splice(i, 1);
+				savePresets(presets);
+				renderPresets();
+			});
+
+			row.appendChild(name);
+			row.appendChild(loadBtn);
+			row.appendChild(delBtn);
+			presetsList.appendChild(row);
+		});
+	}
+	renderPresets();
+
+	saveBtn.addEventListener("click", () => {
+		const name = (prompt("Preset name:") || "").trim();
+		if (!name) return;
+		const config = readConfig();
+		const existing = presets.findIndex((p) => p.name === name);
+		if (existing >= 0) presets[existing] = { name, config };
+		else presets.push({ name, config });
+		savePresets(presets);
+		renderPresets();
+		flashButton(saveBtn, "Saved ✓");
+	});
+
+	copyBtn.addEventListener("click", async () => {
+		const ok = await copyText(JSON.stringify(readConfig(), null, 2));
+		flashButton(copyBtn, ok ? "Copied ✓" : "Copy failed");
+	});
+
+	loadJsonBtn.addEventListener("click", () => {
+		const raw = prompt("Paste a settings JSON (a config, or a saved preset):");
+		if (!raw) return;
+		try {
+			const parsed = JSON.parse(raw);
+			const cfg = parsed && parsed.config ? parsed.config : parsed;
+			applyConfig(cfg);
+			flashButton(loadJsonBtn, "Loaded ✓");
+		} catch {
+			flashButton(loadJsonBtn, "Invalid JSON");
+		}
+	});
+
+	body.appendChild(presetsWrap);
 	card.appendChild(body);
 
 	// Footer.
@@ -166,15 +354,8 @@ export function renderStartScreen(host, onStart) {
 
 	// Launch.
 	startBtn.addEventListener("click", () => {
-		/** @type {Record<string, *>} */
-		const config = {};
-		for (const [key, read] of Object.entries(readers)) {
-			config[key] = read();
-		}
-		if (!config.seed || String(config.seed).trim() === "") {
-			config.seed = rollSeed();
-		}
-		config.seed = String(config.seed).trim();
+		const config = readConfig();
+		if (seedInput) seedInput.value = String(config.seed); // reflect any auto-rolled seed
 		saveSettings(config);
 		onStart(config);
 	});

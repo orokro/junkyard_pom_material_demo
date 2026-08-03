@@ -226,9 +226,15 @@ unlike generated islands).
 - **P6** dev: inner levels ✅
   - Step 1 — L2 islands + 1→2 ramps ✅
   - Step 2a — L3 islands + 2→3 ramps + metal barriers ✅
-  - Step 2b — bridges pass (`gen/bridges.js`): L3 dominoes with a through-lane
-    beneath (drivable ground on both long sides) promoted to `Arena_Bridge`
-    (drive over + under); dead-end-safe; double bridges via fixed-point iteration.
-    Tunnel runs across the domino's long sides (pillars at the short ends);
-    `bridgeChance` param. Bridge cells stay L3 tops for the walk sampler ✅
+  - Step 2b — PLANNED bridges (in `gen/islands.js`, `generateLevel3`): bridges are
+    placed deliberately BEFORE solid islands — a 2→3 ramp lands on a 2-cell
+    `Arena_Bridge`, and both long-side lanes are RESERVED as open ground so island
+    growth can't seal the underpass (drive over the top, under across the long
+    sides; pillars at the short ends). `minBridges` / `maxBridges` control the
+    count (guaranteed if space allows, graceful fallback otherwise). Dead-end-safe
+    + connectivity spans bridge undersides. Bridge cells stay L3 tops for the walk
+    sampler. (Supersedes the old post-hoc promotion pass; `gen/bridges.js` retired.) ✅
+  - Tooling — start screen presets: save named seed+settings configs to
+    localStorage, load/delete them, copy current config to clipboard as JSON, and
+    import a pasted JSON (`settings.js` presets store + `ui/startScreen.js`) ✅
 - **P7** dev: tires + dead-end pass ← next

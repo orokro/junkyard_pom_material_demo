@@ -193,19 +193,23 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 /**
  * @typedef {object} Level3Result
  * @property {string[]} level3Cells  Cell keys covered by generated L3 containers.
- * @property {{cells:[[number,number],[number,number]],orient:"H"|"V",color:string}[]} containers  L3 domino containers.
+ * @property {{cells:[[number,number],[number,number]],orient:"H"|"V",color:string,isBridge?:boolean}[]} containers  L3 domino containers (isBridge = drive-under bridge).
  * @property {{cx:number,cz:number,dir:"N"|"E"|"S"|"W",from:number,to:number}[]} ramps23  2→3 ramps.
+ * @property {string[]} bridges  L3 cell keys that are bridges (open ground beneath).
  */
 
 /**
- * Generate level-3 islands + 2→3 ramps (Phase 6 Step 2a).
+ * Generate level-3 islands + 2→3 ramps + PLANNED bridges (Phase 6 Step 2a/2b).
  *
  * A 2→3 ramp-run is [ lower-lead @L2 ][ ramp on a half-platform (Y2→Y4) ][ landing @L3 ].
- * L3 islands are grown by appending whole CONTAINERS (dominoes) onto the ground
- * (the container base sits at Y0, its top forms the Y4 surface) — so the island is
- * domino-tileable by construction. L3 containers block the ground beneath them
- * (bridges, added later, will re-open it). Connectivity spans L1+L2+L3 via the
- * ramp edges, so nothing gets trapped and every L3 island is reachable.
+ * Solid L3 islands are grown by appending whole CONTAINERS (dominoes) onto the
+ * ground (base at Y0, top = Y4 surface) — domino-tileable by construction, and
+ * they block the ground beneath them. BRIDGES are placed deliberately first: a
+ * ramp lands on a 2-cell bridge whose long-side lanes are reserved as open ground,
+ * so cars drive OVER the top and UNDER through the reserved lanes. `minBridges` /
+ * `maxBridges` control how many are attempted (graceful if space runs out).
+ * Connectivity spans L1 (incl. bridge undersides) + L2 + L3 via ramp edges, so
+ * nothing is trapped and every raised surface is reachable.
  *
  * @param {import("./grid.js").Dims} dims
  * @param {Record<string, *>} params
@@ -222,6 +226,8 @@ export function generateLevel3(dims, params, seed, ctx) {
 	const ramps12 = ctx.ramps.filter((r) => r.from === 0);
 
 	const L3 = new Set();
+	const bridgeCells = new Set();   // L3 cells that are bridges (open ground beneath)
+	const reservedGround = new Set(); // underpass lanes kept open (blocked from L3)
 	const dominoes = [];
 	const rampCells23 = new Map();
 	const reservedL2 = new Set();
@@ -231,12 +237,13 @@ export function generateLevel3(dims, params, seed, ctx) {
 	const inB = (x, z) => isInbounds(x, z, dims);
 	const isL2 = (x, z) => L2.has(key(x, z));
 	const isL3 = (x, z) => L3.has(key(x, z));
-	/** drivable ground node (reserved leads included): not poke/L2/L3/1→2-ramp. */
-	const isGround = (x, z) => inB(x, z) && !pokeCells.has(key(x, z)) && !isL2(x, z) && !isL3(x, z) && !ramp12.has(key(x, z));
-	/** a ground cell that may be consumed by an L3 container (not a reserved ramp lead). */
-	const canL3 = (x, z) => isGround(x, z) && !reservedL1.has(key(x, z));
-	/** blocks a car at ground level. Ramps + reserved ground are OPEN. */
-	const isBlockingGround = (x, z) => !inB(x, z) || pokeCells.has(key(x, z)) || isL2(x, z) || isL3(x, z);
+	const isBridge = (x, z) => bridgeCells.has(key(x, z));
+	/** drivable ground: not poke/L2/1→2-ramp, and not a SOLID L3 (a bridge is open beneath). */
+	const isGround = (x, z) => inB(x, z) && !pokeCells.has(key(x, z)) && !isL2(x, z) && !ramp12.has(key(x, z)) && !(isL3(x, z) && !isBridge(x, z));
+	/** a ground cell a SOLID L3 container may consume (not a reserved lead/lane, not a bridge). */
+	const canL3 = (x, z) => isGround(x, z) && !reservedL1.has(key(x, z)) && !reservedGround.has(key(x, z)) && !isBridge(x, z);
+	/** blocks a car at ground level. Ramps, reserved ground, and bridge undersides are OPEN. */
+	const isBlockingGround = (x, z) => !inB(x, z) || pokeCells.has(key(x, z)) || isL2(x, z) || (isL3(x, z) && !isBridge(x, z));
 
 	/** All drivable cells (L1+L2+L3, linked by 1→2 and 2→3 ramps) one component? */
 	function connected() {
@@ -363,6 +370,57 @@ export function generateLevel3(dims, params, seed, ctx) {
 		return added;
 	}
 
+	/**
+	 * Deliberately place ONE planned bridge (Greg's approach): a 2→3 ramp lands on a
+	 * bridge domino [A][B] running along the ramp direction, and BOTH long sides of A
+	 * and B are open drivable ground that we RESERVE (block from future L3) so the
+	 * underpass survives island growth. Top reachable via the ramp; under drivable
+	 * across the long sides. Returns true if placed.
+	 */
+	function placeBridge() {
+		const l2cells = [...L2].map(unkey);
+		shuffle(l2cells, rng);
+		for (const [rx, rz] of l2cells) {
+			if (rampCells23.has(key(rx, rz))) continue;
+			for (const [dName, [dx, dz]] of shuffle(Object.entries(DIR_VEC), rng)) {
+				const lead = [rx - dx, rz - dz];
+				const A = [rx + dx, rz + dz];
+				const B = [rx + 2 * dx, rz + 2 * dz];
+				if (!isL2(lead[0], lead[1]) || reservedL2.has(key(lead[0], lead[1]))) continue;
+				if (!canL3(A[0], A[1]) || !canL3(B[0], B[1])) continue;
+				// Long-side lanes = the two directions perpendicular to the run.
+				const cross = dx !== 0 ? [[0, -1], [0, 1]] : [[-1, 0], [1, 0]];
+				const flanks = [];
+				let ok = true;
+				for (const cell of [A, B]) for (const [cx2, cz2] of cross) {
+					const f = [cell[0] + cx2, cell[1] + cz2];
+					if (!isGround(f[0], f[1])) ok = false;
+					flanks.push(f);
+				}
+				if (!ok) continue;
+				// Tentatively commit, then validate connectivity + dead-ends; rollback if bad.
+				const kA = key(A[0], A[1]), kB = key(B[0], B[1]);
+				L3.add(kA); L3.add(kB);
+				bridgeCells.add(kA); bridgeCells.add(kB);
+				rampCells23.set(key(rx, rz), dName);
+				reservedL2.add(key(lead[0], lead[1]));
+				const addedReserve = [];
+				for (const f of flanks) { const fk = key(f[0], f[1]); if (!reservedGround.has(fk)) { reservedGround.add(fk); addedReserve.push(fk); } }
+				if (!connected() || createsGroundDeadEnd([A, B, ...flanks])) {
+					L3.delete(kA); L3.delete(kB);
+					bridgeCells.delete(kA); bridgeCells.delete(kB);
+					rampCells23.delete(key(rx, rz));
+					reservedL2.delete(key(lead[0], lead[1]));
+					for (const fk of addedReserve) reservedGround.delete(fk);
+					continue;
+				}
+				dominoes.push({ cells: [A, B], orient: dx !== 0 ? "H" : "V", color: pick(COLORS), isBridge: true });
+				return true;
+			}
+		}
+		return false;
+	}
+
 	const area = dims.Wc * dims.Dc;
 	const covMin = params.level3CoverageMin ?? 0.05;
 	const covMax = params.level3CoverageMax ?? 0.18;
@@ -370,6 +428,17 @@ export function generateLevel3(dims, params, seed, ctx) {
 	const maxIslands = params.maxIslandsL3 ?? 2;
 	const numIslands = 1 + Math.floor(rng() * maxIslands);
 
+	// --- Planned bridges first (they reserve their lanes so islands grow around them). ---
+	const minBr = Math.max(0, Math.round(params.minBridges ?? 1));
+	const maxBr = Math.max(minBr, Math.round(params.maxBridges ?? 3));
+	const bridgeTarget = minBr + Math.floor(rng() * (maxBr - minBr + 1));
+	let bridgesPlaced = 0;
+	while (bridgesPlaced < bridgeTarget) {
+		if (!placeBridge()) break; // graceful: no eligible spot left
+		bridgesPlaced++;
+	}
+
+	// --- Then solid L3 islands via ramp landings + domino growth. ---
 	const seeds = [];
 	for (let i = 0; i < numIslands; i++) {
 		const s = placeRamp23();
@@ -382,7 +451,7 @@ export function generateLevel3(dims, params, seed, ctx) {
 	}
 
 	const ramps23 = [...rampCells23.entries()].map(([k, dir]) => { const [cx, cz] = unkey(k); return { cx, cz, dir, from: 2, to: 4 }; });
-	return { level3Cells: [...L3], containers: dominoes, ramps23 };
+	return { level3Cells: [...L3], containers: dominoes, ramps23, bridges: [...bridgeCells] };
 }
 
 /**

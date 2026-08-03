@@ -13,6 +13,7 @@
 
 const KEY = "arena_poc.settings";
 const POST_KEY = "arena_poc.postfx";
+const PRESETS_KEY = "arena_poc.presets";
 
 /**
  * Load the saved arena config.
@@ -35,6 +36,39 @@ export function loadSettings() {
 export function saveSettings(config) {
 	try {
 		localStorage.setItem(KEY, JSON.stringify(config));
+	} catch {
+		/* storage unavailable — non-fatal. */
+	}
+}
+
+/**
+ * @typedef {object} Preset
+ * @property {string} name
+ * @property {Record<string, *>} config  A full world config (seed + all settings).
+ */
+
+/**
+ * Load the saved presets list.
+ * @returns {Preset[]} Saved presets (empty array if none/unavailable).
+ */
+export function loadPresets() {
+	try {
+		const raw = localStorage.getItem(PRESETS_KEY);
+		const list = raw ? JSON.parse(raw) : [];
+		return Array.isArray(list) ? list.filter((p) => p && typeof p.name === "string" && p.config) : [];
+	} catch {
+		return [];
+	}
+}
+
+/**
+ * Persist the presets list.
+ * @param {Preset[]} presets
+ * @returns {void}
+ */
+export function savePresets(presets) {
+	try {
+		localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
 	} catch {
 		/* storage unavailable — non-fatal. */
 	}
