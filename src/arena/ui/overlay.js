@@ -165,6 +165,29 @@ export function createOverlay(host) {
 		}
 		ctx.lineCap = "butt";
 
+		// Tire barriers: gray marks — straight = inset edge line, inner = corner nub,
+		// outer = corner ring. (Ground-level autotiling.)
+		const CORNER_OFF = { NE: [1, -1], SE: [1, 1], SW: [-1, 1], NW: [-1, -1] };
+		ctx.strokeStyle = "#8b97a6";
+		ctx.fillStyle = "#8b97a6";
+		ctx.lineWidth = Math.max(1, s * 0.07);
+		for (const t of model.tires || []) {
+			const x0 = px(t.cx), y0 = py(t.cz);
+			if (t.kind === "straight") {
+				const [dx, dy] = DIRC[t.code] || [0, -1];
+				let ax, ay, bx, by;
+				if (dx !== 0) { const ex = dx > 0 ? x0 + s : x0; ax = ex; ay = y0 + s * 0.15; bx = ex; by = y0 + s * 0.85; }
+				else { const ey = dy > 0 ? y0 + s : y0; ax = x0 + s * 0.15; ay = ey; bx = x0 + s * 0.85; by = ey; }
+				ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.stroke();
+			} else {
+				const [cxo, cyo] = CORNER_OFF[t.code] || [1, -1];
+				const cxp = x0 + s * (cxo > 0 ? 0.8 : 0.2);
+				const cyp = y0 + s * (cyo > 0 ? 0.8 : 0.2);
+				if (t.kind === "inner") ctx.fillRect(cxp - s * 0.08, cyp - s * 0.08, s * 0.16, s * 0.16);
+				else { ctx.beginPath(); ctx.arc(cxp, cyp, Math.max(1.5, s * 0.13), 0, Math.PI * 2); ctx.stroke(); }
+			}
+		}
+
 		// Legend.
 		ctx.fillStyle = "#93a1b3";
 		ctx.font = "10px monospace";

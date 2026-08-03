@@ -26,6 +26,13 @@ const RAMP_ROT = { N: 0, E: -Math.PI / 2, S: Math.PI, W: Math.PI / 2 };
  */
 const MB_ROT = { N: 0, E: -Math.PI / 2, S: Math.PI, W: Math.PI / 2 };
 
+/** Tire kind → part name. */
+const TIRE_PART = {
+	straight: "Arena_TireBarrier_Straight_East",
+	inner: "Arena_TireBarrier_InnerCorner_NorthEast",
+	outer: "Arena_TireBarrier_OuterCorner_NorthEast",
+};
+
 /**
  * @param {[[number,number],[number,number]]} cells @param {"H"|"V"} orient @param {number} baseY
  * @returns {{x:number,y:number,z:number,rotY:number}}
@@ -88,6 +95,12 @@ export function buildArena(model, registry) {
 	for (const b of model.barriers || []) {
 		const [x, z] = cellCenter(b.cx, b.cz);
 		add("Arena_Metal_Barrier", x, 4, z, MB_ROT[b.dir] ?? 0);
+	}
+
+	// Tire barriers (ground-level autotiled bumpers).
+	for (const t of model.tires || []) {
+		const [x, z] = cellCenter(t.cx, t.cz);
+		add(TIRE_PART[t.kind], x, 0, z, t.rotY);
 	}
 
 	// Materialize: one InstancedMesh per (part, sub-mesh), sharing the transforms.

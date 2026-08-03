@@ -12,7 +12,7 @@ const fail = (m) => { console.log("  ✗", m); failures++; };
 const seeds = [];
 for (let i = 0; i < 120; i++) seeds.push("s_" + i.toString(36) + "_arena");
 
-let noL2 = 0, noL3 = 0, totalCov2 = 0, totalCov3 = 0, totalRamps = 0, totalRamps23 = 0, totalBarriers = 0, totalBridges = 0, seedsWithBridge = 0;
+let noL2 = 0, noL3 = 0, totalCov2 = 0, totalCov3 = 0, totalRamps = 0, totalRamps23 = 0, totalBarriers = 0, totalBridges = 0, seedsWithBridge = 0, totalTires = 0;
 for (const seed of seeds) {
 	const m = generateArena(seed, params);
 	const dims = m.dims;
@@ -166,6 +166,71 @@ for (const seed of seeds) {
 		if (isInbounds(bar.cx + dx, bar.cz + dz, dims)) fail(`${seed}: barrier not facing OOB`);
 	}
 
+	// --- Tire barriers (Phase 7) ---
+	{
+		const DVv = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
+		const CORN = { NE: ["N", "E"], SE: ["S", "E"], SW: ["S", "W"], NW: ["N", "W"] };
+		const CDIAG = { NE: [1, -1], SE: [1, 1], SW: [-1, 1], NW: [-1, -1] };
+		const solidMask = new Set();
+		for (const c of m.containers) if (c.story === 1 && !c.bridge) for (const [x, z] of c.cells) solidMask.add(key(x, z));
+		for (const k of m.level2) solidMask.add(k);
+		const isSolidT = (x, z) => !isInbounds(x, z, dims) || solidMask.has(key(x, z));
+		const isOpenT = (x, z) => isInbounds(x, z, dims) && !solidMask.has(key(x, z)) && !rampSet.has(key(x, z));
+
+		// Dead-end invariant: no open-ground cell walled on ≥3 sides.
+		for (let x = 0; x < dims.Wc && failures < 60; x++) for (let z = 0; z < dims.Dc; z++) {
+			if (!isOpenT(x, z)) continue;
+			let s = 0; for (const d in DVv) { const [dx, dz] = DVv[d]; if (isSolidT(x + dx, z + dz)) s++; }
+			if (s >= 3) { fail(`${seed}: tire dead-end (${s} walls) at ${x},${z}`); break; }
+		}
+
+		// Expected bridge-pillar straight edges (short-ends abutting a non-solid cell).
+		const VDIR = { "0,-1": "N", "1,0": "E", "0,1": "S", "-1,0": "W" };
+		const pillars = new Set();
+		for (const c of m.containers) {
+			if (!c.bridge) continue;
+			const [[ax, az], [bx, bz]] = c.cells;
+			const abx = bx - ax, abz = bz - az;
+			for (const [cx, cz, dx, dz] of [[ax, az, -abx, -abz], [bx, bz, abx, abz]]) {
+				const dir = VDIR[`${dx},${dz}`];
+				if (dir && isOpenT(cx, cz) && !isSolidT(cx + dx, cz + dz)) pillars.add(`${cx},${cz}:${dir}`);
+			}
+		}
+
+		// Per-cell: gather tiles, validate each rule.
+		/** @type {Map<string,{straight:Set<string>,inner:Set<string>,outer:Set<string>}>} */
+		const byCell = new Map();
+		for (const t of m.tires) {
+			if (!isOpenT(t.cx, t.cz)) { fail(`${seed}: tire on non-open cell ${t.cx},${t.cz}`); continue; }
+			const ck = key(t.cx, t.cz);
+			if (!byCell.has(ck)) byCell.set(ck, { straight: new Set(), inner: new Set(), outer: new Set() });
+			byCell.get(ck)[t.kind].add(t.code);
+		}
+		for (const [ck, g] of byCell) {
+			const [x, z] = ck.split(",").map(Number);
+			const innerCov = new Set();
+			for (const cn of g.inner) { const [e1, e2] = CORN[cn]; if (!isSolidT(x + DVv[e1][0], z + DVv[e1][1]) || !isSolidT(x + DVv[e2][0], z + DVv[e2][1])) fail(`${seed}: inner ${cn} without 2 solid edges @${ck}`); innerCov.add(e1); innerCov.add(e2); }
+			for (const d of g.straight) {
+				const solidEdge = isSolidT(x + DVv[d][0], z + DVv[d][1]);
+				if (!solidEdge && !pillars.has(`${ck}:${d}`)) fail(`${seed}: straight ${d} on open edge (not pillar) @${ck}`);
+				if (innerCov.has(d)) fail(`${seed}: straight ${d} not suppressed by inner corner @${ck}`);
+			}
+			for (const cn of g.outer) { const [e1, e2] = CORN[cn]; const [dx, dz] = CDIAG[cn]; if (isSolidT(x + DVv[e1][0], z + DVv[e1][1]) || isSolidT(x + DVv[e2][0], z + DVv[e2][1]) || !isSolidT(x + dx, z + dz)) fail(`${seed}: bad outer ${cn} @${ck}`); }
+		}
+
+		// Completeness: every solid edge of an open cell is covered by a straight or inner corner.
+		for (let x = 0; x < dims.Wc && failures < 60; x++) for (let z = 0; z < dims.Dc; z++) {
+			if (!isOpenT(x, z)) continue;
+			const g = byCell.get(key(x, z));
+			for (const d in DVv) {
+				if (!isSolidT(x + DVv[d][0], z + DVv[d][1])) continue;
+				const covered = g && (g.straight.has(d) || [...g.inner].some((cn) => CORN[cn].includes(d)));
+				if (!covered) { fail(`${seed}: uncovered solid edge ${d} @${x},${z}`); break; }
+			}
+		}
+		totalTires += m.tires.length;
+	}
+
 	// Surface sampler: flat L2 → 2, L3 → 4, a known ground cell → 0. Skip cells that
 	// carry a ramp (a 2→3 ramp sits on an L2 half-platform, so it reads the incline).
 	const samp = makeSurfaceSampler(m);
@@ -174,6 +239,6 @@ for (const seed of seeds) {
 }
 
 console.log(`\nSeeds: ${seeds.length} | no-L2: ${noL2} | no-L3: ${noL3} | seeds w/ bridge: ${seedsWithBridge}`);
-console.log(`avg L2 cov: ${(100 * totalCov2 / seeds.length).toFixed(1)}% | avg L3 cov: ${(100 * totalCov3 / seeds.length).toFixed(1)}% | avg 1→2 ramps: ${(totalRamps / seeds.length).toFixed(1)} | avg 2→3 ramps: ${(totalRamps23 / seeds.length).toFixed(1)} | avg bridges: ${(totalBridges / seeds.length).toFixed(1)} | avg barriers: ${(totalBarriers / seeds.length).toFixed(1)}`);
+console.log(`avg L2 cov: ${(100 * totalCov2 / seeds.length).toFixed(1)}% | avg L3 cov: ${(100 * totalCov3 / seeds.length).toFixed(1)}% | avg 1→2 ramps: ${(totalRamps / seeds.length).toFixed(1)} | avg 2→3 ramps: ${(totalRamps23 / seeds.length).toFixed(1)} | avg bridges: ${(totalBridges / seeds.length).toFixed(1)} | avg barriers: ${(totalBarriers / seeds.length).toFixed(1)} | avg tires: ${(totalTires / seeds.length).toFixed(1)}`);
 console.log(failures === 0 ? "ALL CHECKS PASSED" : `${failures} FAILURE(S)`);
 process.exit(failures === 0 ? 0 : 1);

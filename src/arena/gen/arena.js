@@ -17,6 +17,7 @@ import { computeDims, inboundsRect, key } from "./grid.js";
 import { buildRings } from "./rings.js";
 import { placeChairs } from "./chairs.js";
 import { generateLevel2, generateLevel3, makeBarriers } from "./islands.js";
+import { generateTires } from "./tires.js";
 
 /**
  * @typedef {object} ArenaModel
@@ -33,6 +34,7 @@ import { generateLevel2, generateLevel3, makeBarriers } from "./islands.js";
  * @property {string[]} bridges  L3 cell keys that are bridges (drivable over AND under).
  * @property {{cx:number,cz:number,dir:string,from:number,to:number}[]} ramps  All ramps (1→2 and 2→3).
  * @property {{cx:number,cz:number,dir:string}[]} barriers  Metal barriers on Y4 surface edges facing OOB.
+ * @property {import("./tires.js").Tire[]} tires  Ground-level tire barriers (autotiled).
  */
 
 /**
@@ -73,7 +75,7 @@ export function generateArena(seed, params) {
 	// Metal barriers on every Y4 surface edge (L3 islands + inward pokes) facing OOB.
 	const barriers = makeBarriers(dims, l3.level3Cells, [...pokeCells]);
 
-	return {
+	const model = {
 		seed,
 		params,
 		dims,
@@ -88,4 +90,8 @@ export function generateArena(seed, params) {
 		ramps: [...l2.ramps, ...l3.ramps23],
 		barriers,
 	};
+
+	// Tire barriers autotile against the assembled solid mask (walls/L2/L3), so run last.
+	model.tires = generateTires(dims, model);
+	return model;
 }

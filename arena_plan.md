@@ -237,4 +237,16 @@ unlike generated islands).
   - Tooling — start screen presets: save named seed+settings configs to
     localStorage, load/delete them, copy current config to clipboard as JSON, and
     import a pasted JSON (`settings.js` presets store + `ui/startScreen.js`) ✅
-- **P7** dev: tires + dead-end pass ← next
+- **P7** dev: tires + dead-end pass ✅
+  - `gen/tires.js` autotiles ground cells against the solid mask (walls/pokes,
+    L2, solid L3; OOB solid; ramps & bridge undersides OPEN): InnerCorner on two
+    adjacent solid edges (suppresses the two straights), Straight on each remaining
+    solid edge, OuterCorner on a solid diagonal with both orthogonals open;
+    multiple pieces per cell. Bridge pillars add straights on each bridge's two
+    short-end edges (where they abut a non-solid cell, e.g. the ramp side).
+    Mesh defaults confirmed via `arena_discover` (Straight=E, corners=NE).
+    Dead-end pass is satisfied by construction — generation already forbids any
+    open-ground cell walled on ≥3 sides; the harness asserts it across 120 seeds.
+
+Generation pipeline (P5–P7) is complete. Remaining: environmental/decor pass
+(scrapped jumps, props), gameplay/physics — out of scope for this generator POC.
