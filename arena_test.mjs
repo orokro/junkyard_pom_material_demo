@@ -198,33 +198,35 @@ for (const seed of seeds) {
 		}
 
 		// Per-cell: gather tiles, validate each rule.
-		/** @type {Map<string,{straight:Set<string>,inner:Set<string>,outer:Set<string>}>} */
+		/** @type {Map<string,{straight:Set<string>,concave:Set<string>,convex:Set<string>}>} */
 		const byCell = new Map();
 		for (const t of m.tires) {
 			if (!isOpenT(t.cx, t.cz)) { fail(`${seed}: tire on non-open cell ${t.cx},${t.cz}`); continue; }
 			const ck = key(t.cx, t.cz);
-			if (!byCell.has(ck)) byCell.set(ck, { straight: new Set(), inner: new Set(), outer: new Set() });
+			if (!byCell.has(ck)) byCell.set(ck, { straight: new Set(), concave: new Set(), convex: new Set() });
 			byCell.get(ck)[t.kind].add(t.code);
 		}
 		for (const [ck, g] of byCell) {
 			const [x, z] = ck.split(",").map(Number);
-			const innerCov = new Set();
-			for (const cn of g.inner) { const [e1, e2] = CORN[cn]; if (!isSolidT(x + DVv[e1][0], z + DVv[e1][1]) || !isSolidT(x + DVv[e2][0], z + DVv[e2][1])) fail(`${seed}: inner ${cn} without 2 solid edges @${ck}`); innerCov.add(e1); innerCov.add(e2); }
+			const cov = new Set();
+			// concave (nook) → OuterCorner mesh: both edges must be solid; covers them.
+			for (const cn of g.concave) { const [e1, e2] = CORN[cn]; if (!isSolidT(x + DVv[e1][0], z + DVv[e1][1]) || !isSolidT(x + DVv[e2][0], z + DVv[e2][1])) fail(`${seed}: concave ${cn} without 2 solid edges @${ck}`); cov.add(e1); cov.add(e2); }
 			for (const d of g.straight) {
 				const solidEdge = isSolidT(x + DVv[d][0], z + DVv[d][1]);
 				if (!solidEdge && !pillars.has(`${ck}:${d}`)) fail(`${seed}: straight ${d} on open edge (not pillar) @${ck}`);
-				if (innerCov.has(d)) fail(`${seed}: straight ${d} not suppressed by inner corner @${ck}`);
+				if (cov.has(d)) fail(`${seed}: straight ${d} not suppressed by concave corner @${ck}`);
 			}
-			for (const cn of g.outer) { const [e1, e2] = CORN[cn]; const [dx, dz] = CDIAG[cn]; if (isSolidT(x + DVv[e1][0], z + DVv[e1][1]) || isSolidT(x + DVv[e2][0], z + DVv[e2][1]) || !isSolidT(x + dx, z + dz)) fail(`${seed}: bad outer ${cn} @${ck}`); }
+			// convex (poke) → InnerCorner mesh: diagonal solid, both orthogonals open.
+			for (const cn of g.convex) { const [e1, e2] = CORN[cn]; const [dx, dz] = CDIAG[cn]; if (isSolidT(x + DVv[e1][0], z + DVv[e1][1]) || isSolidT(x + DVv[e2][0], z + DVv[e2][1]) || !isSolidT(x + dx, z + dz)) fail(`${seed}: bad convex ${cn} @${ck}`); }
 		}
 
-		// Completeness: every solid edge of an open cell is covered by a straight or inner corner.
+		// Completeness: every solid edge of an open cell is covered by a straight or concave corner.
 		for (let x = 0; x < dims.Wc && failures < 60; x++) for (let z = 0; z < dims.Dc; z++) {
 			if (!isOpenT(x, z)) continue;
 			const g = byCell.get(key(x, z));
 			for (const d in DVv) {
 				if (!isSolidT(x + DVv[d][0], z + DVv[d][1])) continue;
-				const covered = g && (g.straight.has(d) || [...g.inner].some((cn) => CORN[cn].includes(d)));
+				const covered = g && (g.straight.has(d) || [...g.concave].some((cn) => CORN[cn].includes(d)));
 				if (!covered) { fail(`${seed}: uncovered solid edge ${d} @${x},${z}`); break; }
 			}
 		}

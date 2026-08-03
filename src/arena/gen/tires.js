@@ -10,11 +10,14 @@
  * and BRIDGE undersides (you drive through). Out-of-bounds counts as solid.
  *
  * Per open-ground cell we emit, from that cell's 4 edges + 4 diagonals:
- *   - InnerCorner  when two ADJACENT edges are solid (concave). It covers both
- *     those edges and SUPPRESSES straights on them (no doubling).
- *   - Straight     on each remaining solid edge.
- *   - OuterCorner  when a diagonal neighbour is solid but both of its shared
- *     orthogonal edges are open (kitty-corner / convex wall corner).
+ *   - "concave" corner when two ADJACENT edges are solid (a two-wall nook). It
+ *     covers both those edges and SUPPRESSES straights on them (no doubling), and
+ *     renders with the OuterCorner mesh (a big arc that rounds the nook from
+ *     outside — "completing the curve from the outside of the tile").
+ *   - Straight on each remaining solid edge.
+ *   - "convex" corner when a diagonal neighbour is solid but both of its shared
+ *     orthogonal edges are open (a wall corner poking into the cell). Renders with
+ *     the InnerCorner mesh (concave curve inside the tile, wrapping the poke).
  * Multiple pieces per cell are allowed and common.
  *
  * Bridge pillars sit at the two SHORT ends of each bridge domino, so we add a
@@ -45,7 +48,7 @@ const VEC_DIR = { "0,-1": "N", "1,0": "E", "0,1": "S", "-1,0": "W" };
 /**
  * @typedef {object} Tire
  * @property {number} cx @property {number} cz
- * @property {"straight"|"inner"|"outer"} kind
+ * @property {"straight"|"concave"|"convex"} kind
  * @property {string} code  Edge (N/E/S/W) for straight; corner (NE/SE/SW/NW) for corners.
  * @property {number} rotY
  */
@@ -83,15 +86,17 @@ export function generateTires(dims, model) {
 		for (const d in DV) { const [dx, dz] = DV[d]; sd[d] = isSolid(x + dx, z + dz); }
 
 		const covered = new Set();
+		// Two adjacent solid edges = a concave nook → OuterCorner mesh (rounds it).
 		for (const cn in CORNERS) {
 			const [e1, e2] = CORNERS[cn];
-			if (sd[e1] && sd[e2]) { push(x, z, "inner", cn, CORNER_ROT[cn]); covered.add(e1); covered.add(e2); }
+			if (sd[e1] && sd[e2]) { push(x, z, "concave", cn, CORNER_ROT[cn]); covered.add(e1); covered.add(e2); }
 		}
 		for (const d in DV) if (sd[d] && !covered.has(d)) push(x, z, "straight", d, STRAIGHT_ROT[d]);
+		// Solid diagonal with both orthogonals open = a poking corner → InnerCorner mesh.
 		for (const cn in CORNERS) {
 			const [e1, e2] = CORNERS[cn];
 			const [dx, dz] = DIAGV[cn];
-			if (!sd[e1] && !sd[e2] && isSolid(x + dx, z + dz)) push(x, z, "outer", cn, CORNER_ROT[cn]);
+			if (!sd[e1] && !sd[e2] && isSolid(x + dx, z + dz)) push(x, z, "convex", cn, CORNER_ROT[cn]);
 		}
 	}
 

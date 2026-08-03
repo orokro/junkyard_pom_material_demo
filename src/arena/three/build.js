@@ -26,12 +26,19 @@ const RAMP_ROT = { N: 0, E: -Math.PI / 2, S: Math.PI, W: Math.PI / 2 };
  */
 const MB_ROT = { N: 0, E: -Math.PI / 2, S: Math.PI, W: Math.PI / 2 };
 
-/** Tire kind → part name. */
+/**
+ * Tire kind → part name. NOTE the corner mapping: a CONCAVE nook (two walls
+ * meeting) is rounded by the OuterCorner mesh ("outer" = the curve is completed
+ * from outside the tile); a CONVEX poking corner is wrapped by the InnerCorner
+ * mesh ("inner" = concave curve inside the tile).
+ */
 const TIRE_PART = {
 	straight: "Arena_TireBarrier_Straight_East",
-	inner: "Arena_TireBarrier_InnerCorner_NorthEast",
-	outer: "Arena_TireBarrier_OuterCorner_NorthEast",
+	concave: "Arena_TireBarrier_OuterCorner_NorthEast",
+	convex: "Arena_TireBarrier_InnerCorner_NorthEast",
 };
+/** Lift tires 1 cm so their base plane doesn't z-fight the ground/floor. */
+const TIRE_LIFT = 0.01;
 
 /**
  * @param {[[number,number],[number,number]]} cells @param {"H"|"V"} orient @param {number} baseY
@@ -97,10 +104,10 @@ export function buildArena(model, registry) {
 		add("Arena_Metal_Barrier", x, 4, z, MB_ROT[b.dir] ?? 0);
 	}
 
-	// Tire barriers (ground-level autotiled bumpers).
+	// Tire barriers (ground-level autotiled bumpers), lifted 1 cm off the floor.
 	for (const t of model.tires || []) {
 		const [x, z] = cellCenter(t.cx, t.cz);
-		add(TIRE_PART[t.kind], x, 0, z, t.rotY);
+		add(TIRE_PART[t.kind], x, TIRE_LIFT, z, t.rotY);
 	}
 
 	// Materialize: one InstancedMesh per (part, sub-mesh), sharing the transforms.

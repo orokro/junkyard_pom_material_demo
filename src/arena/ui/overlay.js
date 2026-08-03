@@ -165,8 +165,8 @@ export function createOverlay(host) {
 		}
 		ctx.lineCap = "butt";
 
-		// Tire barriers: gray marks — straight = inset edge line, inner = corner nub,
-		// outer = corner ring. (Ground-level autotiling.)
+		// Tire barriers: gray marks — straight = inset edge line, concave nook = corner
+		// ring (big outer arc), convex poke = corner nub. (Ground-level autotiling.)
 		const CORNER_OFF = { NE: [1, -1], SE: [1, 1], SW: [-1, 1], NW: [-1, -1] };
 		ctx.strokeStyle = "#8b97a6";
 		ctx.fillStyle = "#8b97a6";
@@ -183,7 +183,7 @@ export function createOverlay(host) {
 				const [cxo, cyo] = CORNER_OFF[t.code] || [1, -1];
 				const cxp = x0 + s * (cxo > 0 ? 0.8 : 0.2);
 				const cyp = y0 + s * (cyo > 0 ? 0.8 : 0.2);
-				if (t.kind === "inner") ctx.fillRect(cxp - s * 0.08, cyp - s * 0.08, s * 0.16, s * 0.16);
+				if (t.kind === "convex") ctx.fillRect(cxp - s * 0.08, cyp - s * 0.08, s * 0.16, s * 0.16);
 				else { ctx.beginPath(); ctx.arc(cxp, cyp, Math.max(1.5, s * 0.13), 0, Math.PI * 2); ctx.stroke(); }
 			}
 		}
