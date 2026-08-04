@@ -136,14 +136,12 @@ export function buildRings(dims, params, seed) {
 	}
 
 	// --- Metal rail barriers ---
-	// A guard rail sits on TOP (Y=4) of every SINGLE-STORY ring container, along
-	// each edge that faces the outer void (beyond the ring band). This gives a
-	// continuous rail around the top of the one-container-high outer wall, so a car
-	// that reaches a ring top (from an adjacent L3 island at Y4) can't roll off the
-	// arena. Two-story ring containers are already tall enough — skipped. Inward
-	// pokes never touch the outer void, so crates don't get spurious rails.
-	const ringCellSet = new Set();
-	for (const c of groundFrame) for (const [x, z] of c.cells) ringCellSet.add(key(x, z));
+	// A guard rail sits on TOP (Y=4) of every SINGLE-STORY ring container, along its
+	// INTERIOR edge — the edge that meets the open playable area (a gap / drop into
+	// the arena at Y0). This lines the inner top of the one-container-high wall (the
+	// "stadium railing" you see from the field) and blocks a car from driving off a
+	// ring top into the arena/OOB. Two-story ring containers are tall enough already
+	// — skipped. Edges that meet an inward poke (a wall, not a gap) are skipped too.
 	const pokeCellSet = new Set();
 	for (const c of pokes) for (const [x, z] of c.cells) pokeCellSet.add(key(x, z));
 	const upperGround = new Set();
@@ -156,8 +154,8 @@ export function buildRings(dims, params, seed) {
 		for (const [x, z] of c.cells) {
 			for (const [d, [dx, dz]] of Object.entries(DIRB)) {
 				const nx = x + dx, nz = z + dz, nk = key(nx, nz);
-				// Outer void = not playable in-bounds AND not another container cell.
-				if (!isInbounds(nx, nz, dims) && !ringCellSet.has(nk) && !pokeCellSet.has(nk)) {
+				// Interior gap = a playable in-bounds cell (open, a drop) that isn't a poke wall.
+				if (isInbounds(nx, nz, dims) && !pokeCellSet.has(nk)) {
 					railBarriers.push({ cx: x, cz: z, dir: d });
 				}
 			}

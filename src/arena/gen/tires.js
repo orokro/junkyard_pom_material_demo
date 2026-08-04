@@ -65,12 +65,16 @@ export function generateTires(dims, model) {
 	for (const c of model.containers || []) if (c.story === 1 && !c.bridge) for (const [x, z] of c.cells) solid.add(key(x, z));
 	for (const k of model.level2 || []) solid.add(k);
 	const rampSet = new Set((model.ramps || []).map((r) => key(r.cx, r.cz)));
+	// Bridge deck cells are open beneath, but their base is handled solely by the
+	// dedicated BridgeBase pass — the autotiler skips them (otherwise it would also
+	// drop a plain straight on the ramp-side edge, duplicating the base piece).
+	const bridgeCells = new Set(model.bridges || []);
 	// 1→2 ramps sit at ground and are DIRECTIONAL: only the low end is drivable, so
 	// a ramp's sides + high end read as solid to adjacent ground (→ bumpers there).
 	const ramp12dir = new Map((model.ramps || []).filter((r) => r.from === 0).map((r) => [key(r.cx, r.cz), r.dir]));
 
 	const isSolid = (x, z) => !isInbounds(x, z, dims) || solid.has(key(x, z));
-	const isOpenGround = (x, z) => isInbounds(x, z, dims) && !solid.has(key(x, z)) && !rampSet.has(key(x, z));
+	const isOpenGround = (x, z) => isInbounds(x, z, dims) && !solid.has(key(x, z)) && !rampSet.has(key(x, z)) && !bridgeCells.has(key(x, z));
 	/** Solid across the edge from (x,z) toward (dx,dz), treating ramp sides/high as walls. */
 	const edgeSolid = (x, z, dx, dz) => {
 		const nx = x + dx, nz = z + dz;
@@ -122,7 +126,8 @@ export function generateTires(dims, model) {
 		const ends = [[ax, az, -abx, -abz], [bx, bz, abx, abz]]; // each cell's outward short-end
 		for (const [cx, cz, dx, dz] of ends) {
 			const dir = VEC_DIR[`${dx},${dz}`];
-			if (dir && isOpenGround(cx, cz) && !isSolid(cx + dx, cz + dz)) push(cx, cz, "bridgebase", dir, STRAIGHT_ROT[dir]);
+			// Bridge cells are excluded from isOpenGround, so gate on in-bounds instead.
+			if (dir && isInbounds(cx, cz, dims) && !isSolid(cx + dx, cz + dz)) push(cx, cz, "bridgebase", dir, STRAIGHT_ROT[dir]);
 		}
 	}
 

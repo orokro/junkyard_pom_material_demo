@@ -165,14 +165,13 @@ for (const seed of seeds) {
 		}
 	}
 
-	// Barriers (new rule): a rail sits on a SINGLE-STORY ring container top, along an
-	// edge that faces the outer void (not in-bounds, not another container cell).
+	// Barriers (new rule): a rail sits on a SINGLE-STORY ring container top, along its
+	// INTERIOR edge — facing a playable in-bounds cell (a gap/drop), never a poke wall.
 	{
 		const ringGround = new Set(); // story-1 ring container cells
 		const story2 = new Set();     // cells carrying a second story
-		const anyGroundContainer = new Set(); // any story-1 container (ring/poke/L3)
 		for (const c of m.containers) {
-			if (c.story === 1) { for (const [x, z] of c.cells) { anyGroundContainer.add(key(x, z)); if (c.ring) ringGround.add(key(x, z)); } }
+			if (c.story === 1 && c.ring) for (const [x, z] of c.cells) ringGround.add(key(x, z));
 			if (c.story === 2) for (const [x, z] of c.cells) story2.add(key(x, z));
 		}
 		for (const bar of m.barriers) {
@@ -180,8 +179,8 @@ for (const seed of seeds) {
 			if (!ringGround.has(k)) fail(`${seed}: barrier not on a ring container`);
 			if (story2.has(k)) fail(`${seed}: barrier on a two-story ring cell`);
 			const [dx, dz] = DIR_VEC[bar.dir];
-			const nk = key(bar.cx + dx, bar.cz + dz);
-			if (isInbounds(bar.cx + dx, bar.cz + dz, dims) || anyGroundContainer.has(nk)) fail(`${seed}: barrier not facing outer void`);
+			const nx = bar.cx + dx, nz = bar.cz + dz;
+			if (!isInbounds(nx, nz, dims) || pokeSet.has(key(nx, nz))) fail(`${seed}: barrier not facing an interior gap`);
 		}
 	}
 
@@ -193,7 +192,8 @@ for (const seed of seeds) {
 		const solidMask = new Set();
 		for (const c of m.containers) if (c.story === 1 && !c.bridge) for (const [x, z] of c.cells) solidMask.add(key(x, z));
 		for (const k of m.level2) solidMask.add(k);
-		const isOpenT = (x, z) => isInbounds(x, z, dims) && !solidMask.has(key(x, z)) && !rampSet.has(key(x, z));
+		const bridgeCellsT = new Set(m.bridges);
+		const isOpenT = (x, z) => isInbounds(x, z, dims) && !solidMask.has(key(x, z)) && !rampSet.has(key(x, z)) && !bridgeCellsT.has(key(x, z));
 		const isSolidCellT = (x, z) => !isInbounds(x, z, dims) || solidMask.has(key(x, z)); // cell-level (diagonals)
 		// Edge-aware solidity: a 1→2 ramp is only open from its low end (sides/high = wall).
 		const edgeSolidT = (x, z, dx, dz) => {
@@ -212,6 +212,7 @@ for (const seed of seeds) {
 		}
 
 		// Expected bridge-base edges (bridge short-end drop-offs abutting non-solid ground).
+		// Bridge cells are excluded from isOpenT, so gate the cell on in-bounds instead.
 		const VDIR = { "0,-1": "N", "1,0": "E", "0,1": "S", "-1,0": "W" };
 		const bridgeEnds = new Set();
 		for (const c of m.containers) {
@@ -220,17 +221,23 @@ for (const seed of seeds) {
 			const abx = bx - ax, abz = bz - az;
 			for (const [cx, cz, dx, dz] of [[ax, az, -abx, -abz], [bx, bz, abx, abz]]) {
 				const dir = VDIR[`${dx},${dz}`];
-				if (dir && isOpenT(cx, cz) && !isSolidCellT(cx + dx, cz + dz)) bridgeEnds.add(`${cx},${cz}:${dir}`);
+				if (dir && isInbounds(cx, cz, dims) && !isSolidCellT(cx + dx, cz + dz)) bridgeEnds.add(`${cx},${cz}:${dir}`);
 			}
 		}
 
-		// Per-cell: gather tiles, validate each rule.
-		/** @type {Map<string,{straight:Set<string>,concave:Set<string>,convex:Set<string>,bridgebase:Set<string>}>} */
+		// Per-cell: gather tiles, validate each rule. Bridgebase tiles live ON bridge
+		// cells (not open-ground) and are validated separately against bridgeEnds.
+		/** @type {Map<string,{straight:Set<string>,concave:Set<string>,convex:Set<string>}>} */
 		const byCell = new Map();
 		for (const t of m.tires) {
+			if (t.kind === "bridgebase") {
+				if (!bridgeCellsT.has(key(t.cx, t.cz))) fail(`${seed}: bridgebase not on a bridge cell @${t.cx},${t.cz}`);
+				else if (!bridgeEnds.has(`${t.cx},${t.cz}:${t.code}`)) fail(`${seed}: bridgebase ${t.code} not at a bridge drop-off @${t.cx},${t.cz}`);
+				continue;
+			}
 			if (!isOpenT(t.cx, t.cz)) { fail(`${seed}: tire on non-open cell ${t.cx},${t.cz}`); continue; }
 			const ck = key(t.cx, t.cz);
-			if (!byCell.has(ck)) byCell.set(ck, { straight: new Set(), concave: new Set(), convex: new Set(), bridgebase: new Set() });
+			if (!byCell.has(ck)) byCell.set(ck, { straight: new Set(), concave: new Set(), convex: new Set() });
 			byCell.get(ck)[t.kind].add(t.code);
 		}
 		for (const [ck, g] of byCell) {
@@ -244,8 +251,6 @@ for (const seed of seeds) {
 			}
 			// convex (poke) → InnerCorner mesh: diagonal solid, both orthogonals open.
 			for (const cn of g.convex) { const [e1, e2] = CORN[cn]; const [dx, dz] = CDIAG[cn]; if (edgeSolidT(x, z, ...DVv[e1]) || edgeSolidT(x, z, ...DVv[e2]) || !isSolidCellT(x + dx, z + dz)) fail(`${seed}: bad convex ${cn} @${ck}`); }
-			// bridgebase → only at a bridge short-end drop-off.
-			for (const d of g.bridgebase) if (!bridgeEnds.has(`${ck}:${d}`)) fail(`${seed}: bridgebase ${d} not at a bridge drop-off @${ck}`);
 		}
 
 		// Completeness: every solid edge of an open cell is covered by a straight or concave corner.
