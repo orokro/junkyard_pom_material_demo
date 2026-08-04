@@ -134,6 +134,30 @@ for (const seed of seeds) {
 		}
 	}
 
+	// R1 — unified ground floor: all open-ground cells (ramps as obstacles, bridges
+	// count as ground) form ONE component. No isolated pockets / fall-in holes.
+	{
+		const og = (x, z) => isInbounds(x, z, dims) && !pokeSet.has(key(x, z)) && !l2.has(key(x, z)) && !rampSet.has(key(x, z)) && !(l3.has(key(x, z)) && !bridges.has(key(x, z)));
+		let total = 0, start = null;
+		for (let x = 0; x < dims.Wc; x++) for (let z = 0; z < dims.Dc; z++) if (og(x, z)) { total++; if (!start) start = [x, z]; }
+		if (start) {
+			const sn = new Set([key(start[0], start[1])]); const st = [start];
+			while (st.length) { const [x, z] = st.pop(); for (const [dx, dz] of DIRS) { const nx = x + dx, nz = z + dz, nk = key(nx, nz); if (!sn.has(nk) && og(nx, nz)) { sn.add(nk); st.push([nx, nz]); } } }
+			if (sn.size !== total) fail(`${seed}: ground floor not unified (${total - sn.size} isolated)`);
+		}
+	}
+
+	// R2 — minimum platform size: no L2 island < 3, no non-bridge L3 island < 3 (bridges exempt).
+	{
+		const comps = (S, exclude) => {
+			const out = []; const sn = new Set();
+			for (const k of S) { if (sn.has(k) || (exclude && exclude.has(k))) continue; let n = 0; const st = [k]; sn.add(k); while (st.length) { const c = st.pop(); n++; const [x, z] = c.split(",").map(Number); for (const [dx, dz] of DIRS) { const nk = key(x + dx, z + dz); if (S.has(nk) && !sn.has(nk) && !(exclude && exclude.has(nk))) { sn.add(nk); st.push(nk); } } } out.push(n); }
+			return out;
+		};
+		if (comps(l2).some((n) => n < 3)) fail(`${seed}: L2 island < 3 cells`);
+		if (comps(l3, bridges).some((n) => n < 3)) fail(`${seed}: non-bridge L3 island < 3 cells`);
+	}
+
 	// No 1x1 dead-ends anywhere. Ramps are DIRECTIONAL: a 1→2 ramp is only drivable
 	// from its low end, so it walls its sides/high end (edge-aware). Solid L3 blocks
 	// the ground it stands on; a bridge is open below.
@@ -193,7 +217,7 @@ for (const seed of seeds) {
 		for (const c of m.containers) if (c.story === 1 && !c.bridge) for (const [x, z] of c.cells) solidMask.add(key(x, z));
 		for (const k of m.level2) solidMask.add(k);
 		const bridgeCellsT = new Set(m.bridges);
-		const isOpenT = (x, z) => isInbounds(x, z, dims) && !solidMask.has(key(x, z)) && !rampSet.has(key(x, z)) && !bridgeCellsT.has(key(x, z));
+		const isOpenT = (x, z) => isInbounds(x, z, dims) && !solidMask.has(key(x, z)) && !rampSet.has(key(x, z));
 		const isSolidCellT = (x, z) => !isInbounds(x, z, dims) || solidMask.has(key(x, z)); // cell-level (diagonals)
 		// Edge-aware solidity: a 1→2 ramp is only open from its low end (sides/high = wall).
 		const edgeSolidT = (x, z, dx, dz) => {

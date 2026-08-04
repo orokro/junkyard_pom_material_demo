@@ -128,6 +128,29 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 		return seen.size === total;
 	}
 
+	/**
+	 * R1 — unified ground floor: every open-ground cell must be reachable from every
+	 * other by driving ON the floor (ramps are obstacles you go around, not through).
+	 * Guarantees no isolated ground pocket you could only fall into (no holes/traps).
+	 */
+	function groundConnected() {
+		let total = 0, start = null;
+		for (let x = 0; x < dims.Wc; x++) for (let z = 0; z < dims.Dc; z++) {
+			if (isL1(x, z)) { total++; if (!start) start = [x, z]; }
+		}
+		if (!start) return true;
+		const seen = new Set([key(start[0], start[1])]);
+		const st = [start];
+		while (st.length) {
+			const [x, z] = st.pop();
+			for (const [dx, dz] of Object.values(DIR_VEC)) {
+				const nx = x + dx, nz = z + dz, nk = key(nx, nz);
+				if (!seen.has(nk) && isL1(nx, nz)) { seen.add(nk); st.push([nx, nz]); }
+			}
+		}
+		return seen.size === total;
+	}
+
 	const area = dims.Wc * dims.Dc;
 	const covMin = params.level2CoverageMin ?? 0.08;
 	const covMax = params.level2CoverageMax ?? 0.25;
@@ -152,7 +175,7 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 				level2.add(key(ax, az));
 				rampCells.set(key(rx, rz), dName);
 				reservedL1.add(key(lx, lz));
-				if (!connected() || createsDeadEnd([[ax, az], [rx, rz], [lx, lz]])) {
+				if (!connected() || !groundConnected() || createsDeadEnd([[ax, az], [rx, rz], [lx, lz]])) {
 					level2.delete(key(ax, az));
 					rampCells.delete(key(rx, rz));
 					reservedL1.delete(key(lx, lz));
@@ -176,7 +199,7 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 				const nx = fx + dx, nz = fz + dz;
 				if (!isL1(nx, nz) || reservedL1.has(key(nx, nz))) continue;
 				level2.add(key(nx, nz));
-				if (!connected() || createsDeadEnd([[nx, nz]])) { level2.delete(key(nx, nz)); continue; }
+				if (!connected() || !groundConnected() || createsDeadEnd([[nx, nz]])) { level2.delete(key(nx, nz)); continue; }
 				frontier.push([nx, nz]);
 				added++;
 				grew = true;
@@ -187,6 +210,75 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 		return added;
 	}
 
+	/** R2 — remove any L2 island smaller than `minSize` (its ramp + reserved lead too). */
+	function pruneSmallL2(minSize) {
+		const seen = new Set();
+		for (const k of [...level2]) {
+			if (seen.has(k) || !level2.has(k)) continue;
+			const comp = [];
+			const st = [k];
+			seen.add(k);
+			while (st.length) {
+				const c = st.pop();
+				comp.push(c);
+				const [x, z] = unkey(c);
+				for (const [dx, dz] of Object.values(DIR_VEC)) { const nk = key(x + dx, z + dz); if (level2.has(nk) && !seen.has(nk)) { seen.add(nk); st.push(nk); } }
+			}
+			if (comp.length >= minSize) continue;
+			const cs = new Set(comp);
+			for (const c of comp) level2.delete(c);
+			for (const [rk, dir] of [...rampCells]) {
+				const [rx, rz] = unkey(rk);
+				const [dx, dz] = DIR_VEC[dir];
+				if (cs.has(key(rx + dx, rz + dz))) { rampCells.delete(rk); reservedL1.delete(key(rx - dx, rz - dz)); }
+			}
+		}
+	}
+
+	/** Connected components of the current L2 set. */
+	function l2Islands() {
+		const comps = [];
+		const seen = new Set();
+		for (const k of level2) {
+			if (seen.has(k)) continue;
+			const comp = new Set([k]);
+			const st = [k];
+			seen.add(k);
+			while (st.length) {
+				const c = st.pop();
+				const [x, z] = unkey(c);
+				for (const [dx, dz] of Object.values(DIR_VEC)) { const nk = key(x + dx, z + dz); if (level2.has(nk) && !seen.has(nk)) { seen.add(nk); comp.add(nk); st.push(nk); } }
+			}
+			comps.push(comp);
+		}
+		return comps;
+	}
+	/** How many ramps land in this island. */
+	function rampsIntoIsland(isl) {
+		let n = 0;
+		for (const [rk, dir] of rampCells) { const [rx, rz] = unkey(rk); const [dx, dz] = DIR_VEC[dir]; if (isl.has(key(rx + dx, rz + dz))) n++; }
+		return n;
+	}
+	/** R4 — try to add ONE extra 1→2 ramp landing in this island (a separate way down). */
+	function addLoopRampL2(isl) {
+		const cells = shuffle([...isl].map(unkey), rng);
+		for (const [px, pz] of cells) {
+			for (const [dName, [dx, dz]] of shuffle(Object.entries(DIR_VEC), rng)) {
+				const rx = px - dx, rz = pz - dz, lx = px - 2 * dx, lz = pz - 2 * dz; // ramp + lead below landing P
+				if (!isL1(rx, rz) || !isL1(lx, lz)) continue;
+				if (reservedL1.has(key(rx, rz)) || reservedL1.has(key(lx, lz))) continue;
+				if (Object.values(DIR_VEC).some(([ex, ez]) => isRamp(rx + ex, rz + ez))) continue;
+				rampCells.set(key(rx, rz), dName);
+				reservedL1.add(key(lx, lz));
+				if (!connected() || !groundConnected() || createsDeadEnd([[rx, rz], [lx, lz], [px, pz]])) { rampCells.delete(key(rx, rz)); reservedL1.delete(key(lx, lz)); continue; }
+				return true;
+			}
+		}
+		return false;
+	}
+
+	const minPlat = Math.max(1, Math.round(params.minPlatformCells ?? 3));
+	const wantLoops = params.loops !== false;
 	const seeds = [];
 	for (let i = 0; i < numIslands; i++) {
 		const s = placeRamp();
@@ -197,6 +289,8 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 		const perIsland = Math.ceil(Math.max(0, targetCells - seeds.length) / seeds.length);
 		for (const s of seeds) grow(s, perIsland);
 	}
+	pruneSmallL2(minPlat);
+	if (wantLoops) for (const isl of l2Islands()) if (rampsIntoIsland(isl) < 2) addLoopRampL2(isl);
 
 	const ramps = [...rampCells.entries()].map(([k, dir]) => {
 		const [cx, cz] = unkey(k);
@@ -314,6 +408,25 @@ export function generateLevel3(dims, params, seed, ctx) {
 		return seen.size === total;
 	}
 
+	/** R1 — unified ground floor: all open-ground cells one component (ramps as obstacles). */
+	function groundConnected() {
+		let total = 0, start = null;
+		for (let x = 0; x < dims.Wc; x++) for (let z = 0; z < dims.Dc; z++) {
+			if (isGround(x, z)) { total++; if (!start) start = [x, z]; }
+		}
+		if (!start) return true;
+		const seen = new Set([key(start[0], start[1])]);
+		const st = [start];
+		while (st.length) {
+			const [x, z] = st.pop();
+			for (const [dx, dz] of Object.values(DIR_VEC)) {
+				const nx = x + dx, nz = z + dz, nk = key(nx, nz);
+				if (!seen.has(nk) && isGround(nx, nz)) { seen.add(nk); st.push([nx, nz]); }
+			}
+		}
+		return seen.size === total;
+	}
+
 	/** Would newly-L3 cells leave an open ground cell drivable-walled on ≥3 sides? */
 	function createsGroundDeadEnd(cells) {
 		for (const [cx0, cz0] of cells) {
@@ -332,7 +445,7 @@ export function generateLevel3(dims, params, seed, ctx) {
 	function tryDomino(a, b) {
 		L3.add(key(a[0], a[1]));
 		L3.add(key(b[0], b[1]));
-		if (!connected() || createsGroundDeadEnd([a, b])) {
+		if (!connected() || !groundConnected() || createsGroundDeadEnd([a, b])) {
 			L3.delete(key(a[0], a[1]));
 			L3.delete(key(b[0], b[1]));
 			return false;
@@ -478,6 +591,66 @@ export function generateLevel3(dims, params, seed, ctx) {
 	if (seeds.length) {
 		const budget = Math.ceil(Math.max(0, targetCells - seeds.length * 2) / 2 / seeds.length);
 		for (const s of seeds) growL3(s, budget);
+	}
+
+	// R2 — drop non-bridge L3 islands smaller than the min platform size (bridges exempt).
+	{
+		const minSize = Math.max(1, Math.round(params.minPlatformCells ?? 3));
+		const seen = new Set();
+		const removed = new Set();
+		for (const k of [...L3]) {
+			if (bridgeCells.has(k) || seen.has(k) || !L3.has(k)) continue;
+			const comp = [];
+			const st = [k];
+			seen.add(k);
+			while (st.length) {
+				const c = st.pop();
+				comp.push(c);
+				const [x, z] = unkey(c);
+				for (const [dx, dz] of Object.values(DIR_VEC)) { const nk = key(x + dx, z + dz); if (L3.has(nk) && !bridgeCells.has(nk) && !seen.has(nk)) { seen.add(nk); st.push(nk); } }
+			}
+			if (comp.length >= minSize) continue;
+			const cs = new Set(comp);
+			for (const c of comp) { L3.delete(c); removed.add(c); }
+			for (const [rk, dir] of [...rampCells23]) {
+				const [rx, rz] = unkey(rk);
+				const [dx, dz] = DIR_VEC[dir];
+				if (cs.has(key(rx + dx, rz + dz))) { rampCells23.delete(rk); reservedL2.delete(key(rx - dx, rz - dz)); }
+			}
+		}
+		if (removed.size) for (let i = dominoes.length - 1; i >= 0; i--) if (dominoes[i].cells.some(([x, z]) => removed.has(key(x, z)))) dominoes.splice(i, 1);
+	}
+
+	// R4 — best-effort L3 loops: try to give each non-bridge L3 island a second 2→3 ramp.
+	if (params.loops !== false) {
+		/** Try to add ONE extra 2→3 ramp landing in this island. */
+		const addLoopRamp23 = (isl) => {
+			const cells = shuffle([...isl].map(unkey), rng);
+			for (const [px, pz] of cells) {
+				for (const [dName, [dx, dz]] of shuffle(Object.entries(DIR_VEC), rng)) {
+					const rx = px - dx, rz = pz - dz, lx = px - 2 * dx, lz = pz - 2 * dz; // ramp + lead (both L2)
+					if (!isL2(rx, rz) || !isL2(lx, lz)) continue;
+					if (rampCells23.has(key(rx, rz)) || reservedL2.has(key(lx, lz))) continue;
+					if (Object.values(DIR_VEC).some(([ex, ez]) => ramp12.has(key(rx + ex, rz + ez)) || rampCells23.has(key(rx + ex, rz + ez)))) continue;
+					rampCells23.set(key(rx, rz), dName);
+					reservedL2.add(key(lx, lz));
+					if (!connected() || !groundConnected() || createsGroundDeadEnd([[px, pz]])) { rampCells23.delete(key(rx, rz)); reservedL2.delete(key(lx, lz)); continue; }
+					return true;
+				}
+			}
+			return false;
+		};
+		const seenI = new Set();
+		for (const k of L3) {
+			if (bridgeCells.has(k) || seenI.has(k)) continue;
+			const comp = new Set([k]);
+			const st = [k];
+			seenI.add(k);
+			while (st.length) { const c = st.pop(); const [x, z] = unkey(c); for (const [dx, dz] of Object.values(DIR_VEC)) { const nk = key(x + dx, z + dz); if (L3.has(nk) && !bridgeCells.has(nk) && !seenI.has(nk)) { seenI.add(nk); comp.add(nk); st.push(nk); } } }
+			let cnt = 0;
+			for (const [rk, dir] of rampCells23) { const [rx, rz] = unkey(rk); const [dx, dz] = DIR_VEC[dir]; if (comp.has(key(rx + dx, rz + dz))) cnt++; }
+			if (cnt < 2) addLoopRamp23(comp);
+		}
 	}
 
 	const ramps23 = [...rampCells23.entries()].map(([k, dir]) => { const [cx, cz] = unkey(k); return { cx, cz, dir, from: 2, to: 4 }; });

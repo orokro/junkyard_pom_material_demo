@@ -63,6 +63,13 @@ export const WORLD_GROUPS = [
 			{ key: "maxBridges", type: "number", label: "Max bridges", value: 3, min: 0, max: 12, step: 1, hint: "Upper bound on planned bridges per arena." },
 		],
 	},
+	{
+		title: "Topology",
+		fields: [
+			{ key: "minPlatformCells", type: "number", label: "Min platform cells", value: 3, min: 1, max: 8, step: 1, hint: "Smallest raised platform a ramp may lead to; smaller islands are dropped (bridges exempt)." },
+			{ key: "loops", type: "bool", label: "Loop ramps", value: true, hint: "Give raised islands a second ramp where possible, so you can loop instead of reversing." },
+		],
+	},
 ];
 
 /** @type {GroupDef[]} Runtime parameters (live sidebar). */

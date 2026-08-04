@@ -81,6 +81,24 @@ export function buildRings(dims, params, seed) {
 	const DIRS4 = [ [1, 0], [-1, 0], [0, 1], [0, -1] ];
 	/** A cell is a "wall" for dead-end purposes if it's outside the arena (ring/OOB) or has a poke. */
 	const isWall = (x, z) => !isInbounds(x, z, dims) || pokeCells.has(key(x, z));
+	/** R1 — do the in-bounds ground cells (minus pokes) still form ONE component? */
+	const groundOneComponent = () => {
+		let total = 0, start = null;
+		for (let cx = 0; cx < dims.Wc; cx++) for (let cz = 0; cz < dims.Dc; cz++) {
+			if (!pokeCells.has(key(cx, cz))) { total++; if (!start) start = [cx, cz]; }
+		}
+		if (!start) return true;
+		const seen = new Set([key(start[0], start[1])]);
+		const st = [start];
+		while (st.length) {
+			const [cx, cz] = st.pop();
+			for (const [dx, dz] of DIRS4) {
+				const nx = cx + dx, nz = cz + dz;
+				if (isInbounds(nx, nz, dims) && !pokeCells.has(key(nx, nz)) && !seen.has(key(nx, nz))) { seen.add(key(nx, nz)); st.push([nx, nz]); }
+			}
+		}
+		return seen.size === total;
+	};
 	/** Would these (already-added) poke cells leave any open neighbor walled on ≥3 sides? */
 	const createsDeadEnd = (cells) => {
 		for (const [cx0, cz0] of cells) {
@@ -113,7 +131,7 @@ export function buildRings(dims, params, seed) {
 		// Tentatively occupy, then reject if it forms a dead-end.
 		pokeCells.add(key(a[0], a[1]));
 		pokeCells.add(key(b[0], b[1]));
-		if (createsDeadEnd([a, b])) {
+		if (createsDeadEnd([a, b]) || !groundOneComponent()) {
 			pokeCells.delete(key(a[0], a[1]));
 			pokeCells.delete(key(b[0], b[1]));
 			continue;
