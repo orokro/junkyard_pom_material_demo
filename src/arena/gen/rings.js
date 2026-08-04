@@ -135,11 +135,41 @@ export function buildRings(dims, params, seed) {
 		for (const [x, z] of c.cells) solidCells.add(key(x, z));
 	}
 
+	// --- Metal rail barriers ---
+	// A guard rail sits on TOP (Y=4) of every SINGLE-STORY ring container, along
+	// each edge that faces the outer void (beyond the ring band). This gives a
+	// continuous rail around the top of the one-container-high outer wall, so a car
+	// that reaches a ring top (from an adjacent L3 island at Y4) can't roll off the
+	// arena. Two-story ring containers are already tall enough — skipped. Inward
+	// pokes never touch the outer void, so crates don't get spurious rails.
+	const ringCellSet = new Set();
+	for (const c of groundFrame) for (const [x, z] of c.cells) ringCellSet.add(key(x, z));
+	const pokeCellSet = new Set();
+	for (const c of pokes) for (const [x, z] of c.cells) pokeCellSet.add(key(x, z));
+	const upperGround = new Set();
+	for (const u of upper) if (u.ground != null) upperGround.add(u.ground);
+	const DIRB = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
+	/** @type {{cx:number,cz:number,dir:"N"|"E"|"S"|"W"}[]} */
+	const railBarriers = [];
+	groundFrame.forEach((c, i) => {
+		if (upperGround.has(i)) return; // two-story: the upper container is the wall
+		for (const [x, z] of c.cells) {
+			for (const [d, [dx, dz]] of Object.entries(DIRB)) {
+				const nx = x + dx, nz = z + dz, nk = key(nx, nz);
+				// Outer void = not playable in-bounds AND not another container cell.
+				if (!isInbounds(nx, nz, dims) && !ringCellSet.has(nk) && !pokeCellSet.has(nk)) {
+					railBarriers.push({ cx: x, cz: z, dir: d });
+				}
+			}
+		}
+	});
+
 	return {
 		containers: [...groundFrame, ...upper, ...pokes],
 		groundFrame,
 		upper,
 		pokes,
 		solidCells: [...solidCells],
+		railBarriers,
 	};
 }

@@ -635,6 +635,42 @@
       ],
       "alphaMode": "OPAQUE",
       "doubleSided": true
+    },
+    "RustedPittedMetal": {
+      "baseColor": null,
+      "baseColorFactor": [
+        0.1866,
+        0.1866,
+        0.1866,
+        1
+      ],
+      "metallicRoughness": {
+        "file": "t15_pitted-rusted-metal1_metallic-pitted-rusted-meta.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "metallicFactor": 0.86,
+      "roughnessFactor": 1,
+      "normal": {
+        "file": "t13_pitted-rusted-metal1_normal-ogl.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "normalScale": 1,
+      "occlusion": null,
+      "occlusionStrength": 1,
+      "emissive": null,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "doubleSided": true
     }
   },
   "parts": {
@@ -685,13 +721,20 @@
       "Crate2"
     ],
     "Arena_TireBarrier_InnerCorner_NorthEast": [
-      "Tires.001"
+      "Tires.001",
+      "RustedPittedMetal"
     ],
     "Arena_TireBarrier_OuterCorner_NorthEast": [
-      "Tires.001"
+      "Tires.001",
+      "RustedPittedMetal"
     ],
     "Arena_TireBarrier_Straight_East": [
-      "Tires.001"
+      "Tires.001",
+      "RustedPittedMetal"
+    ],
+    "Arena_TireBarrier_BridgeBase": [
+      "Tires.001",
+      "RustedPittedMetal"
     ]
   }
 }

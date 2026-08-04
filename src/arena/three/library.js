@@ -39,8 +39,8 @@ export const PART_NAMES = [
 	"Arena_ShippingContainer_Blue", "Arena_ShippingContainer_Red", "Arena_ShippingContainer_White",
 	"Arena_ShippingContainer_Green", "Arena_Bridge", "Arena_Bench", "Arena_FoldingChair", "Arena_LawnChair",
 	"Arena_PlasticChair", "Arena_TireBarrier_Straight_East", "Arena_TireBarrier_OuterCorner_NorthEast",
-	"Arena_TireBarrier_InnerCorner_NorthEast", "Arena_HalfPlatform", "Arena_Ramp", "Arena_Ramp_Corner",
-	"Arena_Metal_Barrier",
+	"Arena_TireBarrier_InnerCorner_NorthEast", "Arena_TireBarrier_BridgeBase", "Arena_HalfPlatform",
+	"Arena_Ramp", "Arena_Ramp_Corner", "Arena_Metal_Barrier",
 ];
 
 const WRAP = { repeat: THREE.RepeatWrapping, clamp: THREE.ClampToEdgeWrapping, mirror: THREE.MirroredRepeatWrapping };

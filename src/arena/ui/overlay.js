@@ -173,7 +173,7 @@ export function createOverlay(host) {
 		ctx.lineWidth = Math.max(1, s * 0.07);
 		for (const t of model.tires || []) {
 			const x0 = px(t.cx), y0 = py(t.cz);
-			if (t.kind === "straight") {
+			if (t.kind === "straight" || t.kind === "bridgebase") {
 				const [dx, dy] = DIRC[t.code] || [0, -1];
 				let ax, ay, bx, by;
 				if (dx !== 0) { const ex = dx > 0 ? x0 + s : x0; ax = ex; ay = y0 + s * 0.15; bx = ex; by = y0 + s * 0.85; }

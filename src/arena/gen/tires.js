@@ -48,8 +48,8 @@ const VEC_DIR = { "0,-1": "N", "1,0": "E", "0,1": "S", "-1,0": "W" };
 /**
  * @typedef {object} Tire
  * @property {number} cx @property {number} cz
- * @property {"straight"|"concave"|"convex"} kind
- * @property {string} code  Edge (N/E/S/W) for straight; corner (NE/SE/SW/NW) for corners.
+ * @property {"straight"|"concave"|"convex"|"bridgebase"} kind
+ * @property {string} code  Edge (N/E/S/W) for straight/bridgebase; corner (NE/SE/SW/NW) for corners.
  * @property {number} rotY
  */
 
@@ -65,9 +65,20 @@ export function generateTires(dims, model) {
 	for (const c of model.containers || []) if (c.story === 1 && !c.bridge) for (const [x, z] of c.cells) solid.add(key(x, z));
 	for (const k of model.level2 || []) solid.add(k);
 	const rampSet = new Set((model.ramps || []).map((r) => key(r.cx, r.cz)));
+	// 1→2 ramps sit at ground and are DIRECTIONAL: only the low end is drivable, so
+	// a ramp's sides + high end read as solid to adjacent ground (→ bumpers there).
+	const ramp12dir = new Map((model.ramps || []).filter((r) => r.from === 0).map((r) => [key(r.cx, r.cz), r.dir]));
 
 	const isSolid = (x, z) => !isInbounds(x, z, dims) || solid.has(key(x, z));
 	const isOpenGround = (x, z) => isInbounds(x, z, dims) && !solid.has(key(x, z)) && !rampSet.has(key(x, z));
+	/** Solid across the edge from (x,z) toward (dx,dz), treating ramp sides/high as walls. */
+	const edgeSolid = (x, z, dx, dz) => {
+		const nx = x + dx, nz = z + dz;
+		if (!isInbounds(nx, nz, dims) || solid.has(key(nx, nz))) return true;
+		const rd = ramp12dir.get(key(nx, nz));
+		if (rd) { const [ux, uz] = DV[rd]; return !(dx === ux && dz === uz); } // open only from the low end
+		return false;
+	};
 
 	/** @type {Tire[]} */
 	const tiles = [];
@@ -83,7 +94,7 @@ export function generateTires(dims, model) {
 		if (!isOpenGround(x, z)) continue;
 		/** @type {Record<string,boolean>} */
 		const sd = {};
-		for (const d in DV) { const [dx, dz] = DV[d]; sd[d] = isSolid(x + dx, z + dz); }
+		for (const d in DV) { const [dx, dz] = DV[d]; sd[d] = edgeSolid(x, z, dx, dz); }
 
 		const covered = new Set();
 		// Two adjacent solid edges = a concave nook → OuterCorner mesh (rounds it).
@@ -100,7 +111,10 @@ export function generateTires(dims, model) {
 		}
 	}
 
-	// Bridge pillars: a straight bumper on each short-end edge of every bridge domino.
+	// Bridge base: a drive-off (drop-off) short-end of a bridge deck needs a proper
+	// base barrier — the dedicated BridgeBase piece — rather than a plain straight
+	// (which only rails one side). Place it on each bridge short-end that abuts a
+	// non-solid cell (the open drop-off; the ramp end abuts L2 and is skipped).
 	for (const c of model.containers || []) {
 		if (!c.bridge) continue;
 		const [[ax, az], [bx, bz]] = c.cells;
@@ -108,9 +122,7 @@ export function generateTires(dims, model) {
 		const ends = [[ax, az, -abx, -abz], [bx, bz, abx, abz]]; // each cell's outward short-end
 		for (const [cx, cz, dx, dz] of ends) {
 			const dir = VEC_DIR[`${dx},${dz}`];
-			// Only where the short-end abuts a NON-solid cell (e.g. the ramp) — a solid
-			// short-end is already handled by autotiling (straight/inner corner).
-			if (dir && isOpenGround(cx, cz) && !isSolid(cx + dx, cz + dz)) push(cx, cz, "straight", dir, STRAIGHT_ROT[dir]);
+			if (dir && isOpenGround(cx, cz) && !isSolid(cx + dx, cz + dz)) push(cx, cz, "bridgebase", dir, STRAIGHT_ROT[dir]);
 		}
 	}
 

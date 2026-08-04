@@ -59,16 +59,28 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 	const isRamp = (x, z) => rampCells.has(key(x, z));
 	/** plain drivable ground: in-bounds, not a poke/wall, not L2, not a ramp. */
 	const isL1 = (x, z) => inB(x, z) && !pokeCells.has(key(x, z)) && !isL2(x, z) && !isRamp(x, z);
-	/** blocks a car at ground level (walls/pokes/L2). Ramps are OPEN (drivable) → not blocking. */
-	const isBlocking = (x, z) => !inB(x, z) || pokeCells.has(key(x, z)) || isL2(x, z);
-	/** Would these newly-L2 cells leave an open ground cell walled on ≥3 sides (a tire dead-end)? */
+	/**
+	 * Is the edge from ground cell (gx,gz) toward (dx,dz) blocked for a car? Walls,
+	 * pokes and L2 platforms block. A RAMP is DIRECTIONAL — a car can only drive
+	 * onto it from its low end (heading in the ramp's up-direction), so a ramp walls
+	 * off its two sides and its high end. This is what stops paths dead-ending into
+	 * a ramp's side (and ramps running into each other's sides).
+	 */
+	const edgeBlocked = (gx, gz, dx, dz) => {
+		const nx = gx + dx, nz = gz + dz;
+		if (!inB(nx, nz) || pokeCells.has(key(nx, nz)) || isL2(nx, nz)) return true;
+		const rd = rampCells.get(key(nx, nz));
+		if (rd) { const [ux, uz] = DIR_VEC[rd]; return !(dx === ux && dz === uz); }
+		return false;
+	};
+	/** Would the applied change leave an open ground cell drivable-walled on ≥3 sides? */
 	const createsDeadEnd = (cells) => {
 		for (const [cx0, cz0] of cells) {
 			for (const [dx, dz] of Object.values(DIR_VEC)) {
 				const nx = cx0 + dx, nz = cz0 + dz;
 				if (!isL1(nx, nz)) continue; // only open ground cells can be dead-ends
 				let b = 0;
-				for (const [ex, ez] of Object.values(DIR_VEC)) if (isBlocking(nx + ex, nz + ez)) b++;
+				for (const [ex, ez] of Object.values(DIR_VEC)) if (edgeBlocked(nx, nz, ex, ez)) b++;
 				if (b >= 3) return true;
 			}
 		}
@@ -134,10 +146,13 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 				const ax = lx + 2 * dx, az = lz + 2 * dz; // landing
 				if (!isL1(lx, lz) || !isL1(rx, rz) || !isL1(ax, az)) continue;
 				if (reservedL1.has(key(rx, rz)) || reservedL1.has(key(ax, az))) continue;
+				// Keep ramps apart: no ramp cell orthogonally adjacent to another ramp,
+				// so a ramp never runs into the side of another ramp.
+				if (Object.values(DIR_VEC).some(([ex, ez]) => isRamp(rx + ex, rz + ez))) continue;
 				level2.add(key(ax, az));
 				rampCells.set(key(rx, rz), dName);
 				reservedL1.add(key(lx, lz));
-				if (!connected() || createsDeadEnd([[ax, az]])) {
+				if (!connected() || createsDeadEnd([[ax, az], [rx, rz], [lx, lz]])) {
 					level2.delete(key(ax, az));
 					rampCells.delete(key(rx, rz));
 					reservedL1.delete(key(lx, lz));
@@ -224,6 +239,7 @@ export function generateLevel3(dims, params, seed, ctx) {
 	const reservedL1 = new Set(ctx.reservedL1);
 	const ramp12 = new Set(ctx.ramps.filter((r) => r.from === 0).map((r) => key(r.cx, r.cz)));
 	const ramps12 = ctx.ramps.filter((r) => r.from === 0);
+	const ramp12dir = new Map(ramps12.map((r) => [key(r.cx, r.cz), r.dir]));
 
 	const L3 = new Set();
 	const bridgeCells = new Set();   // L3 cells that are bridges (open ground beneath)
@@ -242,8 +258,18 @@ export function generateLevel3(dims, params, seed, ctx) {
 	const isGround = (x, z) => inB(x, z) && !pokeCells.has(key(x, z)) && !isL2(x, z) && !ramp12.has(key(x, z)) && !(isL3(x, z) && !isBridge(x, z));
 	/** a ground cell a SOLID L3 container may consume (not a reserved lead/lane, not a bridge). */
 	const canL3 = (x, z) => isGround(x, z) && !reservedL1.has(key(x, z)) && !reservedGround.has(key(x, z)) && !isBridge(x, z);
-	/** blocks a car at ground level. Ramps, reserved ground, and bridge undersides are OPEN. */
-	const isBlockingGround = (x, z) => !inB(x, z) || pokeCells.has(key(x, z)) || isL2(x, z) || (isL3(x, z) && !isBridge(x, z));
+	/**
+	 * Is the edge from ground cell (gx,gz) toward (dx,dz) blocked? Walls/pokes, L2,
+	 * and solid L3 block; bridge undersides are open. A 1→2 ramp is DIRECTIONAL —
+	 * only drivable from its low end — so it walls off its sides and high end.
+	 */
+	const edgeBlockedGround = (gx, gz, dx, dz) => {
+		const nx = gx + dx, nz = gz + dz;
+		if (!inB(nx, nz) || pokeCells.has(key(nx, nz)) || isL2(nx, nz) || (isL3(nx, nz) && !isBridge(nx, nz))) return true;
+		const rd = ramp12dir.get(key(nx, nz));
+		if (rd) { const [ux, uz] = DIR_VEC[rd]; return !(dx === ux && dz === uz); }
+		return false;
+	};
 
 	/** All drivable cells (L1+L2+L3, linked by 1→2 and 2→3 ramps) one component? */
 	function connected() {
@@ -288,14 +314,14 @@ export function generateLevel3(dims, params, seed, ctx) {
 		return seen.size === total;
 	}
 
-	/** Would newly-L3 cells leave an open ground cell walled on ≥3 sides? */
+	/** Would newly-L3 cells leave an open ground cell drivable-walled on ≥3 sides? */
 	function createsGroundDeadEnd(cells) {
 		for (const [cx0, cz0] of cells) {
 			for (const [dx, dz] of Object.values(DIR_VEC)) {
 				const nx = cx0 + dx, nz = cz0 + dz;
 				if (!isGround(nx, nz)) continue;
 				let b = 0;
-				for (const [ex, ez] of Object.values(DIR_VEC)) if (isBlockingGround(nx + ex, nz + ez)) b++;
+				for (const [ex, ez] of Object.values(DIR_VEC)) if (edgeBlockedGround(nx, nz, ex, ez)) b++;
 				if (b >= 3) return true;
 			}
 		}
@@ -326,6 +352,8 @@ export function generateLevel3(dims, params, seed, ctx) {
 				const land = [rx + dx, rz + dz];
 				if (!isL2(lead[0], lead[1]) || reservedL2.has(key(lead[0], lead[1]))) continue;
 				if (!canL3(land[0], land[1])) continue;
+				// Keep ramps apart (no ramp running into another ramp's side).
+				if (Object.values(DIR_VEC).some(([ex, ez]) => ramp12.has(key(rx + ex, rz + ez)) || rampCells23.has(key(rx + ex, rz + ez)))) continue;
 				let partner = null;
 				for (const [ex, ez] of shuffle(Object.values(DIR_VEC), rng)) {
 					const p = [land[0] + ex, land[1] + ez];
@@ -388,6 +416,8 @@ export function generateLevel3(dims, params, seed, ctx) {
 				const B = [rx + 2 * dx, rz + 2 * dz];
 				if (!isL2(lead[0], lead[1]) || reservedL2.has(key(lead[0], lead[1]))) continue;
 				if (!canL3(A[0], A[1]) || !canL3(B[0], B[1])) continue;
+				// Keep ramps apart (no ramp running into another ramp's side).
+				if (Object.values(DIR_VEC).some(([ex, ez]) => ramp12.has(key(rx + ex, rz + ez)) || rampCells23.has(key(rx + ex, rz + ez)))) continue;
 				// Long-side lanes = the two directions perpendicular to the run.
 				const cross = dx !== 0 ? [[0, -1], [0, 1]] : [[-1, 0], [1, 0]];
 				const flanks = [];
@@ -452,26 +482,5 @@ export function generateLevel3(dims, params, seed, ctx) {
 
 	const ramps23 = [...rampCells23.entries()].map(([k, dir]) => { const [cx, cz] = unkey(k); return { cx, cz, dir, from: 2, to: 4 }; });
 	return { level3Cells: [...L3], containers: dominoes, ramps23, bridges: [...bridgeCells] };
-}
-
-/**
- * Metal barriers: on every level-3 surface cell (generated islands + inward-poke
- * tops) whose edge faces out of the playable bounds — so you can't drive off a
- * Y4 surface into the ring / grandstands.
- * @param {import("./grid.js").Dims} dims
- * @param {string[]} level3Cells
- * @param {string[]} pokeCells
- * @returns {{cx:number,cz:number,dir:"N"|"E"|"S"|"W"}[]}
- */
-export function makeBarriers(dims, level3Cells, pokeCells) {
-	const barriers = [];
-	const surfaces = new Set([...level3Cells, ...pokeCells]);
-	for (const k of surfaces) {
-		const [cx, cz] = unkey(k);
-		for (const [dName, [dx, dz]] of Object.entries(DIR_VEC)) {
-			if (!isInbounds(cx + dx, cz + dz, dims)) barriers.push({ cx, cz, dir: dName });
-		}
-	}
-	return barriers;
 }
 

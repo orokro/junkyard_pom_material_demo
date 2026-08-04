@@ -36,9 +36,11 @@ const TIRE_PART = {
 	straight: "Arena_TireBarrier_Straight_East",
 	concave: "Arena_TireBarrier_OuterCorner_NorthEast",
 	convex: "Arena_TireBarrier_InnerCorner_NorthEast",
+	bridgebase: "Arena_TireBarrier_BridgeBase",
 };
-/** Lift tires 1 cm so their base plane doesn't z-fight the ground/floor. */
-const TIRE_LIFT = 0.01;
+/** Lift tires so their base plane clears the ground. The meshes dip to y≈-0.01,
+ *  so 0.01 lands exactly on the floor and still z-fights — 0.03 clears it. */
+const TIRE_LIFT = 0.03;
 
 /**
  * @param {[[number,number],[number,number]]} cells @param {"H"|"V"} orient @param {number} baseY

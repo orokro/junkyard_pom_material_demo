@@ -134,13 +134,21 @@ for (const seed of seeds) {
 		}
 	}
 
-	// No 1x1 dead-ends anywhere (ramps count as OPEN; solid L3 blocks the ground it
-	// stands on, but a bridge is open below → not blocking).
-	const blocking = (x, z) => !isInbounds(x, z, dims) || pokeSet.has(key(x, z)) || l2.has(key(x, z)) || (l3.has(key(x, z)) && !bridges.has(key(x, z)));
+	// No 1x1 dead-ends anywhere. Ramps are DIRECTIONAL: a 1→2 ramp is only drivable
+	// from its low end, so it walls its sides/high end (edge-aware). Solid L3 blocks
+	// the ground it stands on; a bridge is open below.
+	const ramp12dirT = new Map(m.ramps.filter((r) => r.from === 0).map((r) => [key(r.cx, r.cz), r.dir]));
+	const edgeBlockedT = (gx, gz, dx, dz) => {
+		const nx = gx + dx, nz = gz + dz, nk = key(nx, nz);
+		if (!isInbounds(nx, nz, dims) || pokeSet.has(nk) || l2.has(nk) || (l3.has(nk) && !bridges.has(nk))) return true;
+		const rd = ramp12dirT.get(nk);
+		if (rd) { const [ux, uz] = DIR_VEC[rd]; return !(dx === ux && dz === uz); }
+		return false;
+	};
 	const openGround = (x, z) => isL1(x, z);
 	for (let x = 0; x < dims.Wc && failures < 50; x++) for (let z = 0; z < dims.Dc; z++) {
 		if (!openGround(x, z)) continue;
-		let b = 0; for (const [dx, dz] of DIRS) if (blocking(x + dx, z + dz)) b++;
+		let b = 0; for (const [dx, dz] of DIRS) if (edgeBlockedT(x, z, dx, dz)) b++;
 		if (b >= 3) { fail(`${seed}: island dead-end at ${x},${z}`); break; }
 	}
 
@@ -157,13 +165,24 @@ for (const seed of seeds) {
 		}
 	}
 
-	// Barriers: each guards a Y4-surface cell (L3 or poke) on an edge that faces OOB.
-	const surfaces = new Set([...m.level3, ...pokeSet]);
-	for (const bar of m.barriers) {
-		const k = key(bar.cx, bar.cz);
-		if (!surfaces.has(k)) fail(`${seed}: barrier not on a Y4 surface cell`);
-		const [dx, dz] = DIR_VEC[bar.dir];
-		if (isInbounds(bar.cx + dx, bar.cz + dz, dims)) fail(`${seed}: barrier not facing OOB`);
+	// Barriers (new rule): a rail sits on a SINGLE-STORY ring container top, along an
+	// edge that faces the outer void (not in-bounds, not another container cell).
+	{
+		const ringGround = new Set(); // story-1 ring container cells
+		const story2 = new Set();     // cells carrying a second story
+		const anyGroundContainer = new Set(); // any story-1 container (ring/poke/L3)
+		for (const c of m.containers) {
+			if (c.story === 1) { for (const [x, z] of c.cells) { anyGroundContainer.add(key(x, z)); if (c.ring) ringGround.add(key(x, z)); } }
+			if (c.story === 2) for (const [x, z] of c.cells) story2.add(key(x, z));
+		}
+		for (const bar of m.barriers) {
+			const k = key(bar.cx, bar.cz);
+			if (!ringGround.has(k)) fail(`${seed}: barrier not on a ring container`);
+			if (story2.has(k)) fail(`${seed}: barrier on a two-story ring cell`);
+			const [dx, dz] = DIR_VEC[bar.dir];
+			const nk = key(bar.cx + dx, bar.cz + dz);
+			if (isInbounds(bar.cx + dx, bar.cz + dz, dims) || anyGroundContainer.has(nk)) fail(`${seed}: barrier not facing outer void`);
+		}
 	}
 
 	// --- Tire barriers (Phase 7) ---
@@ -174,50 +193,59 @@ for (const seed of seeds) {
 		const solidMask = new Set();
 		for (const c of m.containers) if (c.story === 1 && !c.bridge) for (const [x, z] of c.cells) solidMask.add(key(x, z));
 		for (const k of m.level2) solidMask.add(k);
-		const isSolidT = (x, z) => !isInbounds(x, z, dims) || solidMask.has(key(x, z));
 		const isOpenT = (x, z) => isInbounds(x, z, dims) && !solidMask.has(key(x, z)) && !rampSet.has(key(x, z));
+		const isSolidCellT = (x, z) => !isInbounds(x, z, dims) || solidMask.has(key(x, z)); // cell-level (diagonals)
+		// Edge-aware solidity: a 1→2 ramp is only open from its low end (sides/high = wall).
+		const edgeSolidT = (x, z, dx, dz) => {
+			const nx = x + dx, nz = z + dz, nk = key(nx, nz);
+			if (!isInbounds(nx, nz, dims) || solidMask.has(nk)) return true;
+			const rd = ramp12dirT.get(nk);
+			if (rd) { const [ux, uz] = DIR_VEC[rd]; return !(dx === ux && dz === uz); }
+			return false;
+		};
 
-		// Dead-end invariant: no open-ground cell walled on ≥3 sides.
+		// Dead-end invariant (edge-aware): no open-ground cell drivable-walled on ≥3 sides.
 		for (let x = 0; x < dims.Wc && failures < 60; x++) for (let z = 0; z < dims.Dc; z++) {
 			if (!isOpenT(x, z)) continue;
-			let s = 0; for (const d in DVv) { const [dx, dz] = DVv[d]; if (isSolidT(x + dx, z + dz)) s++; }
+			let s = 0; for (const d in DVv) { const [dx, dz] = DVv[d]; if (edgeSolidT(x, z, dx, dz)) s++; }
 			if (s >= 3) { fail(`${seed}: tire dead-end (${s} walls) at ${x},${z}`); break; }
 		}
 
-		// Expected bridge-pillar straight edges (short-ends abutting a non-solid cell).
+		// Expected bridge-base edges (bridge short-end drop-offs abutting non-solid ground).
 		const VDIR = { "0,-1": "N", "1,0": "E", "0,1": "S", "-1,0": "W" };
-		const pillars = new Set();
+		const bridgeEnds = new Set();
 		for (const c of m.containers) {
 			if (!c.bridge) continue;
 			const [[ax, az], [bx, bz]] = c.cells;
 			const abx = bx - ax, abz = bz - az;
 			for (const [cx, cz, dx, dz] of [[ax, az, -abx, -abz], [bx, bz, abx, abz]]) {
 				const dir = VDIR[`${dx},${dz}`];
-				if (dir && isOpenT(cx, cz) && !isSolidT(cx + dx, cz + dz)) pillars.add(`${cx},${cz}:${dir}`);
+				if (dir && isOpenT(cx, cz) && !isSolidCellT(cx + dx, cz + dz)) bridgeEnds.add(`${cx},${cz}:${dir}`);
 			}
 		}
 
 		// Per-cell: gather tiles, validate each rule.
-		/** @type {Map<string,{straight:Set<string>,concave:Set<string>,convex:Set<string>}>} */
+		/** @type {Map<string,{straight:Set<string>,concave:Set<string>,convex:Set<string>,bridgebase:Set<string>}>} */
 		const byCell = new Map();
 		for (const t of m.tires) {
 			if (!isOpenT(t.cx, t.cz)) { fail(`${seed}: tire on non-open cell ${t.cx},${t.cz}`); continue; }
 			const ck = key(t.cx, t.cz);
-			if (!byCell.has(ck)) byCell.set(ck, { straight: new Set(), concave: new Set(), convex: new Set() });
+			if (!byCell.has(ck)) byCell.set(ck, { straight: new Set(), concave: new Set(), convex: new Set(), bridgebase: new Set() });
 			byCell.get(ck)[t.kind].add(t.code);
 		}
 		for (const [ck, g] of byCell) {
 			const [x, z] = ck.split(",").map(Number);
 			const cov = new Set();
-			// concave (nook) → OuterCorner mesh: both edges must be solid; covers them.
-			for (const cn of g.concave) { const [e1, e2] = CORN[cn]; if (!isSolidT(x + DVv[e1][0], z + DVv[e1][1]) || !isSolidT(x + DVv[e2][0], z + DVv[e2][1])) fail(`${seed}: concave ${cn} without 2 solid edges @${ck}`); cov.add(e1); cov.add(e2); }
+			// concave (nook) → OuterCorner mesh: both edges solid (edge-aware); covers them.
+			for (const cn of g.concave) { const [e1, e2] = CORN[cn]; if (!edgeSolidT(x, z, ...DVv[e1]) || !edgeSolidT(x, z, ...DVv[e2])) fail(`${seed}: concave ${cn} without 2 solid edges @${ck}`); cov.add(e1); cov.add(e2); }
 			for (const d of g.straight) {
-				const solidEdge = isSolidT(x + DVv[d][0], z + DVv[d][1]);
-				if (!solidEdge && !pillars.has(`${ck}:${d}`)) fail(`${seed}: straight ${d} on open edge (not pillar) @${ck}`);
+				if (!edgeSolidT(x, z, ...DVv[d])) fail(`${seed}: straight ${d} on open edge @${ck}`);
 				if (cov.has(d)) fail(`${seed}: straight ${d} not suppressed by concave corner @${ck}`);
 			}
 			// convex (poke) → InnerCorner mesh: diagonal solid, both orthogonals open.
-			for (const cn of g.convex) { const [e1, e2] = CORN[cn]; const [dx, dz] = CDIAG[cn]; if (isSolidT(x + DVv[e1][0], z + DVv[e1][1]) || isSolidT(x + DVv[e2][0], z + DVv[e2][1]) || !isSolidT(x + dx, z + dz)) fail(`${seed}: bad convex ${cn} @${ck}`); }
+			for (const cn of g.convex) { const [e1, e2] = CORN[cn]; const [dx, dz] = CDIAG[cn]; if (edgeSolidT(x, z, ...DVv[e1]) || edgeSolidT(x, z, ...DVv[e2]) || !isSolidCellT(x + dx, z + dz)) fail(`${seed}: bad convex ${cn} @${ck}`); }
+			// bridgebase → only at a bridge short-end drop-off.
+			for (const d of g.bridgebase) if (!bridgeEnds.has(`${ck}:${d}`)) fail(`${seed}: bridgebase ${d} not at a bridge drop-off @${ck}`);
 		}
 
 		// Completeness: every solid edge of an open cell is covered by a straight or concave corner.
@@ -225,7 +253,7 @@ for (const seed of seeds) {
 			if (!isOpenT(x, z)) continue;
 			const g = byCell.get(key(x, z));
 			for (const d in DVv) {
-				if (!isSolidT(x + DVv[d][0], z + DVv[d][1])) continue;
+				if (!edgeSolidT(x, z, ...DVv[d])) continue;
 				const covered = g && (g.straight.has(d) || [...g.concave].some((cn) => CORN[cn].includes(d)));
 				if (!covered) { fail(`${seed}: uncovered solid edge ${d} @${x},${z}`); break; }
 			}

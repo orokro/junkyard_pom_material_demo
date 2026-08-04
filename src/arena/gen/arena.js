@@ -16,7 +16,7 @@
 import { computeDims, inboundsRect, key } from "./grid.js";
 import { buildRings } from "./rings.js";
 import { placeChairs } from "./chairs.js";
-import { generateLevel2, generateLevel3, makeBarriers } from "./islands.js";
+import { generateLevel2, generateLevel3 } from "./islands.js";
 import { generateTires } from "./tires.js";
 
 /**
@@ -33,7 +33,7 @@ import { generateTires } from "./tires.js";
  * @property {string[]} level3  Cell keys raised to level 3 (generated container tops).
  * @property {string[]} bridges  L3 cell keys that are bridges (drivable over AND under).
  * @property {{cx:number,cz:number,dir:string,from:number,to:number}[]} ramps  All ramps (1→2 and 2→3).
- * @property {{cx:number,cz:number,dir:string}[]} barriers  Metal barriers on Y4 surface edges facing OOB.
+ * @property {{cx:number,cz:number,dir:string}[]} barriers  Metal rails on single-story ring tops (Y4), outer-void edges.
  * @property {import("./tires.js").Tire[]} tires  Ground-level tire barriers (autotiled).
  */
 
@@ -72,8 +72,9 @@ export function generateArena(seed, params) {
 		bridge: c.isBridge === true,
 	}));
 
-	// Metal barriers on every Y4 surface edge (L3 islands + inward pokes) facing OOB.
-	const barriers = makeBarriers(dims, l3.level3Cells, [...pokeCells]);
+	// Metal rail barriers: computed in the ring phase — on single-story ring tops
+	// along outer-void edges (see rings.js). Detached from L3 platforms entirely.
+	const barriers = rings.railBarriers;
 
 	const model = {
 		seed,
