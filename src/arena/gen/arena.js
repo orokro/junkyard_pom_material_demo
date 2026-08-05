@@ -18,6 +18,7 @@ import { buildRings } from "./rings.js";
 import { placeChairs } from "./chairs.js";
 import { generateLevel2, generateLevel3 } from "./islands.js";
 import { generateTires } from "./tires.js";
+import { placeStadiumLights, placeTents } from "./props.js";
 
 /**
  * @typedef {object} ArenaModel
@@ -94,5 +95,9 @@ export function generateArena(seed, params) {
 
 	// Tire barriers autotile against the assembled solid mask (walls/L2/L3), so run last.
 	model.tires = generateTires(dims, model);
+
+	// Environment decoration (visual only): stadium lights around the arena, tents on walls.
+	model.lights = placeStadiumLights(dims, params, seed);
+	model.tents = placeTents(rings, dims, params, seed);
 	return model;
 }

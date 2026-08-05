@@ -671,6 +671,127 @@
       ],
       "alphaMode": "OPAQUE",
       "doubleSided": true
+    },
+    "StadiumPole": {
+      "baseColor": null,
+      "baseColorFactor": [
+        0.02,
+        0.02,
+        0.02,
+        1
+      ],
+      "metallicRoughness": null,
+      "metallicFactor": 0.2,
+      "roughnessFactor": 0.8,
+      "normal": null,
+      "normalScale": 1,
+      "occlusion": null,
+      "occlusionStrength": 1,
+      "emissive": null,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "doubleSided": false
+    },
+    "StadiumLight": {
+      "baseColor": null,
+      "baseColorFactor": [
+        0.8,
+        0.8,
+        0.8,
+        1
+      ],
+      "metallicRoughness": null,
+      "metallicFactor": 0,
+      "roughnessFactor": 0.5,
+      "normal": null,
+      "normalScale": 1,
+      "occlusion": null,
+      "occlusionStrength": 1,
+      "emissive": null,
+      "emissiveFactor": [
+        1,
+        1,
+        1
+      ],
+      "emissiveIntensity": 4,
+      "alphaMode": "OPAQUE",
+      "doubleSided": false
+    },
+    "PillarConcrete_White": {
+      "baseColor": {
+        "file": "t37_clean-concrete_warm_albedo.png",
+        "colorSpace": "srgb",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "baseColorFactor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "metallicRoughness": {
+        "file": "t38_clean-concrete_roughness.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "metallicFactor": 0,
+      "roughnessFactor": 1,
+      "normal": {
+        "file": "t39_clean-concrete_normal-ogl.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "normalScale": 1,
+      "occlusion": null,
+      "occlusionStrength": 1,
+      "emissive": null,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "doubleSided": false
+    },
+    "TentTop": {
+      "baseColor": null,
+      "baseColorFactor": [
+        0.85,
+        0.85,
+        0.85,
+        1
+      ],
+      "metallicRoughness": null,
+      "metallicFactor": 0,
+      "roughnessFactor": 0.35,
+      "normal": {
+        "file": "t09_noise_normal.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "normalScale": 0.5,
+      "occlusion": null,
+      "occlusionStrength": 1,
+      "emissive": null,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "doubleSided": true
     }
   },
   "parts": {
@@ -735,6 +856,16 @@
     "Arena_TireBarrier_BridgeBase": [
       "Tires.001",
       "RustedPittedMetal"
+    ],
+    "StadiumLights": [
+      "StadiumPole",
+      "MoreMetal2",
+      "StadiumLight",
+      "MoreMetal"
+    ],
+    "Tent": [
+      "PillarConcrete_White",
+      "TentTop"
     ]
   }
 }

@@ -43,6 +43,8 @@ export const WORLD_GROUPS = [
 			{ key: "secondStoryChance", type: "number", label: "2nd-story chance", value: 0.5, min: 0, max: 1, step: 0.05, hint: "Fraction of ring containers that get a second story." },
 			{ key: "maxInwardPokes", type: "number", label: "Max inward pokes", value: 4, min: 0, max: 16, step: 1, hint: "Containers poking into the arena to break the rectangle." },
 			{ key: "chairChance", type: "number", label: "Chair chance / top", value: 0.55, min: 0, max: 1, step: 0.05, hint: "Chance an eligible ring-top spawns grandstand chairs." },
+			{ key: "chairMaxPerTop", type: "number", label: "Max chairs / top", value: 2, min: 1, max: 5, step: 1, hint: "Upper bound on chairs placed on a single container top." },
+			{ key: "occluderStory3Chance", type: "number", label: "3rd-ring extra story", value: 0.4, min: 0, max: 1, step: 0.05, hint: "Chance a back-ring occluder gets a 3rd story (verticality)." },
 		],
 	},
 	{
@@ -70,6 +72,15 @@ export const WORLD_GROUPS = [
 			{ key: "loops", type: "bool", label: "Loop ramps", value: true, hint: "Give raised islands a second ramp where possible, so you can loop instead of reversing." },
 		],
 	},
+	{
+		title: "Decor & lights",
+		fields: [
+			{ key: "tentChance", type: "number", label: "Tent chance / cell", value: 0.3, min: 0, max: 1, step: 0.05, hint: "Chance each outer-wall top cell gets an EZ-up tent (up to 2 per container)." },
+			{ key: "stadiumLights", type: "number", label: "Stadium lights", value: 10, min: 0, max: 40, step: 1, hint: "Number of stadium light towers spaced around the arena, facing in." },
+			{ key: "stadiumLightScale", type: "number", label: "Light scale", value: 1, min: 0.3, max: 3, step: 0.1, hint: "Size multiplier for the stadium light towers." },
+			{ key: "stadiumLightMargin", type: "number", label: "Light distance (m)", value: 18, min: 0, max: 60, step: 1, hint: "How far outside the walls the light towers stand." },
+		],
+	},
 ];
 
 /** @type {GroupDef[]} Runtime parameters (live sidebar). */
@@ -87,6 +98,17 @@ export const RUNTIME_GROUPS = [
 		fields: [
 			{ key: "floorVisible", type: "bool", label: "Show floor", value: true },
 			{ key: "floorTileMeters", type: "number", label: "Floor tile (m)", value: 8, min: 1, max: 64, step: 1 },
+		],
+	},
+	{
+		title: "Lighting (HDR)",
+		fields: [
+			{ key: "exposure", type: "number", label: "Exposure", value: 1.1, min: 0.1, max: 4, step: 0.05, hint: "Tone-mapping exposure." },
+			{ key: "envIntensity", type: "number", label: "Env intensity", value: 1.4, min: 0, max: 5, step: 0.05, hint: "Strength of HDR image-based lighting on materials." },
+			{ key: "bgIntensity", type: "number", label: "Sky brightness", value: 1.0, min: 0, max: 4, step: 0.05, hint: "Brightness of the HDR sky background." },
+			{ key: "hemiIntensity", type: "number", label: "Fill light", value: 0.12, min: 0, max: 2, step: 0.02, hint: "Analytic hemisphere fill on top of the HDR." },
+			{ key: "sunIntensity", type: "number", label: "Moonlight", value: 0.5, min: 0, max: 4, step: 0.05, hint: "Directional key light (moon)." },
+			{ key: "showBackground", type: "bool", label: "Show sky", value: true, hint: "Toggle the HDR sky background." },
 		],
 	},
 	{

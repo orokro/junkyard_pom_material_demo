@@ -66,18 +66,18 @@ export function buildArena(model, registry) {
 	/** @type {Map<string, THREE.Matrix4[]>} */
 	const perPart = new Map();
 	const dummy = new THREE.Object3D();
-	const add = (name, x, y, z, rotY) => {
+	const add = (name, x, y, z, rotY, scale = 1) => {
 		if (!registry.has(name)) return;
 		dummy.position.set(x, y, z);
 		dummy.rotation.set(0, rotY, 0);
-		dummy.scale.set(1, 1, 1);
+		dummy.scale.set(scale, scale, scale);
 		dummy.updateMatrix();
 		if (!perPart.has(name)) perPart.set(name, []);
 		perPart.get(name).push(dummy.matrix.clone());
 	};
 
 	for (const c of model.containers) {
-		const t = dominoTransform(c.cells, c.orient, c.story === 2 ? 4 : 0);
+		const t = dominoTransform(c.cells, c.orient, (c.story - 1) * 4); // story 1→Y0, 2→Y4, 3→Y8
 		// Bridges share the container footprint/pivot but use the open-underside mesh.
 		if (c.bridge) add("Arena_Bridge", t.x, t.y, t.z, t.rotY);
 		else add(`Arena_ShippingContainer_${c.color}`, t.x, t.y, t.z, t.rotY);
@@ -112,6 +112,11 @@ export function buildArena(model, registry) {
 		add(TIRE_PART[t.kind], x, TIRE_LIFT, z, t.rotY);
 	}
 
+	// Stadium lights ring the arena facing in (scaled per gen settings).
+	for (const l of model.lights || []) {
+		add("StadiumLights", l.pos[0], l.pos[1], l.pos[2], l.rotY, l.scale ?? 1);
+	}
+
 	// Materialize: one InstancedMesh per (part, sub-mesh), sharing the transforms.
 	for (const [name, matrices] of perPart.entries()) {
 		const entries = registry.get(name);
@@ -121,6 +126,26 @@ export function buildArena(model, registry) {
 			matrices.forEach((m, i) => inst.setMatrixAt(i, m));
 			inst.instanceMatrix.needsUpdate = true;
 			inst.frustumCulled = false;
+			group.add(inst);
+		});
+	}
+
+	// Tents — instanced with a per-tent random top color (setColorAt on the TentTop
+	// sub-mesh only; instanceColor multiplies the material color in MeshStandardMaterial).
+	const tents = model.tents || [];
+	if (tents.length && registry.has("Tent")) {
+		const mats = tents.map((t) => { dummy.position.set(t.pos[0], t.pos[1], t.pos[2]); dummy.rotation.set(0, t.rotY, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix(); return dummy.matrix.clone(); });
+		const col = new THREE.Color();
+		registry.get("Tent").forEach((entry, si) => {
+			const inst = new THREE.InstancedMesh(entry.geometry, entry.material, mats.length);
+			inst.name = `Tent#${si}`;
+			mats.forEach((m, i) => inst.setMatrixAt(i, m));
+			inst.instanceMatrix.needsUpdate = true;
+			inst.frustumCulled = false;
+			if (entry.material.name === "TentTop") {
+				tents.forEach((t, i) => inst.setColorAt(i, col.setRGB(t.color[0], t.color[1], t.color[2])));
+				if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
+			}
 			group.add(inst);
 		});
 	}

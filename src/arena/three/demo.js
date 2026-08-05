@@ -54,6 +54,19 @@ export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) 
 	// 2) Scene + floor.
 	const s = createScene(canvas, runtimeConfig.cameraFov);
 	const { renderer, scene, camera } = s;
+
+	// Night HDR skybox + image-based lighting; apply saved lighting settings once loaded.
+	const HDR_URL = new URL("../../../assets/skybox/moonless_golf_4k.hdr", import.meta.url).href;
+	const applyLighting = () => {
+		s.setExposure(runtimeConfig.exposure ?? 1.1);
+		s.setEnvIntensity(runtimeConfig.envIntensity ?? 1.4);
+		s.setBackgroundIntensity(runtimeConfig.bgIntensity ?? 1.0);
+		s.setHemiIntensity(runtimeConfig.hemiIntensity ?? 0.12);
+		s.setSunIntensity(runtimeConfig.sunIntensity ?? 0.5);
+		s.setBackgroundVisible(runtimeConfig.showBackground !== false);
+	};
+	s.applyHDR(HDR_URL).then(applyLighting).catch((e) => { console.warn("[arena] HDR load failed:", e); applyLighting(); });
+
 	const maxAniso = renderer.capabilities.getMaxAnisotropy();
 	const floor = await createFloor(maxAniso, runtimeConfig.floorTileMeters);
 	floor.setVisible(Boolean(runtimeConfig.floorVisible));
@@ -117,6 +130,12 @@ export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) 
 				case "floorVisible": floor.setVisible(Boolean(value)); break;
 				case "floorTileMeters": floor.setTile(value); break;
 				case "debugOverlay": overlay.setVisible(Boolean(value)); break;
+				case "exposure": s.setExposure(value); break;
+				case "envIntensity": s.setEnvIntensity(value); break;
+				case "bgIntensity": s.setBackgroundIntensity(value); break;
+				case "hemiIntensity": s.setHemiIntensity(value); break;
+				case "sunIntensity": s.setSunIntensity(value); break;
+				case "showBackground": s.setBackgroundVisible(Boolean(value)); break;
 				default: break;
 			}
 		},

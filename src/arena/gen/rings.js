@@ -180,11 +180,43 @@ export function buildRings(dims, params, seed) {
 		}
 	});
 
+	// --- Third (occlusion) ring ---
+	// A back row of containers one cell OUTSIDE the 2-wide wall, starting at STORY 2
+	// (no ground floor — it's occluded), placed only where the wall in front of it is
+	// single-story (a sky gap). Randomly bumped to a 3rd story for verticality. This
+	// blocks sightlines into the empty distance so the arena feels fully enclosed.
+	const band2set = new Set(ringBandCells(dims, 2).map(([x, z]) => key(x, z)));
+	const thirdBand = ringBandCells(dims, 3).filter(([x, z]) => !band2set.has(key(x, z)));
+	const story2cells = new Set();
+	for (const u of upper) for (const [x, z] of u.cells) story2cells.add(key(x, z));
+	const occStory3 = params.occluderStory3Chance ?? 0.4;
+	/** @type {Container[]} */
+	const occluders = [];
+	const { dominoes: band3dominoes } = tileDominoes(thirdBand, rng);
+	for (const d of band3dominoes) {
+		const cells = [d.a, d.b];
+		// Needed if the wall cell directly in front (one step toward the arena) has no
+		// second story — i.e. sky shows over the single-story section there.
+		let need = false;
+		for (const [cx, cz] of cells) {
+			const inX = cx < 0 ? 1 : cx >= dims.Wc ? -1 : 0;
+			const inZ = cz < 0 ? 1 : cz >= dims.Dc ? -1 : 0;
+			const fronts = [];
+			if (inX) fronts.push(key(cx + inX, cz));
+			if (inZ) fronts.push(key(cx, cz + inZ));
+			if (fronts.some((fk) => band2set.has(fk) && !story2cells.has(fk))) need = true;
+		}
+		if (!need) continue;
+		occluders.push({ cells, orient: d.orient, color: pick(rng, COLORS), story: 2, ring: true, occluder: true });
+		if (rng() < occStory3) occluders.push({ cells, orient: d.orient, color: pick(rng, COLORS), story: 3, ring: true, occluder: true });
+	}
+
 	return {
-		containers: [...groundFrame, ...upper, ...pokes],
+		containers: [...groundFrame, ...upper, ...pokes, ...occluders],
 		groundFrame,
 		upper,
 		pokes,
+		occluders,
 		solidCells: [...solidCells],
 		railBarriers,
 	};

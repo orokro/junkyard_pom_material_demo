@@ -70,7 +70,7 @@ export function placeChairs(rings, dims, params, seed) {
 		const minZ = Math.min(...zs) * CELL;
 		const maxZ = (Math.max(...zs) + 1) * CELL;
 
-		const count = randInt(rng, 1, 2);
+		const count = randInt(rng, 1, Math.max(1, Math.round(params.chairMaxPerTop ?? 2)));
 		/** @type {[number, number][]} points already used on this top */
 		const placed = [];
 		for (let i = 0; i < count; i++) {

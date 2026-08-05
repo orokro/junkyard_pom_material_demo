@@ -10,6 +10,7 @@
 
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 const SKY = 0x8ec5ff;
 
@@ -51,14 +52,43 @@ export function createScene(canvas, fov = 70) {
 	sun.position.set(30, 50, 20);
 	scene.add(sun);
 
-	// Image-based lighting for believable metal/roughness response.
+	// Image-based lighting: RoomEnvironment as a fallback until an HDR is applied.
+	const pmrem = new THREE.PMREMGenerator(renderer);
+	pmrem.compileEquirectangularShader();
 	try {
-		const pmrem = new THREE.PMREMGenerator(renderer);
-		const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-		scene.environment = envTex;
-		pmrem.dispose();
+		scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 	} catch (err) {
 		console.warn("[arena] environment map unavailable, lights only:", err);
+	}
+	/** @type {THREE.Texture|null} */
+	let hdrEquirect = null;
+
+	/**
+	 * Load an equirectangular HDR and use it as the IBL environment + (optionally) the
+	 * sky background. Dims the analytic hemi/sun so the HDR drives the look.
+	 * @param {string} url @param {{ background?: boolean }} [opts]
+	 */
+	function applyHDR(url, opts = {}) {
+		return new Promise((resolve, reject) => {
+			new RGBELoader().load(url, (tex) => {
+				try {
+					const env = pmrem.fromEquirectangular(tex).texture;
+					if (scene.environment) scene.environment.dispose?.();
+					scene.environment = env;
+					if (opts.background !== false) {
+						tex.mapping = THREE.EquirectangularReflectionMapping;
+						hdrEquirect = tex;
+						scene.background = tex;
+					} else {
+						tex.dispose();
+					}
+					// Night look: let the HDR carry it, keep a faint analytic fill.
+					hemi.intensity = 0.12;
+					sun.intensity = 0.5;
+					resolve(env);
+				} catch (e) { reject(e); }
+			}, undefined, reject);
+		});
 	}
 
 	/** @type {(dt: number, elapsed: number) => void} */
@@ -96,10 +126,18 @@ export function createScene(canvas, fov = 70) {
 		renderer,
 		scene,
 		camera,
+		applyHDR,
 		setFov(next) {
 			camera.fov = next;
 			camera.updateProjectionMatrix();
 		},
+		/** Live lighting controls (driven from the sidebar). */
+		setExposure(v) { renderer.toneMappingExposure = v; },
+		setEnvIntensity(v) { scene.environmentIntensity = v; },
+		setBackgroundIntensity(v) { scene.backgroundIntensity = v; },
+		setHemiIntensity(v) { hemi.intensity = v; },
+		setSunIntensity(v) { sun.intensity = v; },
+		setBackgroundVisible(on) { scene.background = on ? (hdrEquirect || new THREE.Color(SKY)) : null; },
 		setUpdate(fn) {
 			update = fn;
 		},
@@ -120,6 +158,8 @@ export function createScene(canvas, fov = 70) {
 			window.removeEventListener("resize", onResize);
 			renderer.dispose();
 			if (scene.environment) scene.environment.dispose();
+			if (hdrEquirect) hdrEquirect.dispose();
+			pmrem.dispose();
 		},
 	};
 }

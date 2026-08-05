@@ -558,6 +558,10 @@ export function generateLevel3(dims, params, seed, ctx) {
 					continue;
 				}
 				dominoes.push({ cells: [A, B], orient: dx !== 0 ? "H" : "V", color: pick(COLORS), isBridge: true });
+				// Loop bias: grow a small platform off the far end so the bridge LEADS somewhere
+				// (that platform can then earn its own down-ramp in the R4 loop pass) instead of
+				// dead-ending in mid-air. Best-effort; if there's no room the bridge stays a stub.
+				growL3(B, Math.max(3, Math.round(params.minPlatformCells ?? 3)));
 				return true;
 			}
 		}

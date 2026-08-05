@@ -22,6 +22,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import manifest from "../materialManifest.json";
 
 const GLB_URL = new URL("../../../assets/models/arena_parts.glb", import.meta.url).href;
+const PROPS_URL = new URL("../../../assets/models/arena_props.glb", import.meta.url).href;
 
 /** filename -> fingerprinted URL, for every texture in assets/tex. */
 const TEX_URLS = (() => {
@@ -41,6 +42,8 @@ export const PART_NAMES = [
 	"Arena_PlasticChair", "Arena_TireBarrier_Straight_East", "Arena_TireBarrier_OuterCorner_NorthEast",
 	"Arena_TireBarrier_InnerCorner_NorthEast", "Arena_TireBarrier_BridgeBase", "Arena_HalfPlatform",
 	"Arena_Ramp", "Arena_Ramp_Corner", "Arena_Metal_Barrier",
+	// Environment props (from arena_props.glb).
+	"StadiumLights", "Tent",
 ];
 
 const WRAP = { repeat: THREE.RepeatWrapping, clamp: THREE.ClampToEdgeWrapping, mirror: THREE.MirroredRepeatWrapping };
@@ -61,6 +64,11 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 	const loader = new GLTFLoader();
 	const gltf = await loader.loadAsync(GLB_URL, (e) => e && e.total && onProgress?.(e.loaded, e.total));
 	gltf.scene.updateWorldMatrix(true, true);
+	// Environment props (stadium lights, tents) ship in a second geometry-only GLB.
+	const props = await loader.loadAsync(PROPS_URL).catch(() => null);
+	if (props) props.scene.updateWorldMatrix(true, true);
+	/** @param {string} name @returns {THREE.Object3D|undefined} */
+	const findNode = (name) => gltf.scene.getObjectByName(name) || props?.scene.getObjectByName(name);
 
 	const texLoader = new THREE.TextureLoader();
 	/** @type {Map<string, THREE.Texture>} */
@@ -105,12 +113,14 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 			const em = tex(md.emissive);
 			if (em) { mat.emissiveMap = em; mat.emissive.setRGB(1, 1, 1); }
 			if (md.emissiveFactor) mat.emissive.setRGB(md.emissiveFactor[0], md.emissiveFactor[1], md.emissiveFactor[2]);
+			if (md.emissiveIntensity != null) mat.emissiveIntensity = md.emissiveIntensity;
 			if (md.doubleSided) mat.side = THREE.DoubleSide;
 			if (md.alphaMode === "BLEND") { mat.transparent = true; mat.opacity = bc[3]; }
 		} else {
 			console.warn("[arena] no manifest material for", name);
 			mat.color.setRGB(0.5, 0.5, 0.5);
 		}
+		mat.name = name; // let build.js identify submeshes (e.g. TentTop for per-instance color)
 		matCache.set(name, mat);
 		return mat;
 	};
@@ -124,7 +134,7 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 	const s = new THREE.Vector3();
 
 	for (const name of PART_NAMES) {
-		const node = gltf.scene.getObjectByName(name);
+		const node = findNode(name);
 		if (!node) continue;
 		node.matrixWorld.decompose(p, q, s); // p = pivot world position
 		Tinv.makeTranslation(-p.x, -p.y, -p.z);
