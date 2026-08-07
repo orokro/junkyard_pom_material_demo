@@ -70,6 +70,7 @@ export const WORLD_GROUPS = [
 		fields: [
 			{ key: "minPlatformCells", type: "number", label: "Min platform cells", value: 3, min: 1, max: 8, step: 1, hint: "Smallest raised platform a ramp may lead to; smaller islands are dropped (bridges exempt)." },
 			{ key: "loops", type: "bool", label: "Loop ramps", value: true, hint: "Give raised islands a second ramp where possible, so you can loop instead of reversing." },
+			{ key: "bowl", type: "bool", label: "Bowl layout", value: false, hint: "Push tall structures (L3) to the walls and L2 to a mid ring, keeping the centre open — a bowl. Off = structures anywhere." },
 		],
 	},
 	{

@@ -62,6 +62,7 @@ export function placeStadiumLights(dims, params, seed) {
 export function placeTents(rings, dims, params, seed) {
 	const rng = makeRng(seed, "tents");
 	const chance = params.tentChance ?? 0.3; // per top cell
+	const jitter = (5 * Math.PI) / 180; // tents are square + fill a 4×4 cell — only a hair of rotation
 	const upperIdx = new Set();
 	for (const u of rings.upper) if (u.ground != null) upperIdx.add(u.ground);
 	const tents = [];
@@ -70,7 +71,7 @@ export function placeTents(rings, dims, params, seed) {
 		for (const [cxi, czi] of c.cells) {
 			if (rng() >= chance) continue;
 			const [x, z] = cellCenter(cxi, czi);
-			tents.push({ pos: [x, topY, z], rotY: rng() * Math.PI * 2, color: TENT_COLORS[Math.floor(rng() * TENT_COLORS.length)] });
+			tents.push({ pos: [x, topY, z], rotY: (rng() * 2 - 1) * jitter, color: TENT_COLORS[Math.floor(rng() * TENT_COLORS.length)] });
 		}
 	});
 	return tents;

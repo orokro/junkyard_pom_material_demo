@@ -54,6 +54,14 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 	const rampCells = new Map(); // key -> up dir name
 	const reservedL1 = new Set();
 
+	// Bowl mode: bias raised structure toward the walls so the arena forms a bowl —
+	// L3 hugs the walls, L2 rings inside it, the centre stays open ground. `tOf` is a
+	// normalized distance from the nearest wall (0 = touching a wall, 1 = centre).
+	const bowl = params.bowl === true;
+	const maxEd = Math.max(1, Math.floor(Math.min(dims.Wc, dims.Dc) / 2));
+	const tOf = (x, z) => Math.min(1, Math.min(x, z, dims.Wc - 1 - x, dims.Dc - 1 - z) / maxEd);
+	const L2_CENTER_T = 0.6; // L2 stays out of the central ~40% (by radius)
+
 	const inB = (x, z) => isInbounds(x, z, dims);
 	const isL2 = (x, z) => level2.has(key(x, z));
 	const isRamp = (x, z) => rampCells.has(key(x, z));
@@ -163,11 +171,14 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 		const starts = [];
 		for (let x = 0; x < dims.Wc; x++) for (let z = 0; z < dims.Dc; z++) starts.push([x, z]);
 		shuffle(starts, rng);
+		// Bowl: seed L2 islands in the mid ring (bias landing radius toward ~0.45).
+		if (bowl) starts.sort((a, b) => (Math.abs(tOf(a[0], a[1]) - 0.45) + rng() * 0.2) - (Math.abs(tOf(b[0], b[1]) - 0.45) + rng() * 0.2));
 		for (const [lx, lz] of starts) {
 			for (const [dName, [dx, dz]] of shuffle(Object.entries(DIR_VEC), rng)) {
 				const rx = lx + dx, rz = lz + dz;   // ramp cell
 				const ax = lx + 2 * dx, az = lz + 2 * dz; // landing
 				if (!isL1(lx, lz) || !isL1(rx, rz) || !isL1(ax, az)) continue;
+				if (bowl && tOf(ax, az) > L2_CENTER_T) continue; // keep L2 out of the centre
 				if (reservedL1.has(key(rx, rz)) || reservedL1.has(key(ax, az))) continue;
 				// Keep ramps apart: no ramp cell orthogonally adjacent to another ramp,
 				// so a ramp never runs into the side of another ramp.
@@ -198,6 +209,7 @@ export function generateLevel2(dims, params, seed, pokeCells) {
 			for (const [dx, dz] of shuffle(Object.values(DIR_VEC), rng)) {
 				const nx = fx + dx, nz = fz + dz;
 				if (!isL1(nx, nz) || reservedL1.has(key(nx, nz))) continue;
+				if (bowl && tOf(nx, nz) > L2_CENTER_T) continue; // don't grow L2 into the centre
 				level2.add(key(nx, nz));
 				if (!connected() || !groundConnected() || createsDeadEnd([[nx, nz]])) { level2.delete(key(nx, nz)); continue; }
 				frontier.push([nx, nz]);
@@ -335,6 +347,13 @@ export function generateLevel3(dims, params, seed, ctx) {
 	const ramps12 = ctx.ramps.filter((r) => r.from === 0);
 	const ramp12dir = new Map(ramps12.map((r) => [key(r.cx, r.cz), r.dir]));
 
+	// Bowl mode: L3 (tallest) only near the walls → outer band; centre stays open.
+	const bowl = params.bowl === true;
+	const maxEd = Math.max(1, Math.floor(Math.min(dims.Wc, dims.Dc) / 2));
+	const tOf = (x, z) => Math.min(1, Math.min(x, z, dims.Wc - 1 - x, dims.Dc - 1 - z) / maxEd);
+	const L3_WALL_T = 0.4; // L3 only in the outer ~40% (by radius)
+	const bowlOK3 = (x, z) => !bowl || tOf(x, z) <= L3_WALL_T;
+
 	const L3 = new Set();
 	const bridgeCells = new Set();   // L3 cells that are bridges (open ground beneath)
 	const reservedGround = new Set(); // underpass lanes kept open (blocked from L3)
@@ -443,6 +462,7 @@ export function generateLevel3(dims, params, seed, ctx) {
 
 	/** Commit a container domino (two ground cells → L3) if it keeps things valid. */
 	function tryDomino(a, b) {
+		if (!bowlOK3(a[0], a[1]) || !bowlOK3(b[0], b[1])) return false; // bowl: L3 near walls only
 		L3.add(key(a[0], a[1]));
 		L3.add(key(b[0], b[1]));
 		if (!connected() || !groundConnected() || createsGroundDeadEnd([a, b])) {
@@ -458,6 +478,7 @@ export function generateLevel3(dims, params, seed, ctx) {
 	function placeRamp23() {
 		const l2cells = [...L2].map(unkey);
 		shuffle(l2cells, rng);
+		if (bowl) l2cells.sort((a, b) => (tOf(a[0], a[1]) + rng() * 0.2) - (tOf(b[0], b[1]) + rng() * 0.2)); // outer L2 first → ramps point to wall-hugging L3
 		for (const [rx, rz] of l2cells) {
 			if (rampCells23.has(key(rx, rz))) continue;
 			for (const [dName, [dx, dz]] of shuffle(Object.entries(DIR_VEC), rng)) {
@@ -521,6 +542,7 @@ export function generateLevel3(dims, params, seed, ctx) {
 	function placeBridge() {
 		const l2cells = [...L2].map(unkey);
 		shuffle(l2cells, rng);
+		if (bowl) l2cells.sort((a, b) => (tOf(a[0], a[1]) + rng() * 0.2) - (tOf(b[0], b[1]) + rng() * 0.2));
 		for (const [rx, rz] of l2cells) {
 			if (rampCells23.has(key(rx, rz))) continue;
 			for (const [dName, [dx, dz]] of shuffle(Object.entries(DIR_VEC), rng)) {
@@ -529,6 +551,7 @@ export function generateLevel3(dims, params, seed, ctx) {
 				const B = [rx + 2 * dx, rz + 2 * dz];
 				if (!isL2(lead[0], lead[1]) || reservedL2.has(key(lead[0], lead[1]))) continue;
 				if (!canL3(A[0], A[1]) || !canL3(B[0], B[1])) continue;
+				if (!bowlOK3(A[0], A[1]) || !bowlOK3(B[0], B[1])) continue; // bowl: bridges near walls too
 				// Keep ramps apart (no ramp running into another ramp's side).
 				if (Object.values(DIR_VEC).some(([ex, ez]) => ramp12.has(key(rx + ex, rz + ez)) || rampCells23.has(key(rx + ex, rz + ez)))) continue;
 				// Long-side lanes = the two directions perpendicular to the run.
