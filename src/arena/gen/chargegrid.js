@@ -56,6 +56,10 @@ export function generateChargeGrids(model, params, seed) {
 	// Ground cells filled by a container (ring walls, pokes, L3 bases) — solid at ground level.
 	const solidGround = new Set();
 	for (const c of model.containers) if (c.story === 1 && !c.bridge) for (const [x, z] of c.cells) solidGround.add(key(x, z));
+	// Tallest solid top per cell (ring walls up to 2–3 stories, pokes, L3) — used to keep the
+	// horizontal arm from cantilevering THROUGH a container that rises into its path.
+	const solidHeight = new Map();
+	for (const c of model.containers) if (!c.bridge) for (const [x, z] of c.cells) solidHeight.set(key(x, z), Math.max(solidHeight.get(key(x, z)) || 0, c.story * CELL));
 
 	/** Drivable surface level (Y) of a cell, or null if not a clean drivable tile. */
 	const levelY = (x, z) => {
@@ -92,6 +96,21 @@ export function generateChargeGrids(model, params, seed) {
 		return { armPos: [M[0], armY, M[1]], armYaw: yaw, extPos: [P[0], armY + EXT_TIP_DY, P[1]], extYaw: yaw, reach: r };
 	};
 
+	/** Does the horizontal arm from pillar M to attach P (at height armY) stay clear of
+	 *  every container that rises into its path? Samples the XZ segment cell-by-cell. */
+	const clearArm = (M, P, armY) => {
+		const dist = Math.hypot(P[0] - M[0], P[1] - M[1]);
+		const steps = Math.max(2, Math.ceil(dist / 0.5));
+		for (let i = 0; i <= steps; i++) {
+			const t = i / steps;
+			const cx = Math.floor((M[0] + (P[0] - M[0]) * t) / CELL);
+			const cz = Math.floor((M[1] + (P[1] - M[1]) * t) / CELL);
+			if (!isInbounds(cx, cz, dims)) return false;
+			if ((solidHeight.get(key(cx, cz)) || 0) > armY - 0.3) return false; // a container is in the way
+		}
+		return true;
+	};
+
 	/** Best pillar support for attach point P of a grid at `level`. Pure (no reservation). */
 	const solveSupport = (P, level, outward) => {
 		const pcx = Math.floor(P[0] / CELL), pcz = Math.floor(P[1] / CELL);
@@ -108,6 +127,8 @@ export function generateChargeGrids(model, params, seed) {
 				if ((mx - P[0]) * outward[0] + (mz - P[1]) * outward[1] < 0.2) continue; // arm must not cross the grid
 				const sol = solveArm([mx, mz], P, level);
 				if (!sol) continue;
+				if (!clearArm([mx, mz], P, level + ARM_Y)) continue; // arm would clip a container
+
 				// Prefer a hugged (edge) position, then a shorter arm.
 				if (!best || c.hug > best.hug || (c.hug === best.hug && sol.reach < best.reach)) {
 					best = { hug: c.hug, reach: sol.reach, cell: [cx, cz], kind: "pillar", variant: PILLAR_FOR[level], pillar: { pos: [mx, 0, mz], rotY: sol.armYaw }, ...sol };
