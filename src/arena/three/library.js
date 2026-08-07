@@ -45,8 +45,10 @@ export const PART_NAMES = [
 	"Arena_Ramp", "Arena_Ramp_Corner", "Arena_Metal_Barrier",
 	// Environment props (from arena_props.glb).
 	"StadiumLights", "Tent",
-	// Charge-grid rig (from charge_grid.glb) — posed individually, not instanced.
-	"ChargeGrid", "GridAttachPoint", "ChargeGridPillar", "ChargeGridArm", "ChargeGridArmExtension", "ChargeGridContainerMount",
+	// Charge-grid rig (from charge_grid.glb). One pillar height per grid level; the arm +
+	// sliding extension are shared across levels (posed higher for L2/L3 grids).
+	"ChargeGrid", "GridAttachPoint", "ChargeGridArm", "ChargeGridArmExtension",
+	"ChargeGridPillar", "ChargeGridPillarL2", "ChargeGridPillarL3",
 ];
 
 const WRAP = { repeat: THREE.RepeatWrapping, clamp: THREE.ClampToEdgeWrapping, mirror: THREE.MirroredRepeatWrapping };
@@ -135,8 +137,10 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 	const registry = new Map();
 	// The charge-grid rig is authored as a NESTED hierarchy (Pillar>Arm>Extension,
 	// Grid>AttachPoint). node.traverse() would pull a child part's meshes into its
-	// parent's entry, so we prune any mesh owned by a DIFFERENT named part.
-	const PART_SET = new Set(PART_NAMES);
+	// parent's entry, so we prune any mesh owned by a DIFFERENT named part. Example
+	// duplicates carry a ".00N" suffix (ChargeGridArm.003), so match on the BASE name.
+	const baseName = (n) => (n || "").replace(/\.\d+$/, "");
+	const PART_BASE = new Set(PART_NAMES.map(baseName));
 	const Tinv = new THREE.Matrix4();
 	const M = new THREE.Matrix4();
 	const p = new THREE.Vector3();
@@ -156,8 +160,8 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 			// `o === node` is this part's own root mesh (a part may itself be nested under
 			// another, e.g. GridAttachPoint under ChargeGrid) — always keep it.
 			if (o !== node) {
-				if (o.name !== name && PART_SET.has(o.name)) return;
-				for (let a = o.parent; a && a !== node; a = a.parent) if (PART_SET.has(a.name)) return;
+				if (o.name !== name && PART_BASE.has(baseName(o.name))) return;
+				for (let a = o.parent; a && a !== node; a = a.parent) if (PART_BASE.has(baseName(a.name))) return;
 			}
 			const geo = o.geometry.clone();
 			M.copy(o.matrixWorld).premultiply(Tinv); // world → pivot-local (no rotation of the frame)

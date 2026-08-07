@@ -125,8 +125,8 @@ export function buildArena(model, registry) {
 		add("ChargeGrid", cg.grid.pos[0], cg.grid.pos[1], cg.grid.pos[2], cg.grid.rotY);
 		for (const a of cg.attaches) add("GridAttachPoint", a.pos[0], a.pos[1], a.pos[2], a.rotY);
 		for (const s of cg.supports) {
-			if (s.kind === "pillar") add("ChargeGridPillar", s.pillar.pos[0], s.pillar.pos[1], s.pillar.pos[2], s.pillar.rotY);
-			else add("ChargeGridContainerMount", s.mount.pos[0], s.mount.pos[1], s.mount.pos[2], s.mount.rotY);
+			// Ground-standing pillar; taller variant for L2/L3 grids. Arm + sliding extension on top.
+			add(s.variant || "ChargeGridPillar", s.pillar.pos[0], s.pillar.pos[1], s.pillar.pos[2], s.pillar.rotY);
 			add("ChargeGridArm", s.armPos[0], s.armPos[1], s.armPos[2], s.armYaw);
 			add("ChargeGridArmExtension", s.extPos[0], s.extPos[1], s.extPos[2], s.extYaw);
 		}
