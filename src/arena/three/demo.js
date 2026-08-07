@@ -11,6 +11,8 @@
  * ============================================================================
  */
 
+import * as THREE from "three";
+import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import { createScene } from "./scene.js";
 import { createFlyControls } from "./flyCamera.js";
 import { createFloor } from "./floor.js";
@@ -30,6 +32,7 @@ const EYE_HEIGHT = 1.7;
  * @property {() => void} resetView
  * @property {(on: boolean) => void} setPostEnabled
  * @property {(code: string) => void} setPostShader
+ * @property {() => Promise<void>} exportGLB
  * @property {import("../gen/arena.js").ArenaModel} model
  * @property {() => void} dispose
  */
@@ -120,6 +123,88 @@ export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) 
 	s.setRenderOverride((dt) => post.render(scene, camera, dt));
 	s.start();
 
+	/**
+	 * Bake the whole generated arena into an exportable Group for GLB export. Every
+	 * InstancedMesh's instances are flattened to WORLD space and merged **per material**,
+	 * so the GLB carries one mesh (and one texture set) per material instead of thousands
+	 * of instance nodes — GLTFExporter chokes on the latter and would duplicate textures.
+	 * Per-instance colours (random tent tops) are baked into a vertex-colour attribute so
+	 * they survive the merge. The scrolling floor is intentionally excluded.
+	 * @returns {{ root: THREE.Group, disposables: THREE.BufferGeometry[], matClones: THREE.Material[], verts: number, meshes: number, capped: boolean }|null}
+	 */
+	function bakeArena() {
+		scene.updateMatrixWorld(true);
+		const CAP_VERTS = 8_000_000; // safety ceiling
+		/** @type {Map<THREE.Material, {position:number[],normal:number[],uv:number[],color:number[],index:number[],base:number,tag:string,hasColor:boolean}>} */
+		const groups = new Map();
+		const m4 = new THREE.Matrix4(), im4 = new THREE.Matrix4(), m3 = new THREE.Matrix3();
+		const v = new THREE.Vector3(), nv = new THREE.Vector3(), col = new THREE.Color();
+		let verts = 0, capped = false;
+
+		/** Append a geometry (transformed by `matrix`) into `material`'s bucket. */
+		const bake = (geom, matrix, material, tag, instColor) => {
+			const pos = geom.attributes.position;
+			if (!pos) return;
+			const nrm = geom.attributes.normal, uvA = geom.attributes.uv, idx = geom.index;
+			let grp = groups.get(material);
+			if (!grp) { grp = { position: [], normal: [], uv: [], color: [], index: [], base: 0, tag, hasColor: false }; groups.set(material, grp); }
+			m3.getNormalMatrix(matrix);
+			for (let vi = 0; vi < pos.count; vi++) {
+				v.fromBufferAttribute(pos, vi).applyMatrix4(matrix); grp.position.push(v.x, v.y, v.z);
+				if (nrm) { nv.fromBufferAttribute(nrm, vi).applyMatrix3(m3).normalize(); grp.normal.push(nv.x, nv.y, nv.z); } else grp.normal.push(0, 1, 0);
+				if (uvA) grp.uv.push(uvA.getX(vi), uvA.getY(vi)); else grp.uv.push(0, 0);
+				if (instColor) { grp.color.push(instColor.r, instColor.g, instColor.b); grp.hasColor = true; } else grp.color.push(1, 1, 1);
+			}
+			if (idx) for (let k = 0; k < idx.count; k++) grp.index.push(idx.getX(k) + grp.base);
+			else for (let vi = 0; vi < pos.count; vi++) grp.index.push(vi + grp.base);
+			grp.base += pos.count; verts += pos.count;
+		};
+
+		build.traverse((o) => {
+			if (capped) return;
+			if (/** @type {THREE.InstancedMesh} */ (o).isInstancedMesh) {
+				const im = /** @type {THREE.InstancedMesh} */ (o);
+				const hasCol = !!im.instanceColor;
+				for (let i = 0; i < im.count; i++) {
+					if (verts >= CAP_VERTS) { capped = true; return; }
+					im.getMatrixAt(i, im4);
+					m4.multiplyMatrices(im.matrixWorld, im4);
+					if (hasCol) im.getColorAt(i, col);
+					bake(im.geometry, m4, im.material, im.name || "part", hasCol ? col : null);
+				}
+			} else if (/** @type {THREE.Mesh} */ (o).isMesh) {
+				if (verts >= CAP_VERTS) { capped = true; return; }
+				const mesh = /** @type {THREE.Mesh} */ (o);
+				bake(mesh.geometry, mesh.matrixWorld, mesh.material, mesh.name || "mesh", null);
+			}
+		});
+
+		if (verts === 0) return null;
+		const root = new THREE.Group();
+		root.name = `arena_${String(worldConfig.seed)}`;
+		/** @type {THREE.BufferGeometry[]} */ const disposables = [];
+		/** @type {THREE.Material[]} */ const matClones = [];
+		let mi = 0;
+		for (const [material, grp] of groups) {
+			const geometry = new THREE.BufferGeometry();
+			geometry.setAttribute("position", new THREE.Float32BufferAttribute(grp.position, 3));
+			geometry.setAttribute("normal", new THREE.Float32BufferAttribute(grp.normal, 3));
+			geometry.setAttribute("uv", new THREE.Float32BufferAttribute(grp.uv, 2));
+			// Only carry vertex colours (and a vertexColors material clone) where instances varied.
+			let mat = material;
+			if (grp.hasColor) {
+				geometry.setAttribute("color", new THREE.Float32BufferAttribute(grp.color, 3));
+				mat = material.clone(); mat.vertexColors = true; matClones.push(mat);
+			}
+			geometry.setIndex(grp.index);
+			const mesh = new THREE.Mesh(geometry, mat);
+			mesh.name = `${grp.tag}_${mi++}`.replace(/[#.]/g, "_");
+			root.add(mesh);
+			disposables.push(geometry);
+		}
+		return { root, disposables, matClones, verts, meshes: groups.size, capped };
+	}
+
 	return {
 		model,
 		applyRuntime(key, value) {
@@ -142,6 +227,31 @@ export async function startDemo(canvas, runtimeConfig, worldConfig, hooks = {}) 
 		resetView,
 		setPostEnabled(on) { post.setEnabled(on); },
 		setPostShader(code) { post.setShader(code); },
+		/** Bake + download the arena as a binary .glb. Materials/textures stay shared with the
+		 *  live scene — only the merged geometries and any vertexColors material clones are disposed. */
+		exportGLB() {
+			const baked = bakeArena();
+			if (!baked) { console.warn("[arena] nothing to export"); return Promise.resolve(); }
+			return new Promise((resolve) => {
+				const cleanup = () => { baked.disposables.forEach((g) => g.dispose()); baked.matClones.forEach((m) => m.dispose()); };
+				new GLTFExporter().parse(
+					baked.root,
+					(result) => {
+						cleanup();
+						const blob = new Blob([/** @type {ArrayBuffer} */ (result)], { type: "model/gltf-binary" });
+						const url = URL.createObjectURL(blob);
+						const a = document.createElement("a");
+						a.href = url; a.download = `arena_${String(worldConfig.seed)}.glb`;
+						document.body.appendChild(a); a.click(); a.remove();
+						setTimeout(() => URL.revokeObjectURL(url), 2000);
+						console.info(`[arena] exported ${baked.meshes} material groups (${(baked.verts / 1000).toFixed(0)}k verts)${baked.capped ? " [capped]" : ""}`);
+						resolve();
+					},
+					(err) => { cleanup(); console.error("[arena] export failed:", err); resolve(); },
+					{ binary: true }
+				);
+			});
+		},
 		dispose() {
 			controls.dispose();
 			post.dispose();

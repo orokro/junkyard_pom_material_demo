@@ -20,6 +20,7 @@ import { loadPostFX, savePostFX } from "../settings.js";
  * @property {(key: string, value: *) => void} [onChange] Fired on any binding change.
  * @property {() => void} [onReturnHome] Fired by the "Return home" button.
  * @property {() => void} [onBackToSetup] Fired by the "Back to setup" button.
+ * @property {() => (void | Promise<void>)} [onExport] Fired by the "Export .glb" button.
  * @property {(enabled: boolean) => void} [onPostToggle] Fired when post-FX is toggled.
  * @property {(code: string) => void} [onApplyShader] Fired to apply pasted post-FX shader.
  */
@@ -69,8 +70,28 @@ export function mountSidebar(container, runtimeConfig, handlers = {}) {
 	setupBtn.textContent = "↺ Back to setup";
 	setupBtn.addEventListener("click", () => handlers.onBackToSetup?.());
 
+	const exportBtn = document.createElement("button");
+	exportBtn.type = "button";
+	exportBtn.className = "btn";
+	exportBtn.textContent = "⇩ Export .glb";
+	exportBtn.title = "Bake the generated arena to a single .glb (merged per material) for Blender.";
+	exportBtn.addEventListener("click", async () => {
+		const label = exportBtn.textContent;
+		exportBtn.disabled = true;
+		exportBtn.textContent = "Exporting…";
+		try {
+			await handlers.onExport?.();
+		} catch (err) {
+			console.error("[arena] export error:", err);
+		} finally {
+			exportBtn.disabled = false;
+			exportBtn.textContent = label;
+		}
+	});
+
 	actions.appendChild(homeBtn);
 	actions.appendChild(setupBtn);
+	actions.appendChild(exportBtn);
 	container.appendChild(actions);
 
 	// Post-FX section: enable toggle + live-editable fragment shader.

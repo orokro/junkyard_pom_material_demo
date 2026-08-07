@@ -104,6 +104,9 @@ async function startRun(worldConfig) {
 		onBackToSetup() {
 			showSetup();
 		},
+		onExport() {
+			return demo?.exportGLB();
+		},
 		onPostToggle(enabled) {
 			demo?.setPostEnabled(enabled);
 		},
