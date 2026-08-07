@@ -82,6 +82,12 @@ export const WORLD_GROUPS = [
 			{ key: "stadiumLightMargin", type: "number", label: "Light distance (m)", value: 18, min: 0, max: 60, step: 1, hint: "How far outside the walls the light towers stand." },
 		],
 	},
+	{
+		title: "Charge grids",
+		fields: [
+			{ key: "chargeGrids", type: "number", label: "Charge grids", value: 3, min: 0, max: 12, step: 1, hint: "Floating recharge ceilings cars drive under. The first is placed near centre; the rest anywhere valid. Held by container-mounts (preferred) or pillars." },
+		],
+	},
 ];
 
 /** @type {GroupDef[]} Runtime parameters (live sidebar). */

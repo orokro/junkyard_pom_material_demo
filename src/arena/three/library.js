@@ -23,6 +23,7 @@ import manifest from "../materialManifest.json";
 
 const GLB_URL = new URL("../../../assets/models/arena_parts.glb", import.meta.url).href;
 const PROPS_URL = new URL("../../../assets/models/arena_props.glb", import.meta.url).href;
+const CHARGE_URL = new URL("../../../assets/models/charge_grid.glb", import.meta.url).href;
 
 /** filename -> fingerprinted URL, for every texture in assets/tex. */
 const TEX_URLS = (() => {
@@ -44,6 +45,8 @@ export const PART_NAMES = [
 	"Arena_Ramp", "Arena_Ramp_Corner", "Arena_Metal_Barrier",
 	// Environment props (from arena_props.glb).
 	"StadiumLights", "Tent",
+	// Charge-grid rig (from charge_grid.glb) — posed individually, not instanced.
+	"ChargeGrid", "GridAttachPoint", "ChargeGridPillar", "ChargeGridArm", "ChargeGridArmExtension", "ChargeGridContainerMount",
 ];
 
 const WRAP = { repeat: THREE.RepeatWrapping, clamp: THREE.ClampToEdgeWrapping, mirror: THREE.MirroredRepeatWrapping };
@@ -64,11 +67,13 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 	const loader = new GLTFLoader();
 	const gltf = await loader.loadAsync(GLB_URL, (e) => e && e.total && onProgress?.(e.loaded, e.total));
 	gltf.scene.updateWorldMatrix(true, true);
-	// Environment props (stadium lights, tents) ship in a second geometry-only GLB.
+	// Environment props (stadium lights, tents) + charge-grid rig ship as extra GLBs.
 	const props = await loader.loadAsync(PROPS_URL).catch(() => null);
 	if (props) props.scene.updateWorldMatrix(true, true);
+	const charge = await loader.loadAsync(CHARGE_URL).catch((e) => { console.warn("[arena] charge_grid.glb failed to load:", e?.message || e); return null; });
+	if (charge) charge.scene.updateWorldMatrix(true, true);
 	/** @param {string} name @returns {THREE.Object3D|undefined} */
-	const findNode = (name) => gltf.scene.getObjectByName(name) || props?.scene.getObjectByName(name);
+	const findNode = (name) => gltf.scene.getObjectByName(name) || props?.scene.getObjectByName(name) || charge?.scene.getObjectByName(name);
 
 	const texLoader = new THREE.TextureLoader();
 	/** @type {Map<string, THREE.Texture>} */
@@ -116,6 +121,7 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 			if (md.emissiveIntensity != null) mat.emissiveIntensity = md.emissiveIntensity;
 			if (md.doubleSided) mat.side = THREE.DoubleSide;
 			if (md.alphaMode === "BLEND") { mat.transparent = true; mat.opacity = bc[3]; }
+			if (md.alphaTest != null) mat.alphaTest = md.alphaTest; // cutout (e.g. hex charge grid)
 		} else {
 			console.warn("[arena] no manifest material for", name);
 			mat.color.setRGB(0.5, 0.5, 0.5);
@@ -127,6 +133,10 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 
 	/** @type {Map<string, PartEntry[]>} */
 	const registry = new Map();
+	// The charge-grid rig is authored as a NESTED hierarchy (Pillar>Arm>Extension,
+	// Grid>AttachPoint). node.traverse() would pull a child part's meshes into its
+	// parent's entry, so we prune any mesh owned by a DIFFERENT named part.
+	const PART_SET = new Set(PART_NAMES);
 	const Tinv = new THREE.Matrix4();
 	const M = new THREE.Matrix4();
 	const p = new THREE.Vector3();
@@ -142,6 +152,13 @@ export async function loadArenaLibrary(maxAniso, onProgress) {
 		const entries = [];
 		node.traverse((o) => {
 			if (!o.isMesh) return;
+			// Skip meshes that belong to a nested, differently-named part (rig hierarchy).
+			// `o === node` is this part's own root mesh (a part may itself be nested under
+			// another, e.g. GridAttachPoint under ChargeGrid) — always keep it.
+			if (o !== node) {
+				if (o.name !== name && PART_SET.has(o.name)) return;
+				for (let a = o.parent; a && a !== node; a = a.parent) if (PART_SET.has(a.name)) return;
+			}
 			const geo = o.geometry.clone();
 			M.copy(o.matrixWorld).premultiply(Tinv); // world → pivot-local (no rotation of the frame)
 			geo.applyMatrix4(M); // transforms position + normal correctly

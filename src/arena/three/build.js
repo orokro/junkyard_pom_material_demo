@@ -117,6 +117,21 @@ export function buildArena(model, registry) {
 		add("StadiumLights", l.pos[0], l.pos[1], l.pos[2], l.rotY, l.scale ?? 1);
 	}
 
+	// Charge grids: each part was baked to its own pivot in world orientation, so every
+	// piece places with a plain translate + rotateY (arm rotation & extension slide both
+	// reduce to a rigid transform once solved). Grid panel + 2 kitty-corner attach points,
+	// and per support either a pillar or a container mount, plus its arm + sliding extension.
+	for (const cg of model.chargeGrids || []) {
+		add("ChargeGrid", cg.grid.pos[0], cg.grid.pos[1], cg.grid.pos[2], cg.grid.rotY);
+		for (const a of cg.attaches) add("GridAttachPoint", a.pos[0], a.pos[1], a.pos[2], a.rotY);
+		for (const s of cg.supports) {
+			if (s.kind === "pillar") add("ChargeGridPillar", s.pillar.pos[0], s.pillar.pos[1], s.pillar.pos[2], s.pillar.rotY);
+			else add("ChargeGridContainerMount", s.mount.pos[0], s.mount.pos[1], s.mount.pos[2], s.mount.rotY);
+			add("ChargeGridArm", s.armPos[0], s.armPos[1], s.armPos[2], s.armYaw);
+			add("ChargeGridArmExtension", s.extPos[0], s.extPos[1], s.extPos[2], s.extYaw);
+		}
+	}
+
 	// Materialize: one InstancedMesh per (part, sub-mesh), sharing the transforms.
 	for (const [name, matrices] of perPart.entries()) {
 		const entries = registry.get(name);

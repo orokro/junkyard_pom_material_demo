@@ -188,6 +188,35 @@ export function createOverlay(host) {
 			}
 		}
 
+		// Charge grids: floating recharge ceilings. Panel = cyan translucent rect,
+		// attach points = white dots, arm+extension = white line to its support,
+		// pillar = filled cyan square, container mount = hollow cyan square.
+		const wx = (worldX) => PAD + (worldX / CELL - minCx) * s;
+		const wz = (worldZ) => PAD + (worldZ / CELL - minCz) * s;
+		for (const cg of model.chargeGrids || []) {
+			const horiz = Math.abs(cg.grid.rotY) > 0.1; // rotated 90 deg -> 6 m along X, 4 m along Z
+			const hx = (horiz ? 3 : 2), hz = (horiz ? 2 : 3);
+			ctx.fillStyle = "rgba(60,230,220,0.28)";
+			ctx.strokeStyle = "#38e0c0";
+			ctx.lineWidth = 1;
+			ctx.fillRect(wx(cg.grid.pos[0] - hx), wz(cg.grid.pos[2] - hz), (2 * hx / CELL) * s, (2 * hz / CELL) * s);
+			ctx.strokeRect(wx(cg.grid.pos[0] - hx), wz(cg.grid.pos[2] - hz), (2 * hx / CELL) * s, (2 * hz / CELL) * s);
+			ctx.strokeStyle = "rgba(230,240,255,0.85)";
+			ctx.lineWidth = Math.max(1, s * 0.06);
+			for (const sp of cg.supports) {
+				ctx.beginPath();
+				ctx.moveTo(wx(sp.armPos[0]), wz(sp.armPos[2]));
+				ctx.lineTo(wx(sp.extPos[0]), wz(sp.extPos[2]));
+				ctx.stroke();
+				const sq = Math.max(2, s * 0.18);
+				const pos = sp.kind === "pillar" ? sp.pillar.pos : sp.mount.pos;
+				if (sp.kind === "pillar") { ctx.fillStyle = "#38e0c0"; ctx.fillRect(wx(pos[0]) - sq / 2, wz(pos[2]) - sq / 2, sq, sq); }
+				else { ctx.strokeStyle = "#38e0c0"; ctx.lineWidth = 1.2; ctx.strokeRect(wx(pos[0]) - sq / 2, wz(pos[2]) - sq / 2, sq, sq); ctx.strokeStyle = "rgba(230,240,255,0.85)"; }
+			}
+			ctx.fillStyle = "#eef4ff";
+			for (const a of cg.attaches) { ctx.beginPath(); ctx.arc(wx(a.pos[0]), wz(a.pos[2]), Math.max(1.5, s * 0.1), 0, Math.PI * 2); ctx.fill(); }
+		}
+
 		// Legend.
 		ctx.fillStyle = "#93a1b3";
 		ctx.font = "10px monospace";

@@ -19,6 +19,7 @@ import { placeChairs } from "./chairs.js";
 import { generateLevel2, generateLevel3 } from "./islands.js";
 import { generateTires } from "./tires.js";
 import { placeStadiumLights, placeTents } from "./props.js";
+import { generateChargeGrids } from "./chargegrid.js";
 
 /**
  * @typedef {object} ArenaModel
@@ -99,5 +100,10 @@ export function generateArena(seed, params) {
 	// Environment decoration (visual only): stadium lights around the arena, tents on walls.
 	model.lights = placeStadiumLights(dims, params, seed);
 	model.tents = placeTents(rings, dims, params, seed);
+
+	// Charge grids: floating recharge ceilings held by container-mounts / pillars.
+	// Runs last — it validates against the fully assembled solid/level/ramp masks and
+	// treats its pillars as obstacles (never blocking a ramp mouth or pinching a channel).
+	model.chargeGrids = generateChargeGrids(model, params, seed);
 	return model;
 }

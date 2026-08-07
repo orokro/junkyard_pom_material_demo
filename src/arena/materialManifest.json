@@ -792,6 +792,91 @@
       ],
       "alphaMode": "OPAQUE",
       "doubleSided": true
+    },
+    "ChargeMetal": {
+      "baseColor": {
+        "file": "t40_beaten-up-metal1-blue-albedo.png",
+        "colorSpace": "srgb",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "baseColorFactor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "metallicRoughness": {
+        "file": "t08_beaten-up-metal1-Roughness.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "metallicFactor": 0.45,
+      "roughnessFactor": 1,
+      "normal": {
+        "file": "t06_beaten-up-metal1-Normal-ogl.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "normalScale": 1,
+      "occlusion": null,
+      "occlusionStrength": 1,
+      "emissive": null,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "doubleSided": true
+    },
+    "ChargeGrid": {
+      "baseColor": {
+        "file": "t41_hex_grid.png",
+        "colorSpace": "srgb",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "baseColorFactor": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "metallicRoughness": {
+        "file": "t08_beaten-up-metal1-Roughness.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "metallicFactor": 0.45,
+      "roughnessFactor": 1,
+      "normal": {
+        "file": "t06_beaten-up-metal1-Normal-ogl.png",
+        "colorSpace": "linear",
+        "texCoord": 0,
+        "wrapS": "repeat",
+        "wrapT": "repeat"
+      },
+      "normalScale": 1,
+      "occlusion": null,
+      "occlusionStrength": 1,
+      "emissive": null,
+      "emissiveFactor": [
+        0,
+        0,
+        0
+      ],
+      "alphaMode": "OPAQUE",
+      "alphaTest": 0.5,
+      "doubleSided": true
     }
   },
   "parts": {
@@ -866,6 +951,31 @@
     "Tent": [
       "PillarConcrete_White",
       "TentTop"
+    ],
+    "ChargeGrid": [
+      "ChargeMetal",
+      "ChargeGrid"
+    ],
+    "GridAttachPoint": [
+      "ChargeMetal"
+    ],
+    "ChargeGridPillar": [
+      "ChargeMetal",
+      "Tires.001",
+      "MoreMetal2"
+    ],
+    "ChargeGridArm": [
+      "ChargeMetal",
+      "DarkBlack"
+    ],
+    "ChargeGridArmExtension": [
+      "MoreMetal",
+      "MoreMetal2",
+      "ChargeMetal"
+    ],
+    "ChargeGridContainerMount": [
+      "ChargeMetal",
+      "RustedPittedMetal"
     ]
   }
 }
