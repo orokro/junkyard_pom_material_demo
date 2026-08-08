@@ -39,7 +39,7 @@ const SLOT_META = [
 /** an item is bench-usable if it's an ingredient in some recipe */
 const craftable = (id) => RECIPES.some((r) => r.in[id] != null);
 
-export function initBuilder(thumbs) {
+export function initBuilder(thumbs, onSlots) {
 	const S = {
 		inv: ITEMS.map((it) => ({ id: it.id, count: 200 })),
 		bench: Array(9).fill(null),
@@ -88,7 +88,7 @@ export function initBuilder(thumbs) {
 		$("#wt").textContent = w.toFixed(0);
 		$("#charge").textContent = (100 + 100 * batt) + "%";
 	}
-	function renderAll() { renderInv(); renderBench(); renderOutput(); renderSlots(); updateStats(); thumbs.refresh(); highlight(); }
+	function renderAll() { renderInv(); renderBench(); renderOutput(); renderSlots(); updateStats(); thumbs.refresh(); highlight(); if (onSlots) onSlots(S.slots); }
 
 	// ---------- crafting ----------
 	function benchMs() { const m = {}; for (const st of S.bench) if (st) m[st.id] = (m[st.id] || 0) + st.count; return m; }
@@ -159,14 +159,41 @@ export function initBuilder(thumbs) {
 		} else if (c === "slot") { dropSlot(slot, i); }
 		renderAll();
 	}
-	/** right-click: take one into hand (accumulates); output crafts one batch */
+	/** right-click: holding -> place ONE; not holding -> take ONE (accumulates) */
 	function rightClick(c, i, slot) {
 		if (c === "out") { craftGrab(i); renderAll(); return; }
-		const st = cellStack(c, i, slot);
-		if (!st || st.count < 1 || (S.held && S.held.id !== st.id)) return;
-		S.held = S.held ? { id: S.held.id, count: S.held.count + 1 } : { id: st.id, count: 1 };
-		setHeld(S.held);
-		st.count -= 1; if (st.count <= 0) clearCell(c, i, slot);
+		if (S.held) placeOne(c, i, slot);
+		else {
+			const st = cellStack(c, i, slot);
+			if (!st || st.count < 1) return;
+			S.held = { id: st.id, count: 1 }; setHeld(S.held);
+			st.count -= 1; if (st.count <= 0) clearCell(c, i, slot);
+		}
+		renderAll();
+	}
+	/** deposit a single held item into a cell (place-one) */
+	function placeOne(c, i, slot) {
+		if (c === "inv") {
+			const st = S.inv[i];
+			if (!st) { S.inv.splice(i, 0, { id: S.held.id, count: 1 }); take(1); }
+			else if (st.id === S.held.id) { st.count += 1; take(1); }
+		} else if (c === "bench") {
+			const st = S.bench[i];
+			if (!st) { S.bench[i] = { id: S.held.id, count: 1 }; take(1); }
+			else if (st.id === S.held.id) { st.count += 1; take(1); }
+		} else if (c === "slot") {
+			if (!(SLOT_ACCEPT[slot] || []).includes(S.held.id)) return;
+			if (slot === "batteries") { const cur = S.slots.batteries; S.slots.batteries = { id: "battery", count: (cur ? cur.count : 0) + 1 }; take(1); }
+			else if (slot === "tires" || slot === "suspension") { if (!S.slots[slot][i]) { S.slots[slot][i] = { id: S.held.id, count: 1 }; take(1); } }
+			else { if (!S.slots[slot]) { S.slots[slot] = { id: S.held.id, count: 1 }; take(1); } }
+		}
+	}
+	/** dropping a slot-type item onto the 3D car auto-fills its slot */
+	function dropOnCar() {
+		const type = Object.keys(SLOT_ACCEPT).find((k) => SLOT_ACCEPT[k].includes(S.held.id));
+		if (!type) return;  // placeable composite -> Part 2b
+		if (type === "tires" || type === "suspension") { let idx = S.slots[type].findIndex((x) => !x); if (idx < 0) idx = 0; dropSlot(type, idx); }
+		else dropSlot(type, 0);
 		renderAll();
 	}
 
@@ -195,6 +222,7 @@ export function initBuilder(thumbs) {
 		if (e.button !== 0) return;
 		const el = cellOf(e);
 		if (el) { const { container, index, slot } = el.dataset; leftClick(container, index != null ? +index : 0, slot); e.preventDefault(); }
+		else if (S.held && e.target.closest("#loadout")) { dropOnCar(); e.preventDefault(); }
 		else if (S.held && e.target.closest("#inventory .pbody")) { give({ id: S.held.id, count: S.held.count }); setHeld(null); renderAll(); e.preventDefault(); }
 		updateLabel(e.clientX, e.clientY, e.target);
 	});

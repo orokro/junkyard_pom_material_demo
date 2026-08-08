@@ -128,5 +128,5 @@ export async function initThumbs() {
 
 	refresh();
 	requestAnimationFrame(frame);
-	return { refresh, cfg };
+	return { refresh, cfg, lib };  // lib shared with the car view
 }

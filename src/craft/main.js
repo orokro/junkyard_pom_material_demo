@@ -12,6 +12,7 @@ import { installScale } from "./scale.js";
 import { initTheme } from "./theme.js";
 import { initDebug } from "./debug.js";
 import { initThumbs } from "./thumbs.js";
+import { initCarView } from "./carview.js";
 import { initBuilder } from "./builder.js";
 
 initTheme();
@@ -35,9 +36,10 @@ initDebug(document.getElementById("debughit"));
 (async () => {
 	// The builder (drag/craft/slots) must work even if the 3D overlay can't start
 	// (e.g. no WebGL) — so init thumbnails defensively and always init the builder.
-	let thumbs;
-	try { thumbs = await initThumbs(); }
+	let thumbs, lib = null, carview = null;
+	try { thumbs = await initThumbs(); lib = thumbs.lib; }
 	catch (e) { console.error("[craft] thumbnails failed (continuing without 3D):", e); thumbs = { refresh() {}, cfg: {} }; }
-	window.__b = initBuilder(thumbs);
+	if (lib) { try { carview = initCarView(lib); } catch (e) { console.error("[craft] car view failed:", e); } }
+	window.__b = initBuilder(thumbs, carview ? (slots) => carview.syncLoadout(slots) : null);
 	console.info("[craft] builder ready");
 })();
