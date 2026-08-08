@@ -40,6 +40,11 @@ initDebug(document.getElementById("debughit"));
 	try { thumbs = await initThumbs(); lib = thumbs.lib; }
 	catch (e) { console.error("[craft] thumbnails failed (continuing without 3D):", e); thumbs = { refresh() {}, cfg: {} }; }
 	if (lib) { try { carview = initCarView(lib); } catch (e) { console.error("[craft] car view failed:", e); } }
-	window.__b = initBuilder(thumbs, carview ? (slots) => carview.syncLoadout(slots) : null);
+	window.__b = initBuilder(thumbs, carview ? {
+		onSlots: (slots) => carview.syncLoadout(slots),
+		onHeld: (held) => carview.setHeld(held),
+	} : null);
+	if (carview) carview.setCallbacks({ onPlace: window.__b.onPlace, onDetach: window.__b.onDetach });
+	window.__cv = carview;   // test hook
 	console.info("[craft] builder ready");
 })();

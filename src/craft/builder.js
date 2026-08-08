@@ -39,11 +39,15 @@ const SLOT_META = [
 /** an item is bench-usable if it's an ingredient in some recipe */
 const craftable = (id) => RECIPES.some((r) => r.in[id] != null);
 
-export function initBuilder(thumbs, onSlots) {
+export function initBuilder(thumbs, opts) {
+	// Back-compat: a bare function is the old onSlots callback.
+	const onSlots = typeof opts === "function" ? opts : opts?.onSlots || null;
+	const onHeld = typeof opts === "function" ? null : opts?.onHeld || null;
 	const S = {
 		inv: ITEMS.map((it) => ({ id: it.id, count: 200 })),
 		bench: Array(9).fill(null),
 		slots: { front: null, rear: null, batteries: null, tires: [null, null, null, null], suspension: [null, null, null, null] },
+		placed: [],   // ids free-placed on the car (weight counts, visuals live in carview)
 		held: null,
 	};
 	const $ = (s) => document.querySelector(s);
@@ -85,6 +89,7 @@ export function initBuilder(thumbs, onSlots) {
 		add(S.slots.front); add(S.slots.rear);
 		if (S.slots.batteries) { batt = S.slots.batteries.count; w += (BY_ID.battery.weight || 0) * batt; }
 		S.slots.tires.forEach(add); S.slots.suspension.forEach(add);
+		for (const id of S.placed) w += (BY_ID[id]?.weight || 0);   // free-placed weapons
 		$("#wt").textContent = w.toFixed(0);
 		$("#charge").textContent = (100 + 100 * batt) + "%";
 	}
@@ -134,7 +139,7 @@ export function initBuilder(thumbs, onSlots) {
 	}
 	function give(st) { const same = S.inv.find((s) => s.id === st.id); if (same) same.count += st.count; else S.inv.push(st); }
 	function take(n) { if (!S.held) return; S.held.count -= n; setHeld(S.held.count > 0 ? S.held : null); }
-	function setHeld(st) { S.held = st && st.count > 0 ? st : null; ghost.id = S.held ? S.held.id : null; document.body.classList.toggle("dragging", !!S.held); }
+	function setHeld(st) { S.held = st && st.count > 0 ? st : null; ghost.id = S.held ? S.held.id : null; document.body.classList.toggle("dragging", !!S.held); if (onHeld) onHeld(S.held); }
 	function cancel() { if (!S.held) return; give(S.held); setHeld(null); renderAll(); }
 
 	function dropSlot(slot, i) {
@@ -191,9 +196,25 @@ export function initBuilder(thumbs, onSlots) {
 	/** dropping a slot-type item onto the 3D car auto-fills its slot */
 	function dropOnCar() {
 		const type = Object.keys(SLOT_ACCEPT).find((k) => SLOT_ACCEPT[k].includes(S.held.id));
-		if (!type) return;  // placeable composite -> Part 2b
+		if (!type) return;  // free-placeable item -> carview handles the raycast placement
 		if (type === "tires" || type === "suspension") { let idx = S.slots[type].findIndex((x) => !x); if (idx < 0) idx = 0; dropSlot(type, idx); }
 		else dropSlot(type, 0);
+		renderAll();
+	}
+
+	// ---- free placement hand-off (carview owns the 3D raycast) ----
+	/** carview placed one held item on the car -> consume one from the hand */
+	function onPlace(id) {
+		if (!S.held || S.held.id !== id) return;
+		S.placed.push(id);
+		take(1);          // setHeld() re-syncs carview's ghost via onHeld
+		renderAll();
+	}
+	/** carview detached a placed item -> pick it back up (accumulates if same) */
+	function onDetach(id) {
+		const i = S.placed.indexOf(id); if (i >= 0) S.placed.splice(i, 1);
+		if (S.held && S.held.id === id) S.held.count += 1; else S.held = { id, count: 1 };
+		setHeld(S.held);
 		renderAll();
 	}
 
@@ -230,12 +251,12 @@ export function initBuilder(thumbs, onSlots) {
 		e.preventDefault(); // suppress the browser context menu everywhere
 		const el = cellOf(e);
 		if (el) { const { container, index, slot } = el.dataset; rightClick(container, index != null ? +index : 0, slot); }
-		else if (S.held) cancel();
+		else if (S.held && !e.target.closest("#loadout")) cancel();   // over the car: let carview handle it, don't cancel
 		updateLabel(e.clientX, e.clientY, e.target);
 	});
 	window.addEventListener("pointermove", (e) => { ghost.x = e.clientX; ghost.y = e.clientY; updateLabel(e.clientX, e.clientY, e.target); });
 	window.addEventListener("keydown", (e) => { if (e.key === "Escape") cancel(); });
 
 	renderAll();
-	return { state: S, renderAll, leftClick, rightClick, craftGrab, cancel };
+	return { state: S, renderAll, leftClick, rightClick, craftGrab, cancel, onPlace, onDetach };
 }

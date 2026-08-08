@@ -50,7 +50,7 @@ export async function initThumbs() {
 		const item = BY_ID[id];
 		let out = null;
 		if (item) {
-			const g = lib.bakeItem(item);
+			const g = lib.bakeById(id);
 			const box = new THREE.Box3().setFromObject(g);
 			if (!box.isEmpty()) {
 				const c = box.getCenter(_v).clone(), size = box.getSize(_s);

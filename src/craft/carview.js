@@ -89,9 +89,87 @@ export function initCarView(lib) {
 		for (let i = 1; i <= 4; i++) setWheel(i, slots.tires[i - 1]?.id === "slick_tire");
 	}
 
+	// ---- free placement (raycast onto CarPaint, oriented to the surface) ----
+	const AXIS = { x: new THREE.Vector3(1, 0, 0), y: new THREE.Vector3(0, 1, 0), z: new THREE.Vector3(0, 0, 1) };
+	const ray = new THREE.Raycaster();
+	const ndc = new THREE.Vector2();
+	const _inv = new THREE.Matrix4();
+	let heldAny = false;      // builder is holding SOMETHING (blocks detach)
+	let heldItem = null;      // the placeable item being positioned (or null)
+	let ghostId = null, ghostObj = null;
+	const placed = [];        // { id, object } free-placed weapons on the car
+	let cbPlace = null, cbDetach = null;
+	let downX = 0, downY = 0;
+
+	function ndcFrom(e) {
+		const r = canvas.getBoundingClientRect();
+		ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+	}
+	function hitCar(e) { ndcFrom(e); ray.setFromCamera(ndc, camera); return ray.intersectObjects(car.carPaint, false)[0] || null; }
+	function hitPlaced(e) {
+		if (!placed.length) return null;
+		ndcFrom(e); ray.setFromCamera(ndc, camera);
+		const hits = ray.intersectObjects(placed.map((p) => p.object), true);
+		if (!hits.length) return null;
+		for (let o = hits[0].object; o; o = o.parent) { const p = placed.find((x) => x.object === o); if (p) return p; }
+		return null;
+	}
+	/** local-to-mount transform for a placeable item at a CarPaint hit */
+	function placeXform(hit, item) {
+		mount.updateWorldMatrix(true, false);
+		_inv.copy(mount.matrixWorld).invert();
+		const position = hit.point.clone().applyMatrix4(_inv);
+		let n = hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize();
+		if (item.upBias) n.lerp(AXIS.y, item.upBias).normalize();   // launcher tilts skyward
+		n.transformDirection(_inv).normalize();
+		const quaternion = new THREE.Quaternion().setFromUnitVectors(AXIS[item.outAxis] || AXIS.x, n);
+		return { position, quaternion };
+	}
+	function makeGhost(id) {
+		const g = lib.bakeById(id);
+		g.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshBasicMaterial({ color: 0x7ad06a, transparent: true, opacity: 0.5, depthWrite: false, depthTest: false }); });
+		g.renderOrder = 999; g.visible = false;
+		return g;
+	}
+	function commit(item, hit) {
+		const g = lib.bakeById(item.id);
+		const t = placeXform(hit, item);
+		g.position.copy(t.position); g.quaternion.copy(t.quaternion);
+		g.userData.placedId = item.id;
+		mount.add(g); placed.push({ id: item.id, object: g });
+	}
+
+	/** builder tells us what's in hand; we (re)build a translucent ghost if placeable */
+	function setHeld(held) {
+		heldAny = !!held;
+		const item = held && BY_ID[held.id];
+		const placeable = item && item.mount === "place";
+		const id = placeable ? item.id : null;
+		heldItem = placeable ? item : null;
+		if (id === ghostId) return;             // same ghost — keep it
+		if (ghostObj) { scene.remove(ghostObj); ghostObj = null; }
+		ghostId = id;
+		if (id) { ghostObj = makeGhost(id); scene.add(ghostObj); }
+	}
+	function setCallbacks(cb) { cbPlace = cb?.onPlace || null; cbDetach = cb?.onDetach || null; }
+
+	canvas.addEventListener("pointerdown", (e) => { downX = e.clientX; downY = e.clientY; });
+	canvas.addEventListener("pointermove", (e) => {
+		if (!heldItem || !ghostObj) return;
+		const hit = hitCar(e);
+		if (hit) { const t = placeXform(hit, heldItem); ghostObj.position.copy(t.position); ghostObj.quaternion.copy(t.quaternion); ghostObj.visible = true; }
+		else ghostObj.visible = false;
+	});
+	canvas.addEventListener("pointerleave", () => { if (ghostObj) ghostObj.visible = false; });
+	canvas.addEventListener("pointerup", (e) => {
+		if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return;   // was an orbit/pan drag
+		if (heldItem) { const hit = hitCar(e); if (hit) { commit(heldItem, hit); cbPlace && cbPlace(heldItem.id); } }
+		else if (!heldAny) { const p = hitPlaced(e); if (p) { mount.remove(p.object); placed.splice(placed.indexOf(p), 1); cbDetach && cbDetach(p.id); } }
+	});
+
 	function resize() { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 	new ResizeObserver(resize).observe(host); resize();
 	(function tick() { requestAnimationFrame(tick); controls.update(); renderer.render(scene, camera); })();
 
-	return { syncLoadout, scene, car, camera, controls };
+	return { syncLoadout, setHeld, setCallbacks, scene, car, camera, controls, placed };
 }

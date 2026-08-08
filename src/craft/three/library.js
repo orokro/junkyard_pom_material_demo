@@ -125,6 +125,35 @@ export async function loadCraftLibrary(renderer) {
 		return group;
 	}
 
+	/**
+	 * Bake a composite (a hand welded onto a base) into one pivot-local group:
+	 * the base at identity, the hand placed at the base's authored hand-socket.
+	 * @param {string} baseId @param {string} handId @param {string} socketKey
+	 * @returns {THREE.Group}
+	 */
+	function bakeComposite(baseId, handId, socketKey) {
+		const group = new THREE.Group();
+		group.name = `${baseId}__${handId}`;
+		group.add(bakeItem(BY_ID[baseId]));
+		const hand = bakeItem(BY_ID[handId]);
+		const sk = sockets[baseId];
+		const m = sk && (sk[socketKey] || sk.default);
+		if (m) hand.applyMatrix4(m);
+		group.add(hand);
+		return group;
+	}
+
+	/**
+	 * Bake any catalog item by id — routes composites through bakeComposite,
+	 * everything else through bakeItem.
+	 * @param {string} id @returns {THREE.Group}
+	 */
+	function bakeById(id) {
+		const it = BY_ID[id];
+		if (it && it.composite) return bakeComposite(it.composite.base, it.composite.hand, it.composite.socket);
+		return bakeItem(it || { id, node: id });
+	}
+
 	// ---- hand sockets (item-root-local transform of the demo hand) --------
 	/** id -> { default?:Matrix4, fist?:Matrix4, slap?:Matrix4 } */
 	const sockets = {};
@@ -198,5 +227,5 @@ export async function loadCraftLibrary(renderer) {
 		return { object: car, mountParent: car, carPaint, wheelSlots };
 	}
 
-	return { root, material, bakeItem, buildCar, sockets, slotTransforms, strip: (id) => strip(id) };
+	return { root, material, bakeItem, bakeComposite, bakeById, buildCar, sockets, slotTransforms, strip: (id) => strip(id) };
 }

@@ -48,9 +48,9 @@ export const ITEMS = [
 	{ id: "slap_hand",   label: "Slap Hand",    node: "SlapHand",    cat: "hand",   mount: "hand", hand: true, weight: 1 },
 	{ id: "fist",        label: "Fist",         node: "Fist",        cat: "hand",   mount: "hand", hand: true, weight: 1 },
 
-	// ---- armor (normal mount) ----
-	{ id: "iron_plate",  label: "Iron Plate",   node: "IronPlate",   cat: "weapon", mount: "normal", outAxis: "y", weight: 3 },
-	{ id: "copper_plate",label: "Copper Plate", node: "CopperPlate", cat: "weapon", mount: "normal", outAxis: "y", weight: 2 },
+	// ---- armor (free-placeable) ----
+	{ id: "iron_plate",  label: "Iron Plate",   node: "IronPlate",   cat: "weapon", mount: "place", outAxis: "y", weight: 3 },
+	{ id: "copper_plate",label: "Copper Plate", node: "CopperPlate", cat: "weapon", mount: "place", outAxis: "y", weight: 2 },
 
 	// ---- hydraulics (normal mount, hand socket) ----
 	{ id: "hyd_piston",  label: "Hydraulic Piston", node: "HydraulicPiston", cat: "weapon", mount: "normal", outAxis: "x", weight: 3,
@@ -68,10 +68,51 @@ export const ITEMS = [
 	  group: ["ScorpoinTailBase","ScorpionTailPivot","PistonPair","PistonPairArms","ScorpionTailRoot",
 	          "ScorpionTailSegment_1","ScorpionTailSegment_2","ScorpionTailSegment_3","ScorpionTailSegment_4","ScorpionTailSegment_5","ScorpionTailSegment_6"] },
 
-	// ---- normal-mount weapons ----
-	{ id: "launcher",  label: "Launcher", node: "Launcher", cat: "weapon", mount: "normal", outAxis: "x", upBias: 0.6, weight: 3 },
-	{ id: "side_saw",  label: "Side-Saw", node: "SideSaw",  cat: "weapon", mount: "normal", outAxis: "x", weight: 3, group: ["SideSaw", "SideSawBlade"] },
+	// ---- free-placeable weapons (raycast onto CarPaint, oriented to the normal) ----
+	{ id: "launcher",  label: "Launcher", node: "Launcher", cat: "weapon", mount: "place", outAxis: "x", upBias: 0.6, weight: 3 },
+	{ id: "side_saw",  label: "Side-Saw", node: "SideSaw",  cat: "weapon", mount: "place", outAxis: "x", weight: 3, group: ["SideSaw", "SideSawBlade"] },
 ];
+
+/**
+ * ---- composite weapons: a HAND welded onto a BASE ------------------------
+ * Per Greg's many-to-many rule: any base (pipe/spring/hydraulic) can take any
+ * hand (slap/fist/kancho). Each combo is a single craftable, free-placeable
+ * item. `composite` carries the pieces + which hand-socket transform to use;
+ * library.bakeComposite() assembles the geometry. The base's own +X points out
+ * of the car surface, so the hand ends up at the business end.
+ */
+const COMBO_BASES = [
+	{ id: "short_pipe", label: "Short Pipe", type: "default" },
+	{ id: "long_pipe",  label: "Long Pipe",  type: "default" },
+	{ id: "spring",     label: "Spring",     type: "default" },
+	{ id: "hyd_piston", label: "Hyd Piston", type: "default" },
+	{ id: "hyd_arm",    label: "Hyd Arm",    type: "elbow" },   // fist/slap socket variants
+];
+const COMBO_HANDS = [
+	{ id: "slap_hand", label: "Slap" },
+	{ id: "fist",      label: "Fist" },
+	{ id: "kancho",    label: "Kancho" },
+];
+const _byIdInit = Object.fromEntries(ITEMS.map((i) => [i.id, i]));
+/** @type {Array<object>} */
+export const COMPOSITES = [];
+for (const b of COMBO_BASES) {
+	for (const h of COMBO_HANDS) {
+		// elbow bases have distinct fist/slap socket transforms; kancho reuses slap.
+		const socket = b.type === "elbow" ? (h.id === "fist" ? "fist" : "slap") : "default";
+		COMPOSITES.push({
+			id: `${b.id}__${h.id}`,
+			label: `${b.label} ${h.label}`,
+			node: _byIdInit[b.id].node,
+			cat: "weapon",
+			mount: "place",
+			outAxis: "x",
+			weight: (_byIdInit[b.id]?.weight || 0) + (_byIdInit[h.id]?.weight || 0),
+			composite: { base: b.id, hand: h.id, socket },
+		});
+	}
+}
+ITEMS.push(...COMPOSITES);
 
 /** Demo/example nodes we must never bake into another item's geometry. */
 export const DEMO_NODES = ["Fist", "Fist.001", "Fist.002", "SlapHand", "SlapHand.001", "SlapHand.003", "Rocket"];
@@ -106,3 +147,8 @@ export const RECIPES = [
 	{ in: { jerry_can: 1, scrap_iron: 1, scrap_copper: 1 }, out: ["battery"] },
 	{ in: { hyd_arm: 1 }, out: ["scorpion_tail"] }, // placeholder combo for demo variety
 ];
+
+// composite recipes: base + hand -> the welded weapon (base×hand, many-to-many).
+for (const c of COMPOSITES) {
+	RECIPES.push({ in: { [c.composite.base]: 1, [c.composite.hand]: 1 }, out: [c.id] });
+}
