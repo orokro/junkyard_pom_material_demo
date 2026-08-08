@@ -56,8 +56,22 @@ for (const g of SLOTS) {
 const cgrid = document.getElementById("cgrid");
 for (let i = 0; i < 9; i++) { const c = document.createElement("div"); c.className = "cell"; cgrid.appendChild(c); }
 
+// ---- header measurement (feeds each body's clip-path notch) ----
+/** Measure each header tab and expose its size (rem) to the body clip-path. */
+function measureHeaders() {
+	const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+	for (const p of document.querySelectorAll(".panel")) {
+		const h = p.querySelector(".phead"), body = p.querySelector(".pbody");
+		if (!h || !body) continue;
+		body.style.setProperty("--hw", (h.offsetWidth / rem).toFixed(3) + "rem");
+		body.style.setProperty("--hh", (h.offsetHeight / rem).toFixed(3) + "rem");
+	}
+}
+
 // ---- scale + debug ----
-installScale();
+installScale(measureHeaders);   // re-measure whenever the base font changes
+measureHeaders();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureHeaders); // re-measure once the real font loads
 initDebug(document.getElementById("debughit"));
 
 console.info("[craft] shell ready — resize the window / open debug (` or the far-left corner of the bottom bar).");

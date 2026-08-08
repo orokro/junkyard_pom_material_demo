@@ -2,6 +2,8 @@
 <!--
 	============================================================================
 	craft.html — Crafting Bay POC (Step 1: responsive REM shell + themed chrome)
+	Panel = orange container; .pbody = inset blue-grey body whose clip-path
+	notches out the header tab and chamfers its corners (measured in JS).
 	============================================================================
 -->
 <html lang="en">
@@ -19,7 +21,7 @@
 						<span class="phead__title">Load Out</span>
 						<span class="slashes"><i></i><i></i><i></i></span>
 					</div>
-					<div class="carview">
+					<div class="pbody carview">
 						<span>3D car view</span>
 						<div class="chargebar">Weight: <b id="wt">0</b><br />Max Charge: <b id="charge">100%</b></div>
 					</div>
@@ -31,7 +33,7 @@
 						<span class="phead__title">Inventory</span>
 						<span class="slashes"><i></i><i></i><i></i></span>
 					</div>
-					<div class="invscroll"><div id="invgrid" class="invgrid"></div></div>
+					<div class="pbody content"><div class="invscroll"><div id="invgrid" class="invgrid"></div></div></div>
 				</section>
 
 				<section id="slots" class="panel">
@@ -40,7 +42,7 @@
 						<span class="phead__title">Slots</span>
 						<span class="slashes"><i></i><i></i><i></i></span>
 					</div>
-					<div id="slotsrow" class="slotsrow"></div>
+					<div class="pbody content"><div id="slotsrow" class="slotsrow"></div></div>
 				</section>
 
 				<section id="crafting" class="panel">
@@ -49,10 +51,12 @@
 						<span class="phead__title">Crafting</span>
 						<span class="slashes"><i></i><i></i><i></i></span>
 					</div>
-					<div class="craftunit">
-						<div id="cgrid" class="cgrid"></div>
-						<div class="arrow"><svg viewBox="0 0 120 80" style="color:var(--arrow)"><path d="M12 62 C 34 26, 62 20, 86 31" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round"/><path d="M78 6 L114 34 L74 47 Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
-						<div class="outwrap"><span class="outlabel">Output:</span><div id="outcol" class="outcol"></div></div>
+					<div class="pbody content">
+						<div class="craftunit">
+							<div id="cgrid" class="cgrid"></div>
+							<div class="arrow"><svg viewBox="0 0 120 80" style="color:var(--arrow)"><path d="M12 62 C 34 26, 62 20, 86 31" fill="none" stroke="currentColor" stroke-width="15" stroke-linecap="round"/><path d="M78 6 L114 34 L74 47 Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
+							<div class="outwrap"><span class="outlabel">Output:</span><div id="outcol" class="outcol"></div></div>
+						</div>
 					</div>
 				</section>
 			</div>

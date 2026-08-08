@@ -26,18 +26,35 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--frame)
 #grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr) auto;
 	grid-template-areas: "loadout inventory" "slots crafting"; gap: 0.5rem; padding: 0.5rem; min-height: 0; }
 
-/* ---- panels: blue-grey, bevel-cut against the orange field ---- */
-.panel { position: relative; background: var(--panel); padding: 0.6rem 0.85rem 0.75rem; display: flex; flex-direction: column; min-height: 0;
-	clip-path: polygon(var(--bevel) 0, calc(100% - var(--bevel)) 0, 100% var(--bevel), 100% calc(100% - var(--bevel)),
-		calc(100% - var(--bevel)) 100%, var(--bevel) 100%, 0 calc(100% - var(--bevel)), 0 var(--bevel)); }
-#loadout { grid-area: loadout; padding-bottom: 0; } #slots { grid-area: slots; }
+/* ---- panels: ORANGE container (part of the field); a blue-grey body is inset
+   inside it, so every panel edge blends body->orange with no third-colour seam. ---- */
+.panel { position: relative; background: var(--frame); display: flex; flex-direction: column; min-height: 0; }
+#loadout { grid-area: loadout; } #slots { grid-area: slots; }
 #inventory { grid-area: inventory; } #crafting { grid-area: crafting; }
 
-/* ---- headers: black title/icon/// on an ANGLED colored banner, flush to the
-   top-left so it sits over the panel's top-left chamfer (orange-on-orange). ---- */
-.phead { align-self: flex-start; display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink);
-	background: var(--frame); padding: 0.32rem 1.3rem 0.4rem 0.7rem; margin: -0.6rem 0 0.55rem -0.85rem;
+/* header tab: black title/icon/// on an angled orange banner, top-left, over the body */
+.phead { position: absolute; top: 0; left: 0; z-index: 3; display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink);
+	background: var(--frame); padding: 0.3rem 1.25rem 0.38rem 0.7rem;
 	clip-path: polygon(0 0, 100% 0, calc(100% - 0.85rem) 100%, 0 100%); }
+
+/* body: blue-grey; clip-path notches out the header tab (--hw x --hh, measured
+   in JS) so the top-left chamfer lands UNDER the header, and chamfers the other
+   corners. Body always sits on the orange container -> clean edges. */
+.pbody { position: relative; flex: 1; min-height: 0; background: var(--panel); display: flex; flex-direction: column;
+	--hh: 2.6rem; --hw: 12rem;
+	clip-path: polygon(
+		var(--bevel) var(--hh),
+		calc(var(--hw) - 0.85rem) var(--hh),
+		var(--hw) 0,
+		calc(100% - var(--bevel)) 0,
+		100% var(--bevel),
+		100% calc(100% - var(--bevel)),
+		calc(100% - var(--bevel)) 100%,
+		var(--bevel) 100%,
+		0 calc(100% - var(--bevel)),
+		0 calc(var(--hh) + var(--bevel))
+	); }
+.pbody.content { padding: calc(var(--hh) + 0.25rem) 0.7rem 0.7rem; }
 .phead__ico { width: 1.9rem; height: 1.9rem; flex: 0 0 auto; display: block; }
 .phead__ico svg { width: 100%; height: 100%; fill: var(--ink); display: block; }
 .phead__title { font-family: var(--font-display); font-weight: 800; font-size: 2.05rem; line-height: 0.95;
@@ -46,8 +63,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--frame)
 .slashes i { width: 0.42rem; height: 1.6rem; background: var(--ink); transform: skewX(-24deg); display: block; }
 
 /* ---- load out ---- */
-.carview { flex: 1; min-height: 0; background: var(--panel-2); display: grid; place-items: center; color: var(--muted);
-	position: relative; overflow: hidden; }
+.carview { background: var(--panel-2); align-items: center; justify-content: center; color: var(--muted); overflow: hidden; }
 .carview canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .chargebar { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 2; background: var(--frame); color: var(--ink);
 	font-family: var(--font-display); font-size: 1.05rem; line-height: 1.35; text-align: center; padding: 0.4rem 1.9rem 0.45rem 1.9rem;
