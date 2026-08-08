@@ -1,0 +1,5428 @@
+{
+ "file": "/sessions/rcw-01qoz7t5iagamv98xz5y6bvp/mnt/jy_pom_demo/assets/models/parts_and_weapons.glb",
+ "summary": {
+  "nodes": 70,
+  "meshes": 70,
+  "materials": 35,
+  "textures": 58,
+  "images": 45,
+  "animations": 0,
+  "totalImageBytes": 148213697,
+  "generator": "Khronos glTF Blender I/O v5.0.21"
+ },
+ "roots": [
+  "DemoCar",
+  "ReferenceCar",
+  "ReferenceCar.001",
+  "ReferenceCar.002",
+  "ReferenceCar.003",
+  "ReferenceCar.004",
+  "ReferenceCar.005",
+  "ReferenceCar.006",
+  "ReferenceCar.007",
+  "ReferenceCar.008",
+  "ReferenceCar.009",
+  "ReferenceCar.010",
+  "ReferenceCar.011",
+  "LongPipe",
+  "ScrapIron",
+  "ScrapCopper",
+  "RubberHose",
+  "GripTire",
+  "SlickTire",
+  "HubCap",
+  "Gear",
+  "JerryCan",
+  "Battery",
+  "SideSaw",
+  "SawBlade",
+  "SodaCan",
+  "IronPlate",
+  "CopperPlate",
+  "CopperCoil"
+ ],
+ "reusedMeshes": {},
+ "nodes": [
+  {
+   "i": 0,
+   "name": "GripTire.001",
+   "mesh": "Cylinder.009",
+   "t": [
+    0.265,
+    0.16,
+    -0.4424
+   ],
+   "r": [
+    0,
+    0,
+    -0.7071,
+    0.7071
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 1,
+   "name": "GripTire.002",
+   "mesh": "Cylinder.010",
+   "t": [
+    -0.265,
+    0.16,
+    -0.4424
+   ],
+   "r": [
+    0,
+    0,
+    -0.7071,
+    0.7071
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 2,
+   "name": "GripTire.003",
+   "mesh": "Cylinder.011",
+   "t": [
+    0.265,
+    0.16,
+    0.4576
+   ],
+   "r": [
+    0,
+    0,
+    -0.7071,
+    0.7071
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 3,
+   "name": "GripTire.004",
+   "mesh": "Cylinder.012",
+   "t": [
+    -0.265,
+    0.16,
+    0.4576
+   ],
+   "r": [
+    0,
+    0,
+    -0.7071,
+    0.7071
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 4,
+   "name": "DemoCar",
+   "mesh": "Cube.005",
+   "t": [
+    0,
+    0,
+    0.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "GripTire.001",
+    "GripTire.002",
+    "GripTire.003",
+    "GripTire.004"
+   ]
+  },
+  {
+   "i": 5,
+   "name": "ElectroMagnet",
+   "mesh": "Cube.038",
+   "t": [
+    0,
+    0.3,
+    -1.0227
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 6,
+   "name": "ReferenceCar",
+   "mesh": "Cube.125",
+   "t": [
+    -7,
+    0,
+    3.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ElectroMagnet"
+   ]
+  },
+  {
+   "i": 7,
+   "name": "EMPGun",
+   "mesh": "Cube.050",
+   "t": [
+    0,
+    0.3745,
+    -0.9298
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 8,
+   "name": "ReferenceCar.001",
+   "mesh": "Cube.136",
+   "t": [
+    -5,
+    0,
+    3.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "EMPGun"
+   ]
+  },
+  {
+   "i": 9,
+   "name": "ChestSpikes",
+   "mesh": "Cube.023",
+   "t": [
+    0,
+    0,
+    -0.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 10,
+   "name": "ReferenceCar.002",
+   "mesh": "Cube.137",
+   "t": [
+    -3,
+    0,
+    3.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ChestSpikes"
+   ]
+  },
+  {
+   "i": 11,
+   "name": "JetThruster",
+   "mesh": "Circle.031",
+   "t": [
+    0,
+    0.277,
+    0.844
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 12,
+   "name": "ReferenceCar.003",
+   "mesh": "Cube.138",
+   "t": [
+    -1,
+    0,
+    3.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "JetThruster"
+   ]
+  },
+  {
+   "i": 13,
+   "name": "KanchoProd",
+   "mesh": "Plane.030",
+   "t": [
+    -0.0049,
+    0.3156,
+    -0.7897
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 14,
+   "name": "ReferenceCar.004",
+   "mesh": "Cube.140",
+   "t": [
+    1,
+    0,
+    3.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "KanchoProd"
+   ]
+  },
+  {
+   "i": 15,
+   "name": "SlapHand",
+   "mesh": "Cube.032",
+   "t": [
+    0.4308,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 16,
+   "name": "ShortPipe",
+   "mesh": "Circle.003",
+   "t": [
+    0.5401,
+    0.45,
+    0.2187
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "SlapHand"
+   ]
+  },
+  {
+   "i": 17,
+   "name": "ReferenceCar.005",
+   "mesh": "Cube.155",
+   "t": [
+    -7,
+    0,
+    6.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ShortPipe"
+   ]
+  },
+  {
+   "i": 18,
+   "name": "SlapHand.001",
+   "mesh": "Cube.159",
+   "t": [
+    0.4308,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 19,
+   "name": "Spring",
+   "mesh": "Plane.013",
+   "t": [
+    0.5401,
+    0.45,
+    0.2187
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "SlapHand.001"
+   ]
+  },
+  {
+   "i": 20,
+   "name": "ReferenceCar.006",
+   "mesh": "Cube.157",
+   "t": [
+    -4,
+    0,
+    6.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "Spring"
+   ]
+  },
+  {
+   "i": 21,
+   "name": "Fist",
+   "mesh": "Cube.027",
+   "t": [
+    0.7096,
+    0,
+    0.0043
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    0.1821,
+    0.1821,
+    0.1821
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 22,
+   "name": "HydraulicPiston.001",
+   "mesh": "Circle.037",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "Fist"
+   ]
+  },
+  {
+   "i": 23,
+   "name": "HydraulicPiston",
+   "mesh": "Circle.010",
+   "t": [
+    0.5401,
+    0.45,
+    0.2187
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "HydraulicPiston.001"
+   ]
+  },
+  {
+   "i": 24,
+   "name": "ReferenceCar.007",
+   "mesh": "Cube.179",
+   "t": [
+    -1,
+    0,
+    6.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "HydraulicPiston"
+   ]
+  },
+  {
+   "i": 25,
+   "name": "Fist.001",
+   "mesh": "Cube.194",
+   "t": [
+    0.3367,
+    -0.0001,
+    -0.1165
+   ],
+   "r": [
+    0,
+    0.5736,
+    0,
+    0.8192
+   ],
+   "s": [
+    0.1821,
+    0.1821,
+    0.1821
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 26,
+   "name": "HydraulicArmArm",
+   "mesh": "Cube.142",
+   "t": [
+    0.4568,
+    0.0001,
+    0.1419
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "Fist.001"
+   ]
+  },
+  {
+   "i": 27,
+   "name": "HydraulicArmPistonArm",
+   "mesh": "Circle.035",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 28,
+   "name": "HydraulicArmPiston",
+   "mesh": "Circle.014",
+   "t": [
+    0.0638,
+    0.0005,
+    0.0082
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "HydraulicArmPistonArm"
+   ]
+  },
+  {
+   "i": 29,
+   "name": "HydraulicArm",
+   "mesh": "Cube.033",
+   "t": [
+    0.5401,
+    0.45,
+    0.2187
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "HydraulicArmArm",
+    "HydraulicArmPiston"
+   ]
+  },
+  {
+   "i": 30,
+   "name": "ReferenceCar.008",
+   "mesh": "Cube.188",
+   "t": [
+    -7,
+    0,
+    9.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "HydraulicArm"
+   ]
+  },
+  {
+   "i": 31,
+   "name": "SlapHand.003",
+   "mesh": "Cube.218",
+   "t": [
+    0.3141,
+    -0.0001,
+    -0.1319
+   ],
+   "r": [
+    0,
+    0.1113,
+    0,
+    0.9938
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 32,
+   "name": "HydraulicArmArm.001",
+   "mesh": "Cube.192",
+   "t": [
+    0.4568,
+    0.0001,
+    0.1419
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "SlapHand.003"
+   ]
+  },
+  {
+   "i": 33,
+   "name": "HydraulicArmPistonArm.001",
+   "mesh": "Circle.039",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 34,
+   "name": "HydraulicArmPiston.001",
+   "mesh": "Circle.038",
+   "t": [
+    0.0638,
+    0.0005,
+    0.0082
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "HydraulicArmPistonArm.001"
+   ]
+  },
+  {
+   "i": 35,
+   "name": "HydraulicArm.001",
+   "mesh": "Cube.190",
+   "t": [
+    0.5401,
+    0.45,
+    0.2187
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "HydraulicArmArm.001",
+    "HydraulicArmPiston.001"
+   ]
+  },
+  {
+   "i": 36,
+   "name": "ReferenceCar.009",
+   "mesh": "Cube.189",
+   "t": [
+    -4,
+    0,
+    9.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "HydraulicArm.001"
+   ]
+  },
+  {
+   "i": 37,
+   "name": "PistonPairArms",
+   "mesh": "Circle.033",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 38,
+   "name": "PistonPair",
+   "mesh": "Circle.029",
+   "t": [
+    -0.1311,
+    0.0514,
+    -0.1576
+   ],
+   "r": [
+    -0.0404,
+    0,
+    0,
+    0.9992
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "PistonPairArms"
+   ]
+  },
+  {
+   "i": 39,
+   "name": "Fist.002",
+   "mesh": "Cube.222",
+   "t": [
+    0.099,
+    0.006,
+    -1.6348
+   ],
+   "r": [
+    -0.6972,
+    -0.1181,
+    -0.1181,
+    0.6972
+   ],
+   "s": [
+    0.1821,
+    0.1821,
+    0.1821
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 40,
+   "name": "ScorpionTailSegment_6",
+   "mesh": "Circle.020",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0.1642,
+    0,
+    0.9864
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "Fist.002"
+   ]
+  },
+  {
+   "i": 41,
+   "name": "ScorpionTailSegment_5",
+   "mesh": "Circle.021",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0.1768,
+    0,
+    0.9842
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ScorpionTailSegment_6"
+   ]
+  },
+  {
+   "i": 42,
+   "name": "ScorpionTailSegment_4",
+   "mesh": "Circle.022",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0.1761,
+    0,
+    0.9844
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ScorpionTailSegment_5"
+   ]
+  },
+  {
+   "i": 43,
+   "name": "ScorpionTailSegment_3",
+   "mesh": "Circle.023",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0.1764,
+    0,
+    0.9843
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ScorpionTailSegment_4"
+   ]
+  },
+  {
+   "i": 44,
+   "name": "ScorpionTailSegment_2",
+   "mesh": "Circle.024",
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0.1762,
+    0,
+    0.9844
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ScorpionTailSegment_3"
+   ]
+  },
+  {
+   "i": 45,
+   "name": "ScorpionTailSegment_1",
+   "mesh": "Circle.025",
+   "t": [
+    0,
+    -0.0505,
+    -1.6161
+   ],
+   "r": [
+    0.3232,
+    0.3232,
+    -0.6289,
+    0.6289
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ScorpionTailSegment_2"
+   ]
+  },
+  {
+   "i": 46,
+   "name": "ScorpionTailRoot",
+   "mesh": "Cube.042",
+   "t": [
+    0,
+    0.1212,
+    0
+   ],
+   "r": [
+    0.0396,
+    0,
+    0,
+    0.9992
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ScorpionTailSegment_1"
+   ]
+  },
+  {
+   "i": 47,
+   "name": "ScorpionTailPivot",
+   "mesh": "Cube.047",
+   "t": [
+    0,
+    1.0119,
+    0.7686
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "PistonPair",
+    "ScorpionTailRoot"
+   ]
+  },
+  {
+   "i": 48,
+   "name": "ScorpoinTailBase",
+   "mesh": "Cube.039",
+   "t": [
+    0,
+    0,
+    -0.0813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ScorpionTailPivot"
+   ]
+  },
+  {
+   "i": 49,
+   "name": "ReferenceCar.010",
+   "mesh": "Cube.220",
+   "t": [
+    -1,
+    0,
+    9.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "ScorpoinTailBase"
+   ]
+  },
+  {
+   "i": 50,
+   "name": "Rocket",
+   "mesh": "Circle.012",
+   "t": [
+    -0.6966,
+    0.3542,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0.7071,
+    0.7071
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 51,
+   "name": "Launcher",
+   "mesh": "Circle.011",
+   "t": [
+    0.5,
+    0.5,
+    0.0187
+   ],
+   "r": [
+    -0.2706,
+    0.6533,
+    -0.6533,
+    0.2706
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "Rocket"
+   ]
+  },
+  {
+   "i": 52,
+   "name": "ReferenceCar.011",
+   "mesh": "Cube.221",
+   "t": [
+    -7,
+    0,
+    12.9813
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "Launcher"
+   ]
+  },
+  {
+   "i": 53,
+   "name": "LongPipe",
+   "mesh": "Circle.002",
+   "t": [
+    -7,
+    0,
+    -4
+   ],
+   "r": [
+    0,
+    0,
+    -0.7071,
+    0.7071
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 54,
+   "name": "ScrapIron",
+   "mesh": "Plane.012",
+   "t": [
+    -5,
+    0,
+    -4
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 55,
+   "name": "ScrapCopper",
+   "mesh": "Cube.024",
+   "t": [
+    -4,
+    0,
+    -4
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 56,
+   "name": "RubberHose",
+   "mesh": "Circle.005",
+   "t": [
+    -3,
+    0,
+    -4
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 57,
+   "name": "GripTire",
+   "mesh": "Cylinder.028",
+   "t": [
+    -2,
+    0,
+    -4
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 58,
+   "name": "SlickTire",
+   "mesh": "Cylinder.001",
+   "t": [
+    -1,
+    0,
+    -4
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 59,
+   "name": "HubCap",
+   "mesh": "Cylinder.002",
+   "t": [
+    -6,
+    0.1134,
+    -3
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 60,
+   "name": "Gear",
+   "mesh": "Circle.007",
+   "t": [
+    -5,
+    0,
+    -3
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 61,
+   "name": "JerryCan",
+   "mesh": "jerrican_mesh_Material.001_0",
+   "t": [
+    -4,
+    0,
+    -3
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 62,
+   "name": "Battery",
+   "mesh": "Cube.026",
+   "t": [
+    -3,
+    0,
+    -3
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 63,
+   "name": "SideSawBlade",
+   "mesh": "3-23-10.005",
+   "t": [
+    -0.249,
+    -0.0001,
+    -0.0017
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 64,
+   "name": "SideSaw",
+   "mesh": "3-23-10.002",
+   "t": [
+    -7.5451,
+    0.4101,
+    13.2019
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": [
+    "SideSawBlade"
+   ]
+  },
+  {
+   "i": 65,
+   "name": "SawBlade",
+   "mesh": "3-23-10.004",
+   "t": [
+    -1,
+    0,
+    -3
+   ],
+   "r": [
+    0,
+    0,
+    -0.7071,
+    0.7071
+   ],
+   "s": [
+    22.0061,
+    22.0061,
+    22.0061
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 66,
+   "name": "SodaCan",
+   "mesh": "Circle.008",
+   "t": [
+    -2,
+    0,
+    -3
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 67,
+   "name": "IronPlate",
+   "mesh": "Plane.014",
+   "t": [
+    -6,
+    0,
+    -2
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 68,
+   "name": "CopperPlate",
+   "mesh": "Plane.015",
+   "t": [
+    -5,
+    0,
+    -2
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  },
+  {
+   "i": 69,
+   "name": "CopperCoil",
+   "mesh": "Circle.009",
+   "t": [
+    -4,
+    0,
+    -2
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ],
+   "mirrored": false,
+   "nonUniform": false,
+   "children": []
+  }
+ ],
+ "meshes": [
+  {
+   "i": 0,
+   "name": "Cylinder.009",
+   "prims": [
+    {
+     "mat": "Tires",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 1,
+   "name": "Cylinder.010",
+   "prims": [
+    {
+     "mat": "Tires",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 2,
+   "name": "Cylinder.011",
+   "prims": [
+    {
+     "mat": "Tires",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 3,
+   "name": "Cylinder.012",
+   "prims": [
+    {
+     "mat": "Tires",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 4,
+   "name": "Cube.005",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 5,
+   "name": "Cube.038",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DentedCopper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "RedPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "YellowMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 6,
+   "name": "Cube.125",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 7,
+   "name": "Cube.050",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DentedCopper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "RedPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 8,
+   "name": "Cube.136",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 9,
+   "name": "Cube.023",
+   "prims": [
+    {
+     "mat": "RollingGate",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "RollingGate",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "VM_Misc_Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 10,
+   "name": "Cube.137",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 11,
+   "name": "Circle.031",
+   "prims": [
+    {
+     "mat": "MetalLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 12,
+   "name": "Cube.138",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 13,
+   "name": "Plane.030",
+   "prims": [
+    {
+     "mat": "KanchoProd",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 14,
+   "name": "Cube.140",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 15,
+   "name": "Cube.032",
+   "prims": [
+    {
+     "mat": "Material",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 16,
+   "name": "Circle.003",
+   "prims": [
+    {
+     "mat": "Pipe",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 17,
+   "name": "Cube.155",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 18,
+   "name": "Cube.159",
+   "prims": [
+    {
+     "mat": "Material",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 19,
+   "name": "Plane.013",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 20,
+   "name": "Cube.157",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 21,
+   "name": "Cube.027",
+   "prims": [
+    {
+     "mat": "Material",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 22,
+   "name": "Circle.037",
+   "prims": [
+    {
+     "mat": "MetalLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 23,
+   "name": "Circle.010",
+   "prims": [
+    {
+     "mat": "PistonYellow",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Rubber",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 24,
+   "name": "Cube.179",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 25,
+   "name": "Cube.194",
+   "prims": [
+    {
+     "mat": "Material",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 26,
+   "name": "Cube.142",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 27,
+   "name": "Circle.035",
+   "prims": [
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MetalLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 28,
+   "name": "Circle.014",
+   "prims": [
+    {
+     "mat": "PistonYellow",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Rubber",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 29,
+   "name": "Cube.033",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 30,
+   "name": "Cube.188",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 31,
+   "name": "Cube.218",
+   "prims": [
+    {
+     "mat": "Material",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 32,
+   "name": "Cube.192",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 33,
+   "name": "Circle.039",
+   "prims": [
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MetalLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 34,
+   "name": "Circle.038",
+   "prims": [
+    {
+     "mat": "PistonYellow",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Rubber",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 35,
+   "name": "Cube.190",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 36,
+   "name": "Cube.189",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 37,
+   "name": "Circle.033",
+   "prims": [
+    {
+     "mat": "MetalLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 38,
+   "name": "Circle.029",
+   "prims": [
+    {
+     "mat": "PistonYellow",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Rubber",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 39,
+   "name": "Cube.222",
+   "prims": [
+    {
+     "mat": "Material",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 40,
+   "name": "Circle.020",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 41,
+   "name": "Circle.021",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 42,
+   "name": "Circle.022",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 43,
+   "name": "Circle.023",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 44,
+   "name": "Circle.024",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 45,
+   "name": "Circle.025",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 46,
+   "name": "Cube.042",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 47,
+   "name": "Cube.047",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 48,
+   "name": "Cube.039",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 49,
+   "name": "Cube.220",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 50,
+   "name": "Circle.012",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "YellowMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "PistonYellow",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 51,
+   "name": "Circle.011",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "YellowMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "PistonYellow",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 52,
+   "name": "Cube.221",
+   "prims": [
+    {
+     "mat": "Bumper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DarkBlack",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BlackPlastic",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WheelCushion",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Seat",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Metal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Spring",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "CarPaint.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BreakLight",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "Headlights",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "WindShield",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 53,
+   "name": "Circle.002",
+   "prims": [
+    {
+     "mat": "Pipe",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 54,
+   "name": "Plane.012",
+   "prims": [
+    {
+     "mat": "DentedMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 55,
+   "name": "Cube.024",
+   "prims": [
+    {
+     "mat": "DentedCopper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 56,
+   "name": "Circle.005",
+   "prims": [
+    {
+     "mat": "Rubber",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 57,
+   "name": "Cylinder.028",
+   "prims": [
+    {
+     "mat": "Tires",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 58,
+   "name": "Cylinder.001",
+   "prims": [
+    {
+     "mat": "Tires",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 59,
+   "name": "Cylinder.002",
+   "prims": [
+    {
+     "mat": "Tires",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 60,
+   "name": "Circle.007",
+   "prims": [
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "YellowMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 61,
+   "name": "jerrican_mesh_Material.001_0",
+   "prims": [
+    {
+     "mat": "Material.001",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0",
+      "TEXCOORD_1",
+      "TEXCOORD_2"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 62,
+   "name": "Cube.026",
+   "prims": [
+    {
+     "mat": "BatteryBox",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BatteryRedTerminal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "BatteryBlackTerminal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 63,
+   "name": "3-23-10.005",
+   "prims": [
+    {
+     "mat": "Fan",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0",
+      "TEXCOORD_1",
+      "COLOR_0",
+      "COLOR_1"
+     ]
+    },
+    {
+     "mat": "MetalImg",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0",
+      "TEXCOORD_1",
+      "COLOR_0",
+      "COLOR_1"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 64,
+   "name": "3-23-10.002",
+   "prims": [
+    {
+     "mat": "Fan",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0",
+      "TEXCOORD_1",
+      "COLOR_0",
+      "COLOR_1"
+     ]
+    },
+    {
+     "mat": "MoreMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0",
+      "TEXCOORD_1",
+      "COLOR_0",
+      "COLOR_1"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 65,
+   "name": "3-23-10.004",
+   "prims": [
+    {
+     "mat": "MetalImg",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0",
+      "TEXCOORD_1",
+      "COLOR_0",
+      "COLOR_1"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 66,
+   "name": "Circle.008",
+   "prims": [
+    {
+     "mat": "SodaLabels",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "SodaLid",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 67,
+   "name": "Plane.014",
+   "prims": [
+    {
+     "mat": "DentedMetal",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 68,
+   "name": "Plane.015",
+   "prims": [
+    {
+     "mat": "DentedCopper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  },
+  {
+   "i": 69,
+   "name": "Circle.009",
+   "prims": [
+    {
+     "mat": "MoreMetal2",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    },
+    {
+     "mat": "DentedCopper",
+     "attrs": [
+      "POSITION",
+      "NORMAL",
+      "TEXCOORD_0"
+     ]
+    }
+   ]
+  }
+ ],
+ "materials": [
+  {
+   "i": 0,
+   "name": "Tires",
+   "metallic": 0,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "Tires_Tires_BaseColor [image/png 1397782B]",
+   "mr": "Tires_Tires_Roughness [image/png 2413467B]",
+   "normal": "Tires_Tires_Normal [image/png 5888404B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 1,
+   "name": "MoreMetal",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "pitted-rusted-metal1_albedo [image/png 6626067B]",
+   "mr": "pitted-rusted-metal1_metallic-pitted-rusted-metal1_roughness [image/png 6236099B]",
+   "normal": "pitted-rusted-metal1_normal-ogl [image/png 8363496B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 2,
+   "name": "MoreMetal2",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "beaten-up-metal1-albedo [image/png 7347491B]",
+   "mr": "beaten-up-metal1-Metallic-beaten-up-metal1-Roughness [image/png 6034287B]",
+   "normal": "beaten-up-metal1-Normal-ogl [image/png 7611127B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 3,
+   "name": "Bumper",
+   "metallic": 0,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "Bumper_ALBEDO_1K [image/png 90106B]",
+   "mr": "Bumper_ROUGHT_1K [image/png 102491B]",
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 4,
+   "name": "DarkBlack",
+   "metallic": 0,
+   "rough": 1,
+   "baseColorFactor": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 5,
+   "name": "BlackPlastic",
+   "metallic": 0,
+   "rough": 1,
+   "baseColorFactor": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "baseColor": null,
+   "mr": "noise [image/png 317324B]",
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 6,
+   "name": "WheelCushion",
+   "metallic": 0,
+   "rough": 0.7545454502105713,
+   "baseColorFactor": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 7,
+   "name": "Seat",
+   "metallic": 0,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "Seat_ALBEDO_1K [image/png 175949B]",
+   "mr": "Seat_ALBEDO_1K [image/png 15886B]",
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 8,
+   "name": "Metal",
+   "metallic": 1,
+   "rough": 0.27272728085517883,
+   "baseColorFactor": [
+    0.23953261971473694,
+    0.20023460686206818,
+    0.1771111935377121,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 9,
+   "name": "Spring",
+   "metallic": 1,
+   "rough": 0.5454545021057129,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "Spring_ALBEDO_512 [image/png 114778B]",
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 10,
+   "name": "CarPaint.001",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "CarPaint_2_ALBEDO_1K [image/png 102557B]",
+   "mr": "noise-CarPaint_ROUGH_512 [image/png 325389B]",
+   "normal": "noise_normal [image/png 747734B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 11,
+   "name": "BreakLight",
+   "metallic": 0.75,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "BreakLight_ALBEDO_512 [image/png 131790B]",
+   "mr": "BreakLight_ROUGH_512 [image/png 137468B]",
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 12,
+   "name": "Headlights",
+   "metallic": 1,
+   "rough": 0,
+   "baseColorFactor": [
+    0.800000011920929,
+    0.800000011920929,
+    0.800000011920929,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 13,
+   "name": "WindShield",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "WindSheild_ALBEDO_1K [image/png 44080B]",
+   "mr": "WindSheild_ROUGH_1K [image/png 48774B]",
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 14,
+   "name": "DentedCopper",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "dented-meta_copperl_albedo [image/png 9214061B]",
+   "mr": "dented-metal_metallic-dented-metal_roughness [image/png 5063858B]",
+   "normal": "dented-metal_normal-ogl [image/png 2906052B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 15,
+   "name": "RedPlastic",
+   "metallic": 0,
+   "rough": 1,
+   "baseColorFactor": [
+    0.3260717988014221,
+    0.011450511403381824,
+    0.011450511403381824,
+    1
+   ],
+   "baseColor": null,
+   "mr": "noise [image/png 317324B]",
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 16,
+   "name": "YellowMetal",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "dented-metal_yellow_albedo [image/png 9490519B]",
+   "mr": "dented-metal_metallic-dented-metal_roughness [image/png 5063858B]",
+   "normal": "dented-metal_normal-ogl [image/png 2906052B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 17,
+   "name": "DarkMetal",
+   "metallic": 0.7777777910232544,
+   "rough": 0.3181818127632141,
+   "baseColorFactor": [
+    0.023113403469324112,
+    0.016023000702261925,
+    0.016023000702261925,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 18,
+   "name": "RollingGate",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "metal_0025_color_1k [image/jpeg 201078B]",
+   "mr": "metal_0025_height_1k-metal_0025_roughness_1k [image/png 880693B]",
+   "normal": "metal_0025_normal_directx_1k [image/png 2424866B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 19,
+   "name": "VM_Misc_Metal",
+   "metallic": 1,
+   "rough": 0.3954545557498932,
+   "baseColorFactor": [
+    0.1426791101694107,
+    0.13784585893154144,
+    0.13417308032512665,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 20,
+   "name": "MetalLight",
+   "metallic": 1,
+   "rough": 0.15000000596046448,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 21,
+   "name": "KanchoProd",
+   "metallic": 0,
+   "rough": 0.5136363506317139,
+   "baseColorFactor": [
+    0.35023626685142517,
+    0.006566646043211222,
+    0.006566646043211222,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 22,
+   "name": "Material",
+   "metallic": 0,
+   "rough": 0.5,
+   "baseColorFactor": [
+    0.31771957874298096,
+    0,
+    0,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 23,
+   "name": "Pipe",
+   "metallic": 1,
+   "rough": 0.27272728085517883,
+   "baseColorFactor": [
+    0.2153870165348053,
+    0.17971384525299072,
+    0.15875262022018433,
+    1
+   ],
+   "baseColor": null,
+   "mr": null,
+   "normal": "noise_normal [image/png 747734B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 24,
+   "name": "PistonYellow",
+   "metallic": 0.4545454680919647,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "beaten-up-metal1-yellow-albedo [image/png 8390966B]",
+   "mr": "beaten-up-metal1-Roughness [image/png 5615130B]",
+   "normal": "beaten-up-metal1-Normal-ogl [image/png 7611127B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 25,
+   "name": "Rubber",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "synth-rubber-dark-albedo [image/png 8864486B]",
+   "mr": "synth-rubber-metalness-synth-rubber-roughness [image/png 5505992B]",
+   "normal": "synth-rubber-normal [image/png 12336144B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 26,
+   "name": "DentedMetal",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "dented-metal_albedo [image/png 6605654B]",
+   "mr": "dented-metal_metallic-dented-metal_roughness [image/png 5063858B]",
+   "normal": "dented-metal_normal-ogl [image/png 2906052B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 27,
+   "name": "Material.001",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "Image_0 [image/png 1129604B]",
+   "mr": "Image_1 [image/png 936190B]",
+   "normal": "Image_2 [image/png 1667597B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 28,
+   "name": "BatteryBox",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "battery [image/png 4144923B]",
+   "mr": "pitted-rusted-metal1_metallic-pitted-rusted-metal1_roughness [image/png 6236099B]",
+   "normal": "pitted-rusted-metal1_normal-ogl [image/png 8363496B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 29,
+   "name": "BatteryRedTerminal",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    0.910371720790863,
+    0,
+    0,
+    1
+   ],
+   "baseColor": null,
+   "mr": "pitted-rusted-metal1_metallic-pitted-rusted-metal1_roughness [image/png 6236099B]",
+   "normal": "pitted-rusted-metal1_normal-ogl [image/png 8363496B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 30,
+   "name": "BatteryBlackTerminal",
+   "metallic": 1,
+   "rough": 1,
+   "baseColorFactor": [
+    0.07931257039308548,
+    0.08803486078977585,
+    0.12394144386053085,
+    1
+   ],
+   "baseColor": null,
+   "mr": "pitted-rusted-metal1_metallic-pitted-rusted-metal1_roughness [image/png 6236099B]",
+   "normal": "pitted-rusted-metal1_normal-ogl [image/png 8363496B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 31,
+   "name": "Fan",
+   "metallic": 0,
+   "rough": 0.5,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "FloorFan [image/png 2091588B]",
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 32,
+   "name": "MetalImg",
+   "metallic": 0.20571491122245789,
+   "rough": 0,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "Image_0 [image/jpeg 404397B]",
+   "mr": null,
+   "normal": "Image_1 [image/png 1515919B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 33,
+   "name": "SodaLabels",
+   "metallic": 1,
+   "rough": 0.27272725105285645,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "labels merged [image/png 1075978B]",
+   "mr": null,
+   "normal": null,
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  },
+  {
+   "i": 34,
+   "name": "SodaLid",
+   "metallic": 1,
+   "rough": 0.23181816935539246,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "baseColor": "metal_0034_color_1k [image/jpeg 37372B]",
+   "mr": null,
+   "normal": "metal_0034_normal_opengl_1k [image/png 3438084B]",
+   "occlusion": null,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "doubleSided": true,
+   "alphaMode": "OPAQUE"
+  }
+ ],
+ "images": [
+  {
+   "i": 0,
+   "name": "Tires_Tires_Normal",
+   "mime": "image/png",
+   "bytes": 5888404
+  },
+  {
+   "i": 1,
+   "name": "Tires_Tires_BaseColor",
+   "mime": "image/png",
+   "bytes": 1397782
+  },
+  {
+   "i": 2,
+   "name": "Tires_Tires_Roughness",
+   "mime": "image/png",
+   "bytes": 2413467
+  },
+  {
+   "i": 3,
+   "name": "pitted-rusted-metal1_normal-ogl",
+   "mime": "image/png",
+   "bytes": 8363496
+  },
+  {
+   "i": 4,
+   "name": "pitted-rusted-metal1_albedo",
+   "mime": "image/png",
+   "bytes": 6626067
+  },
+  {
+   "i": 5,
+   "name": "pitted-rusted-metal1_metallic-pitted-rusted-metal1_roughness",
+   "mime": "image/png",
+   "bytes": 6236099
+  },
+  {
+   "i": 6,
+   "name": "beaten-up-metal1-Normal-ogl",
+   "mime": "image/png",
+   "bytes": 7611127
+  },
+  {
+   "i": 7,
+   "name": "beaten-up-metal1-albedo",
+   "mime": "image/png",
+   "bytes": 7347491
+  },
+  {
+   "i": 8,
+   "name": "beaten-up-metal1-Metallic-beaten-up-metal1-Roughness",
+   "mime": "image/png",
+   "bytes": 6034287
+  },
+  {
+   "i": 9,
+   "name": "Bumper_ALBEDO_1K",
+   "mime": "image/png",
+   "bytes": 90106
+  },
+  {
+   "i": 10,
+   "name": "Bumper_ROUGHT_1K",
+   "mime": "image/png",
+   "bytes": 102491
+  },
+  {
+   "i": 11,
+   "name": "noise",
+   "mime": "image/png",
+   "bytes": 317324
+  },
+  {
+   "i": 12,
+   "name": "Seat_ALBEDO_1K",
+   "mime": "image/png",
+   "bytes": 175949
+  },
+  {
+   "i": 13,
+   "name": "Seat_ALBEDO_1K",
+   "mime": "image/png",
+   "bytes": 15886
+  },
+  {
+   "i": 14,
+   "name": "Spring_ALBEDO_512",
+   "mime": "image/png",
+   "bytes": 114778
+  },
+  {
+   "i": 15,
+   "name": "noise_normal",
+   "mime": "image/png",
+   "bytes": 747734
+  },
+  {
+   "i": 16,
+   "name": "CarPaint_2_ALBEDO_1K",
+   "mime": "image/png",
+   "bytes": 102557
+  },
+  {
+   "i": 17,
+   "name": "noise-CarPaint_ROUGH_512",
+   "mime": "image/png",
+   "bytes": 325389
+  },
+  {
+   "i": 18,
+   "name": "BreakLight_ALBEDO_512",
+   "mime": "image/png",
+   "bytes": 131790
+  },
+  {
+   "i": 19,
+   "name": "BreakLight_ROUGH_512",
+   "mime": "image/png",
+   "bytes": 137468
+  },
+  {
+   "i": 20,
+   "name": "WindSheild_ALBEDO_1K",
+   "mime": "image/png",
+   "bytes": 44080
+  },
+  {
+   "i": 21,
+   "name": "WindSheild_ROUGH_1K",
+   "mime": "image/png",
+   "bytes": 48774
+  },
+  {
+   "i": 22,
+   "name": "dented-metal_normal-ogl",
+   "mime": "image/png",
+   "bytes": 2906052
+  },
+  {
+   "i": 23,
+   "name": "dented-meta_copperl_albedo",
+   "mime": "image/png",
+   "bytes": 9214061
+  },
+  {
+   "i": 24,
+   "name": "dented-metal_metallic-dented-metal_roughness",
+   "mime": "image/png",
+   "bytes": 5063858
+  },
+  {
+   "i": 25,
+   "name": "dented-metal_yellow_albedo",
+   "mime": "image/png",
+   "bytes": 9490519
+  },
+  {
+   "i": 26,
+   "name": "metal_0025_normal_directx_1k",
+   "mime": "image/png",
+   "bytes": 2424866
+  },
+  {
+   "i": 27,
+   "name": "metal_0025_color_1k",
+   "mime": "image/jpeg",
+   "bytes": 201078
+  },
+  {
+   "i": 28,
+   "name": "metal_0025_height_1k-metal_0025_roughness_1k",
+   "mime": "image/png",
+   "bytes": 880693
+  },
+  {
+   "i": 29,
+   "name": "beaten-up-metal1-yellow-albedo",
+   "mime": "image/png",
+   "bytes": 8390966
+  },
+  {
+   "i": 30,
+   "name": "beaten-up-metal1-Roughness",
+   "mime": "image/png",
+   "bytes": 5615130
+  },
+  {
+   "i": 31,
+   "name": "synth-rubber-normal",
+   "mime": "image/png",
+   "bytes": 12336144
+  },
+  {
+   "i": 32,
+   "name": "synth-rubber-dark-albedo",
+   "mime": "image/png",
+   "bytes": 8864486
+  },
+  {
+   "i": 33,
+   "name": "synth-rubber-metalness-synth-rubber-roughness",
+   "mime": "image/png",
+   "bytes": 5505992
+  },
+  {
+   "i": 34,
+   "name": "dented-metal_albedo",
+   "mime": "image/png",
+   "bytes": 6605654
+  },
+  {
+   "i": 35,
+   "name": "Image_2",
+   "mime": "image/png",
+   "bytes": 1667597
+  },
+  {
+   "i": 36,
+   "name": "Image_0",
+   "mime": "image/png",
+   "bytes": 1129604
+  },
+  {
+   "i": 37,
+   "name": "Image_1",
+   "mime": "image/png",
+   "bytes": 936190
+  },
+  {
+   "i": 38,
+   "name": "battery",
+   "mime": "image/png",
+   "bytes": 4144923
+  },
+  {
+   "i": 39,
+   "name": "FloorFan",
+   "mime": "image/png",
+   "bytes": 2091588
+  },
+  {
+   "i": 40,
+   "name": "Image_1",
+   "mime": "image/png",
+   "bytes": 1515919
+  },
+  {
+   "i": 41,
+   "name": "Image_0",
+   "mime": "image/jpeg",
+   "bytes": 404397
+  },
+  {
+   "i": 42,
+   "name": "labels merged",
+   "mime": "image/png",
+   "bytes": 1075978
+  },
+  {
+   "i": 43,
+   "name": "metal_0034_normal_opengl_1k",
+   "mime": "image/png",
+   "bytes": 3438084
+  },
+  {
+   "i": 44,
+   "name": "metal_0034_color_1k",
+   "mime": "image/jpeg",
+   "bytes": 37372
+  }
+ ]
+}

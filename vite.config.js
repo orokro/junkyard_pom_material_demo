@@ -44,6 +44,7 @@ export default defineConfig({
 				main: abs("./index.html"),
 				junkyard: abs("./junkyard.html"),
 				arena: abs("./arena.html"),
+				craft: abs("./craft.html"),
 			},
 		},
 	},

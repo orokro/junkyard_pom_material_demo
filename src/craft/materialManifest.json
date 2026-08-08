@@ -1,0 +1,1593 @@
+{
+ "materials": {
+  "Tires": {
+   "baseColor": {
+    "file": "t35_Tires_Tires_BaseColor.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t36_Tires_Tires_Roughness.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 0,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw00_Tires_Tires_Normal.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "MoreMetal": {
+   "baseColor": {
+    "file": "t14_pitted-rusted-metal1_albedo.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t15_pitted-rusted-metal1_metallic-pitted-rusted-meta.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw03_pitted-rusted-metal1_normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "MoreMetal2": {
+   "baseColor": {
+    "file": "pw07_beaten-up-metal1-albedo.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t18_beaten-up-metal1-Metallic-beaten-up-metal1-Rough.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw06_beaten-up-metal1-Normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Bumper": {
+   "baseColor": {
+    "file": "pw09_Bumper_ALBEDO_1K.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw10_Bumper_ROUGHT_1K.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 0,
+   "roughnessFactor": 1,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "DarkBlack": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 0,
+   "roughnessFactor": 1,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "BlackPlastic": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t16_noise.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 0,
+   "roughnessFactor": 1,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "WheelCushion": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 0,
+   "roughnessFactor": 0.7545454502105713,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Seat": {
+   "baseColor": {
+    "file": "pw12_Seat_ALBEDO_1K.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw13_Seat_ALBEDO_1K.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 0,
+   "roughnessFactor": 1,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Metal": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.23953261971473694,
+    0.20023460686206818,
+    0.1771111935377121,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 1,
+   "roughnessFactor": 0.27272728085517883,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Spring": {
+   "baseColor": {
+    "file": "pw14_Spring_ALBEDO_512.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 1,
+   "roughnessFactor": 0.5454545021057129,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "CarPaint.001": {
+   "baseColor": {
+    "file": "pw16_CarPaint_2_ALBEDO_1K.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw17_noise-CarPaint_ROUGH_512.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "t09_noise_normal.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 0.10000000149011612,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "BreakLight": {
+   "baseColor": {
+    "file": "pw18_BreakLight_ALBEDO_512.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw19_BreakLight_ROUGH_512.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 0.75,
+   "roughnessFactor": 1,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Headlights": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.800000011920929,
+    0.800000011920929,
+    0.800000011920929,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 1,
+   "roughnessFactor": 0,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "WindShield": {
+   "baseColor": {
+    "file": "pw20_WindSheild_ALBEDO_1K.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw21_WindSheild_ROUGH_1K.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "DentedCopper": {
+   "baseColor": {
+    "file": "pw23_dented-meta_copperl_albedo.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw24_dented-metal_metallic-dented-metal_rough.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw22_dented-metal_normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "RedPlastic": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.3260717988014221,
+    0.011450511403381824,
+    0.011450511403381824,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t16_noise.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 0,
+   "roughnessFactor": 1,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "YellowMetal": {
+   "baseColor": {
+    "file": "pw25_dented-metal_yellow_albedo.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw24_dented-metal_metallic-dented-metal_rough.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw22_dented-metal_normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "DarkMetal": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.023113403469324112,
+    0.016023000702261925,
+    0.016023000702261925,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 0.7777777910232544,
+   "roughnessFactor": 0.3181818127632141,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "RollingGate": {
+   "baseColor": {
+    "file": "pw27_metal_0025_color_1k.jpg",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw28_metal_0025_height_1k-metal_0025_roughnes.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw26_metal_0025_normal_directx_1k.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "VM_Misc_Metal": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.1426791101694107,
+    0.13784585893154144,
+    0.13417308032512665,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 1,
+   "roughnessFactor": 0.3954545557498932,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "MetalLight": {
+   "baseColor": null,
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 1,
+   "roughnessFactor": 0.15000000596046448,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "KanchoProd": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.35023626685142517,
+    0.006566646043211222,
+    0.006566646043211222,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 0,
+   "roughnessFactor": 0.5136363506317139,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Material": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.31771957874298096,
+    0,
+    0,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 0,
+   "roughnessFactor": 0.5,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Pipe": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.2153870165348053,
+    0.17971384525299072,
+    0.15875262022018433,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 1,
+   "roughnessFactor": 0.27272728085517883,
+   "normal": {
+    "file": "t09_noise_normal.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 0.20000000298023224,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "PistonYellow": {
+   "baseColor": {
+    "file": "pw29_beaten-up-metal1-yellow-albedo.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t08_beaten-up-metal1-Roughness.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 0.4545454680919647,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw06_beaten-up-metal1-Normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Rubber": {
+   "baseColor": {
+    "file": "pw32_synth-rubber-dark-albedo.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw33_synth-rubber-metalness-synth-rubber-roug.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw31_synth-rubber-normal.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "DentedMetal": {
+   "baseColor": {
+    "file": "pw34_dented-metal_albedo.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw24_dented-metal_metallic-dented-metal_rough.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw22_dented-metal_normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Material.001": {
+   "baseColor": {
+    "file": "pw36_Image_0.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "pw37_Image_1.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw35_Image_2.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "BatteryBox": {
+   "baseColor": {
+    "file": "pw38_battery.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t15_pitted-rusted-metal1_metallic-pitted-rusted-meta.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw03_pitted-rusted-metal1_normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "BatteryRedTerminal": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.910371720790863,
+    0,
+    0,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t15_pitted-rusted-metal1_metallic-pitted-rusted-meta.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw03_pitted-rusted-metal1_normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "BatteryBlackTerminal": {
+   "baseColor": null,
+   "baseColorFactor": [
+    0.07931257039308548,
+    0.08803486078977585,
+    0.12394144386053085,
+    1
+   ],
+   "metallicRoughness": {
+    "file": "t15_pitted-rusted-metal1_metallic-pitted-rusted-meta.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "metallicFactor": 1,
+   "roughnessFactor": 1,
+   "normal": {
+    "file": "pw03_pitted-rusted-metal1_normal-ogl.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "Fan": {
+   "baseColor": {
+    "file": "pw39_FloorFan.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 0,
+   "roughnessFactor": 0.5,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "MetalImg": {
+   "baseColor": {
+    "file": "pw41_Image_0.jpg",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 0.20571491122245789,
+   "roughnessFactor": 0,
+   "normal": {
+    "file": "pw40_Image_1.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "SodaLabels": {
+   "baseColor": {
+    "file": "pw42_labels_merged.png",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 1,
+   "roughnessFactor": 0.27272725105285645,
+   "normal": null,
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  },
+  "SodaLid": {
+   "baseColor": {
+    "file": "pw44_metal_0034_color_1k.jpg",
+    "colorSpace": "srgb",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "baseColorFactor": [
+    1,
+    1,
+    1,
+    1
+   ],
+   "metallicRoughness": null,
+   "metallicFactor": 1,
+   "roughnessFactor": 0.23181816935539246,
+   "normal": {
+    "file": "pw43_metal_0034_normal_opengl_1k.png",
+    "colorSpace": "linear",
+    "texCoord": 0,
+    "wrapS": "repeat",
+    "wrapT": "repeat"
+   },
+   "normalScale": 1,
+   "occlusion": null,
+   "occlusionStrength": 1,
+   "emissive": null,
+   "emissiveFactor": [
+    0,
+    0,
+    0
+   ],
+   "alphaMode": "OPAQUE",
+   "doubleSided": true
+  }
+ },
+ "parts": {
+  "GripTire.001": [
+   "Tires",
+   "MoreMetal",
+   "MoreMetal2"
+  ],
+  "GripTire.002": [
+   "Tires",
+   "MoreMetal",
+   "MoreMetal2"
+  ],
+  "GripTire.003": [
+   "Tires",
+   "MoreMetal",
+   "MoreMetal2"
+  ],
+  "GripTire.004": [
+   "Tires",
+   "MoreMetal",
+   "MoreMetal2"
+  ],
+  "DemoCar": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "ElectroMagnet": [
+   "MoreMetal",
+   "MoreMetal2",
+   "DentedCopper",
+   "BlackPlastic",
+   "RedPlastic",
+   "YellowMetal",
+   "DarkMetal"
+  ],
+  "ReferenceCar": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "EMPGun": [
+   "MoreMetal",
+   "MoreMetal2",
+   "DentedCopper",
+   "BlackPlastic",
+   "RedPlastic"
+  ],
+  "ReferenceCar.001": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "ChestSpikes": [
+   "RollingGate",
+   "RollingGate",
+   "VM_Misc_Metal",
+   "DarkMetal"
+  ],
+  "ReferenceCar.002": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "JetThruster": [
+   "MetalLight",
+   "MoreMetal2",
+   "DarkMetal"
+  ],
+  "ReferenceCar.003": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "KanchoProd": [
+   "KanchoProd"
+  ],
+  "ReferenceCar.004": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "SlapHand": [
+   "Material"
+  ],
+  "ShortPipe": [
+   "Pipe"
+  ],
+  "ReferenceCar.005": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "SlapHand.001": [
+   "Material"
+  ],
+  "Spring": [
+   "MoreMetal2"
+  ],
+  "ReferenceCar.006": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "Fist": [
+   "Material"
+  ],
+  "HydraulicPiston.001": [
+   "MetalLight",
+   "MoreMetal2"
+  ],
+  "HydraulicPiston": [
+   "PistonYellow",
+   "BlackPlastic",
+   "Rubber"
+  ],
+  "ReferenceCar.007": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "Fist.001": [
+   "Material"
+  ],
+  "HydraulicArmArm": [
+   "MoreMetal2"
+  ],
+  "HydraulicArmPistonArm": [
+   "BlackPlastic",
+   "MetalLight",
+   "MoreMetal2"
+  ],
+  "HydraulicArmPiston": [
+   "PistonYellow",
+   "BlackPlastic",
+   "Rubber"
+  ],
+  "HydraulicArm": [
+   "MoreMetal2"
+  ],
+  "ReferenceCar.008": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "SlapHand.003": [
+   "Material"
+  ],
+  "HydraulicArmArm.001": [
+   "MoreMetal2"
+  ],
+  "HydraulicArmPistonArm.001": [
+   "BlackPlastic",
+   "MetalLight",
+   "MoreMetal2"
+  ],
+  "HydraulicArmPiston.001": [
+   "PistonYellow",
+   "BlackPlastic",
+   "Rubber"
+  ],
+  "HydraulicArm.001": [
+   "MoreMetal2"
+  ],
+  "ReferenceCar.009": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "PistonPairArms": [
+   "MetalLight",
+   "MoreMetal2"
+  ],
+  "PistonPair": [
+   "PistonYellow",
+   "BlackPlastic",
+   "Rubber",
+   "MoreMetal2"
+  ],
+  "Fist.002": [
+   "Material"
+  ],
+  "ScorpionTailSegment_6": [
+   "MoreMetal"
+  ],
+  "ScorpionTailSegment_5": [
+   "MoreMetal"
+  ],
+  "ScorpionTailSegment_4": [
+   "MoreMetal"
+  ],
+  "ScorpionTailSegment_3": [
+   "MoreMetal"
+  ],
+  "ScorpionTailSegment_2": [
+   "MoreMetal"
+  ],
+  "ScorpionTailSegment_1": [
+   "MoreMetal"
+  ],
+  "ScorpionTailRoot": [
+   "MoreMetal2"
+  ],
+  "ScorpionTailPivot": [
+   "MoreMetal2"
+  ],
+  "ScorpoinTailBase": [
+   "MoreMetal2",
+   "DarkMetal"
+  ],
+  "ReferenceCar.010": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "Rocket": [
+   "MoreMetal2",
+   "YellowMetal",
+   "PistonYellow"
+  ],
+  "Launcher": [
+   "MoreMetal2",
+   "MoreMetal",
+   "YellowMetal",
+   "PistonYellow",
+   "Metal"
+  ],
+  "ReferenceCar.011": [
+   "Bumper",
+   "DarkBlack",
+   "BlackPlastic",
+   "WheelCushion",
+   "Seat",
+   "Metal",
+   "Spring",
+   "CarPaint.001",
+   "BreakLight",
+   "Headlights",
+   "WindShield"
+  ],
+  "LongPipe": [
+   "Pipe"
+  ],
+  "ScrapIron": [
+   "DentedMetal"
+  ],
+  "ScrapCopper": [
+   "DentedCopper"
+  ],
+  "RubberHose": [
+   "Rubber"
+  ],
+  "GripTire": [
+   "Tires",
+   "MoreMetal",
+   "MoreMetal2"
+  ],
+  "SlickTire": [
+   "Tires",
+   "MoreMetal",
+   "MoreMetal2"
+  ],
+  "HubCap": [
+   "Tires",
+   "MoreMetal",
+   "MoreMetal2"
+  ],
+  "Gear": [
+   "MoreMetal",
+   "YellowMetal"
+  ],
+  "JerryCan": [
+   "Material.001"
+  ],
+  "Battery": [
+   "BatteryBox",
+   "BatteryRedTerminal",
+   "MoreMetal2",
+   "BatteryBlackTerminal"
+  ],
+  "SideSawBlade": [
+   "Fan",
+   "MetalImg"
+  ],
+  "SideSaw": [
+   "Fan",
+   "MoreMetal"
+  ],
+  "SawBlade": [
+   "MetalImg"
+  ],
+  "SodaCan": [
+   "SodaLabels",
+   "SodaLid"
+  ],
+  "IronPlate": [
+   "DentedMetal"
+  ],
+  "CopperPlate": [
+   "DentedCopper"
+  ],
+  "CopperCoil": [
+   "MoreMetal2",
+   "DentedCopper"
+  ]
+ }
+}
