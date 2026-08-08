@@ -23,6 +23,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: var(--frame)
 	font-family: var(--font-display); -webkit-font-smoothing: antialiased; }
 
 #app { display: flex; flex-direction: column; height: 100vh; background: var(--frame); }
+#overlay { position: fixed; inset: 0; z-index: 40; pointer-events: none; } /* 3D item thumbnails, above CSS */
 #grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr) auto;
 	grid-template-areas: "loadout inventory" "slots crafting"; gap: 0.5rem; padding: 0.5rem; min-height: 0; }
 

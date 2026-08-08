@@ -13,9 +13,7 @@ import { installScale } from "./scale.js";
 import { initTheme } from "./theme.js";
 import { initDebug } from "./debug.js";
 import { ITEMS, BY_ID } from "./data.js";
-
-/** Placeholder swatch color per category (until 3D thumbnails land). */
-const CATCOLOR = { raw: "#7a8595", part: "#9aa6b6", wheel: "#3b3b3b", battery: "#caa63a", hand: "#c65ac6", weapon: "#d0663a" };
+import { initThumbs } from "./thumbs.js";
 
 initTheme();
 
@@ -27,7 +25,8 @@ for (const it of stock) {
 	const tile = document.createElement("div");
 	tile.className = "invtile";
 	tile.title = it.label;
-	tile.innerHTML = `<div class="ph" style="background:${CATCOLOR[it.cat] || "#888"}"></div><span class="cnt">200</span>`;
+	tile.dataset.item = it.id;
+	tile.innerHTML = `<span class="cnt">200</span>`;
 	invgrid.appendChild(tile);
 }
 
@@ -73,5 +72,9 @@ installScale(measureHeaders);   // re-measure whenever the base font changes
 measureHeaders();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureHeaders); // re-measure once the real font loads
 initDebug(document.getElementById("debughit"));
+
+// ---- 3D item thumbnails (ortho overlay synced to inventory tiles) ----
+initThumbs().then((t) => { window.__thumbs = t; console.info("[craft] thumbnails live"); })
+	.catch((e) => console.error("[craft] thumbnails failed:", e));
 
 console.info("[craft] shell ready — resize the window / open debug (` or the far-left corner of the bottom bar).");
