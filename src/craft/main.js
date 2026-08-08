@@ -33,11 +33,11 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(measureHea
 initDebug(document.getElementById("debughit"));
 
 (async () => {
-	try {
-		const thumbs = await initThumbs();
-		window.__b = initBuilder(thumbs);
-		console.info("[craft] builder ready");
-	} catch (e) {
-		console.error("[craft] init failed:", e);
-	}
+	// The builder (drag/craft/slots) must work even if the 3D overlay can't start
+	// (e.g. no WebGL) — so init thumbnails defensively and always init the builder.
+	let thumbs;
+	try { thumbs = await initThumbs(); }
+	catch (e) { console.error("[craft] thumbnails failed (continuing without 3D):", e); thumbs = { refresh() {}, cfg: {} }; }
+	window.__b = initBuilder(thumbs);
+	console.info("[craft] builder ready");
 })();
