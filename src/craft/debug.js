@@ -10,6 +10,7 @@
 
 import { THEMES, setTheme, setSwatch, getSwatches, themeNames, getTheme } from "./theme.js";
 import { setScaleOverride, applyScale } from "./scale.js";
+import { PLACE, firePlaceChange } from "./placement.js";
 
 const SWATCH_KEYS = ["--frame", "--bg", "--panel", "--panel-2", "--slot", "--accent", "--arrow", "--text"];
 
@@ -56,6 +57,15 @@ export function initDebug(hitBtn) {
 			const c = document.createElement("input"); c.type = "color"; c.value = toHex(sw[k]);
 			c.oninput = () => setSwatch(k, c.value);
 			r.appendChild(c); el.appendChild(r);
+		}
+
+		// placement family scales (base + attached hand scale together on the car)
+		for (const fam of ["pipe", "spring", "ram"]) {
+			const r = row("Scale: " + fam);
+			const sl = range(0.3, 1.5, 0.05, PLACE[fam]);
+			const val = document.createElement("b"); val.textContent = PLACE[fam].toFixed(2); val.style.marginLeft = "0.3rem";
+			sl.oninput = () => { PLACE[fam] = parseFloat(sl.value); val.textContent = PLACE[fam].toFixed(2); firePlaceChange(); };
+			r.appendChild(sl); r.appendChild(val); el.appendChild(r);
 		}
 
 		// guides

@@ -69,8 +69,9 @@ export const ITEMS = [
 	          "ScorpionTailSegment_1","ScorpionTailSegment_2","ScorpionTailSegment_3","ScorpionTailSegment_4","ScorpionTailSegment_5","ScorpionTailSegment_6"] },
 
 	// ---- free-placeable weapons (raycast onto CarPaint, oriented to the normal) ----
-	{ id: "launcher",  label: "Launcher", node: "Launcher", cat: "weapon", mount: "place", outAxis: "x", upBias: 0.6, weight: 3 },
-	{ id: "side_saw",  label: "Side-Saw", node: "SideSaw",  cat: "weapon", mount: "place", outAxis: "x", weight: 3, group: ["SideSaw", "SideSawBlade"] },
+	// outSign flips which end of outAxis points OUT of the surface (geometry authored inward).
+	{ id: "launcher",  label: "Launcher", node: "Launcher", cat: "weapon", mount: "place", outAxis: "x", outSign: -1, upBias: 0.4, placeScale: 0.5, weight: 3 },
+	{ id: "side_saw",  label: "Side-Saw", node: "SideSaw",  cat: "weapon", mount: "place", outAxis: "x", outSign: -1, weight: 3, group: ["SideSaw", "SideSawBlade"] },
 ];
 
 /**

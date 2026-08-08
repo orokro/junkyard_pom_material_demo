@@ -46,5 +46,6 @@ initDebug(document.getElementById("debughit"));
 	} : null);
 	if (carview) carview.setCallbacks({ onPlace: window.__b.onPlace, onDetach: window.__b.onDetach });
 	window.__cv = carview;   // test hook
+	window.__lib = lib;      // test hook
 	console.info("[craft] builder ready");
 })();
