@@ -1,8 +1,8 @@
 <!doctype html>
 <!--
 	============================================================================
-	craft.html — Crafting Bay POC entry (multi-page app member)
-	Orbit-camera car builder: craft parts, attach/detach weapons, swap tires.
+	craft.html — Crafting Bay POC (Step 1: responsive REM shell)
+	Two-column 50/50 layout; scale.js drives :root font-size, panels reflow.
 	============================================================================
 -->
 <html lang="en">
@@ -13,11 +13,43 @@
 	</head>
 	<body>
 		<div id="app">
-			<canvas id="viewport"></canvas>
-			<div id="topbar">Dumper Cars · Crafting Bay (POC)</div>
-			<div id="left" class="panel left"></div>
-			<div id="right" class="panel right"></div>
-			<div id="hint" class="hintbar"></div>
+			<div id="grid">
+				<section id="loadout" class="panel">
+					<div class="phead"><span class="phead__ico">⛃</span><span class="phead__title">Load Out</span><span class="slashes"><i></i><i></i><i></i></span></div>
+					<div class="carview">
+						<span>3D car view</span>
+						<div class="chargebar">Weight: <b id="wt">0</b>&nbsp;&nbsp;Max Charge: <b id="charge">100%</b></div>
+					</div>
+				</section>
+
+				<section id="inventory" class="panel">
+					<div class="phead"><span class="phead__ico">▤</span><span class="phead__title">Inventory</span><span class="slashes"><i></i><i></i><i></i></span></div>
+					<div class="invscroll"><div id="invgrid" class="invgrid"></div></div>
+				</section>
+
+				<section id="slots" class="panel">
+					<div class="phead"><span class="phead__ico">◎</span><span class="phead__title">Slots</span><span class="slashes"><i></i><i></i><i></i></span></div>
+					<div id="slotsrow" class="slotsrow"></div>
+				</section>
+
+				<section id="crafting" class="panel">
+					<div class="phead"><span class="phead__ico">✎</span><span class="phead__title">Crafting</span><span class="slashes"><i></i><i></i><i></i></span></div>
+					<div class="craftunit">
+						<div id="cgrid" class="cgrid"></div>
+						<div class="arrow">➜</div>
+						<div class="outwrap"><span class="outlabel">Output:</span><div id="outcol" class="outcol"></div></div>
+					</div>
+				</section>
+			</div>
+
+			<div id="bottombar">
+				<button id="debughit" class="debughit" title="debug"></button>
+				<span class="spacer"></span>
+				<button class="btnbar" id="btn-keys">▤ Keys</button>
+				<button class="btnbar" id="btn-recipes">▥ Recipes</button>
+				<span class="spacer"></span>
+				<button class="btnbar" id="btn-done">✔ Done</button>
+			</div>
 		</div>
 		<script type="module" src="/src/craft/main.js"></script>
 	</body>

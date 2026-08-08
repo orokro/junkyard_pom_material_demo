@@ -1,62 +1,63 @@
 /**
  * ============================================================================
- * craft/main.js
+ * craft/main.js — Step 1 bootstrap (responsive REM shell)
  * ----------------------------------------------------------------------------
- * Crafting POC entry point: builds the scene, loads the parts library, wires the
- * garage + UI, and routes canvas clicks into placement/socket/wheel picking.
+ * Wires the scaling engine, theme, and debug panel, and populates the panels
+ * with placeholder content (real item list from data.js; 3D tiles come in the
+ * ortho-overlay step). Use this to validate scale + reflow across resolutions.
  * ============================================================================
  */
 
 import "./styles.css";
-import { createScene } from "./three/scene.js";
-import { loadCraftLibrary } from "./three/library.js";
-import { createGarage } from "./three/garage.js";
-import { initUI } from "./ui.js";
+import { installScale } from "./scale.js";
+import { initTheme } from "./theme.js";
+import { initDebug } from "./debug.js";
+import { ITEMS, BY_ID } from "./data.js";
 
-const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("viewport"));
+/** Placeholder swatch color per category (until 3D thumbnails land). */
+const CATCOLOR = { raw: "#7a8595", part: "#9aa6b6", wheel: "#3b3b3b", battery: "#caa63a", hand: "#c65ac6", weapon: "#d0663a" };
 
-/** @param {string} t @returns {void} */
-function setLoading(t) {
-	let el = document.getElementById("loading");
-	if (!el) { el = document.createElement("div"); el.id = "loading"; document.getElementById("app").appendChild(el); }
-	el.textContent = t;
+initTheme();
+
+// ---- inventory (repeat the catalog a few times to exercise scroll/reflow) ----
+const invgrid = document.getElementById("invgrid");
+const stock = [];
+for (let r = 0; r < 4; r++) for (const it of ITEMS) stock.push(it);
+for (const it of stock) {
+	const tile = document.createElement("div");
+	tile.className = "invtile";
+	tile.title = it.label;
+	tile.innerHTML = `<div class="ph" style="background:${CATCOLOR[it.cat] || "#888"}"></div><span class="cnt">200</span>`;
+	invgrid.appendChild(tile);
 }
-function clearLoading() { document.getElementById("loading")?.remove(); }
 
-setLoading("Loading parts…");
-
-const scene = createScene(canvas);
-const els = {
-	left: document.getElementById("left"),
-	right: document.getElementById("right"),
-	hint: document.getElementById("hint"),
-};
-
-(async () => {
-try {
-	const lib = await loadCraftLibrary(scene.renderer);
-	const garage = createGarage(scene, lib);
-	const ui = initUI(garage, els);
-	garage.setOnChange(() => ui.refresh());
-
-	// Optional HDR reflections (project skybox); harmless if absent.
-	scene.applyHDR(new URL("../../assets/skybox/moonless_golf_4k.hdr", import.meta.url).href);
-	scene.start();
-	clearLoading();
-
-	// Click-to-place / pick. Only acts while an item is pending (orbit otherwise).
-	canvas.addEventListener("pointerup", (e) => {
-		if (!garage.isPending()) return;
-		const r = canvas.getBoundingClientRect();
-		const ndc = { x: ((e.clientX - r.left) / r.width) * 2 - 1, y: -((e.clientY - r.top) / r.height) * 2 + 1 };
-		const it = garage.pendingItem();
-		const res = garage.click(ndc);
-		if (res && it) ui.consumePending(it);
-		if (res) ui.hint("");
-	});
-	window.addEventListener("keydown", (e) => { if (e.key === "Escape") { garage.cancel(); ui.hint(""); } });
-} catch (err) {
-	console.error("[craft] failed to start:", err);
-	setLoading("Failed to load — see console.");
+// ---- slots ----
+const SLOTS = [
+	{ key: "rear", label: "Rear", cols: 1, cells: 1 },
+	{ key: "front", label: "Front", cols: 1, cells: 1 },
+	{ key: "batteries", label: "Batteries", cols: 1, cells: 1, counter: "x2" },
+	{ key: "tires", label: "Tires", cols: 2, cells: 4 },
+	{ key: "suspension", label: "Suspension", cols: 2, cells: 4 },
+];
+const slotsrow = document.getElementById("slotsrow");
+for (const g of SLOTS) {
+	const grp = document.createElement("div"); grp.className = "slotgroup"; grp.dataset.cols = g.cols;
+	const cells = document.createElement("div"); cells.className = "slotcells";
+	for (let i = 0; i < g.cells; i++) {
+		const c = document.createElement("div"); c.className = "cell";
+		if (g.counter && i === 0) c.innerHTML = `<span class="cnt">${g.counter}</span>`;
+		cells.appendChild(c);
+	}
+	const lab = document.createElement("div"); lab.className = "slotlabel"; lab.textContent = g.label;
+	grp.appendChild(cells); grp.appendChild(lab); slotsrow.appendChild(grp);
 }
-})();
+
+// ---- crafting grid + output ----
+const cgrid = document.getElementById("cgrid");
+for (let i = 0; i < 9; i++) { const c = document.createElement("div"); c.className = "cell"; cgrid.appendChild(c); }
+
+// ---- scale + debug ----
+installScale();
+initDebug(document.getElementById("debughit"));
+
+console.info("[craft] shell ready — resize the window / open debug (` or the far-left corner of the bottom bar).");
