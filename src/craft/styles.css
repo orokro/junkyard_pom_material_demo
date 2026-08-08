@@ -1,108 +1,111 @@
 /* ==========================================================================
    craft/styles.css — Crafting UI shell (REM-scaled, swatch-themed)
-   Everything is in rem; scale.js drives :root font-size. Colors come from
-   theme.js (CSS custom properties). This is the Step-1 layout foundation.
+   Chrome matched to Greg's mockup: a single orange field subdivided by
+   bevel-cut blue-grey panels, black techno headers, orange labels/banner,
+   chunky blue arrow, black pill buttons. All units in rem (scale.js drives
+   :root font-size).
    ========================================================================== */
 
 @font-face { font-family: "Nasalization"; src: url("/assets/fonts/nasalization.woff2") format("woff2"); font-display: swap; }
 @font-face { font-family: "Loving 24"; src: url("/assets/fonts/loving24.woff2") format("woff2"); font-display: swap; }
 
 :root {
-	--frame: #ef7d1e; --bg: #4b5763; --panel: #3b4653; --panel-2: #333d49;
-	--slot: #2b3540; --slot-edge: #20272f; --ink: #0c0f13; --text: #f4f7fb;
-	--muted: #c6d0db; --accent: #ef7d1e; --good: #7ad06a; --arrow: #5aa0e8;
+	--frame: #ff741b; --panel: #465b63; --panel-2: #3c4f57; --slot: #2e3b40; --slot-edge: #26343a;
+	--ink: #0c0c0c; --text: #f4f7fb; --muted: #cdd6de; --accent: #ff741b; --good: #7ad06a; --arrow: #5d93c0;
 	--font-display: "Nasalization", "Arial Narrow", system-ui, sans-serif;
 	--font-accent: "Loving 24", var(--font-display);
-	--tile: 5rem;               /* inventory tile size (debug-tunable) */
-	font-size: 16px;            /* replaced at runtime by scale.js */
+	--bevel: 0.9rem;            /* panel corner cut */
+	--tile: 5rem;              /* inventory tile size (debug-tunable) */
+	font-size: 16px;           /* replaced at runtime by scale.js */
 }
 * { box-sizing: border-box; }
-html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text);
+html, body { margin: 0; height: 100%; overflow: hidden; background: var(--frame); color: var(--text);
 	font-family: var(--font-display); -webkit-font-smoothing: antialiased; }
 
-#app { display: flex; flex-direction: column; height: 100vh; }
+#app { display: flex; flex-direction: column; height: 100vh; background: var(--frame); }
 #grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr) auto;
-	grid-template-areas: "loadout inventory" "slots crafting"; gap: 0.6rem; padding: 0.6rem; min-height: 0; }
+	grid-template-areas: "loadout inventory" "slots crafting"; gap: 0.5rem; padding: 0.5rem; min-height: 0; }
 
-/* ---- panel chrome (angular cyber frame) ---- */
-.panel { position: relative; background: var(--panel); border: 0.14rem solid var(--frame);
-	padding: 0.7rem 0.8rem 0.8rem; display: flex; flex-direction: column; min-height: 0;
-	clip-path: polygon(0 0, calc(100% - 1rem) 0, 100% 1rem, 100% 100%, 1rem 100%, 0 calc(100% - 1rem)); }
+/* ---- panels: blue-grey, bevel-cut against the orange field ---- */
+.panel { position: relative; background: var(--panel); padding: 0.6rem 0.85rem 0.75rem; display: flex; flex-direction: column; min-height: 0;
+	clip-path: polygon(var(--bevel) 0, calc(100% - var(--bevel)) 0, 100% var(--bevel), 100% calc(100% - var(--bevel)),
+		calc(100% - var(--bevel)) 100%, var(--bevel) 100%, 0 calc(100% - var(--bevel)), 0 var(--bevel)); }
 #loadout { grid-area: loadout; } #slots { grid-area: slots; }
 #inventory { grid-area: inventory; } #crafting { grid-area: crafting; }
 
-.phead { display: flex; align-items: center; gap: 0.45rem; margin-bottom: 0.55rem; flex: 0 0 auto; }
-.phead__ico { width: 1.5rem; height: 1.5rem; display: grid; place-items: center; font-size: 1.1rem; }
-.phead__title { font-family: var(--font-display); font-weight: 700; font-size: 1.45rem; line-height: 1;
-	letter-spacing: 0.03em; color: var(--ink); text-transform: uppercase; }
-.slashes { display: inline-flex; gap: 0.18rem; margin-left: 0.35rem; }
-.slashes i { width: 0.32rem; height: 1.15rem; background: var(--accent); transform: skewX(-22deg); display: block; }
-.slashes i:nth-child(2) { opacity: 0.7; } .slashes i:nth-child(3) { opacity: 0.4; }
+/* ---- headers: big black title + black icon + black /// ---- */
+.phead { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex: 0 0 auto; color: var(--ink); }
+.phead__ico { width: 1.9rem; height: 1.9rem; flex: 0 0 auto; display: block; }
+.phead__ico svg { width: 100%; height: 100%; fill: var(--ink); display: block; }
+.phead__title { font-family: var(--font-display); font-weight: 800; font-size: 2.05rem; line-height: 0.95;
+	letter-spacing: 0.01em; color: var(--ink); text-transform: uppercase; }
+.slashes { display: inline-flex; gap: 0.22rem; margin-left: 0.45rem; }
+.slashes i { width: 0.42rem; height: 1.6rem; background: var(--ink); transform: skewX(-24deg); display: block; }
 
 /* ---- load out ---- */
-.carview { flex: 1; min-height: 0; background: var(--panel-2);
-	border-radius: 0.3rem; display: grid; place-items: center; color: var(--muted); position: relative; overflow: hidden; }
+.carview { flex: 1; min-height: 0; background: var(--panel-2); display: grid; place-items: center; color: var(--muted);
+	position: relative; overflow: hidden; }
 .carview canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-.chargebar { position: absolute; left: 50%; bottom: 0.8rem; transform: translateX(-50%); z-index: 2;
-	background: rgba(0,0,0,0.4); border: 0.1rem solid var(--frame); border-radius: 0.3rem;
-	padding: 0.35rem 0.8rem; font-size: 0.85rem; white-space: nowrap; text-align: center; }
-.chargebar b { color: var(--accent); }
+.chargebar { position: absolute; right: 0; bottom: 0; z-index: 2; background: var(--frame); color: var(--ink);
+	font-family: var(--font-display); font-size: 1.05rem; line-height: 1.35; text-align: left; padding: 0.45rem 1.1rem 0.5rem 1.8rem;
+	clip-path: polygon(1.1rem 0, 100% 0, 100% 100%, 0 100%); }
+.chargebar b { font-weight: 800; }
 
 /* ---- slots ---- */
 .slotsrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.6rem; flex: 1; min-height: 0; }
-.slotgroup { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; flex: 0 0 auto; }
+.slotgroup { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; flex: 0 0 auto; }
 .slotcells { display: grid; gap: 0.35rem; }
 .slotgroup[data-cols="1"] .slotcells { grid-template-columns: 1fr; }
 .slotgroup[data-cols="2"] .slotcells { grid-template-columns: repeat(2, 1fr); }
-.cell { width: 4rem; height: 4rem; background: var(--slot); border: 0.1rem solid var(--slot-edge);
-	border-radius: 0.3rem; position: relative; }
-.cell .cnt { position: absolute; right: 0.2rem; bottom: 0.1rem; font-size: 0.8rem; color: var(--text);
+.cell { width: 4rem; height: 4rem; background: var(--slot); border: 0.1rem solid var(--slot-edge); border-radius: 0.35rem; position: relative; }
+.cell .cnt { position: absolute; right: 0.22rem; bottom: 0.12rem; font-size: 0.85rem; color: var(--text);
 	font-family: var(--font-accent); text-shadow: 0 1px 2px #000; }
-.slotlabel { font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.05em; color: var(--accent); text-transform: uppercase; }
+.slotlabel { font-family: var(--font-display); font-weight: 700; font-size: 0.95rem; letter-spacing: 0.04em; color: var(--frame); text-transform: uppercase; }
 
 /* ---- inventory ---- */
 #inventory .invscroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: 0.3rem; }
 .invgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--tile), 1fr)); gap: 0.4rem; }
 .invtile { position: relative; aspect-ratio: 1 / 1; background: var(--slot); border: 0.1rem solid var(--slot-edge);
-	border-radius: 0.3rem; cursor: grab; display: grid; place-items: center; overflow: hidden; }
-.invtile:hover { border-color: var(--accent); }
+	border-radius: 0.35rem; cursor: grab; display: grid; place-items: center; overflow: hidden; }
+.invtile:hover { border-color: var(--frame); }
 .invtile .cnt { position: absolute; right: 0.25rem; bottom: 0.15rem; font-size: 0.85rem; font-family: var(--font-accent);
 	color: var(--text); text-shadow: 0 1px 2px #000; }
-.invtile .ph { width: 62%; height: 62%; border-radius: 0.25rem; opacity: 0.9; } /* placeholder swatch (real 3D later) */
+.invtile .ph { width: 62%; height: 62%; border-radius: 0.25rem; opacity: 0.9; }
 
 /* ---- crafting ---- */
-#crafting .craftunit { display: flex; align-items: center; gap: 0.8rem; flex: 1; min-height: 0;
-	transform-origin: bottom left; }
+#crafting .craftunit { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-height: 0; transform-origin: bottom left; }
 .cgrid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 0.35rem; }
 .cgrid .cell { width: 4rem; height: 4rem; }
-.cgrid .cell .cnt { left: 0.2rem; right: auto; }
-.arrow { color: var(--arrow); font-size: 3.2rem; line-height: 1; flex: 0 1 auto; }
-.outwrap { display: flex; flex-direction: column; gap: 0.3rem; }
-.outlabel { font-family: var(--font-display); color: var(--accent); font-size: 0.9rem; letter-spacing: 0.05em; }
+.cgrid .cell .cnt { left: 0.22rem; right: auto; }
+.arrow { flex: 0 1 auto; width: 5rem; height: 3.4rem; }
+.arrow svg { width: 100%; height: 100%; fill: var(--arrow); display: block; }
+.outwrap { display: flex; flex-direction: column; gap: 0.35rem; }
+.outlabel { font-family: var(--font-display); font-weight: 700; color: var(--frame); font-size: 1.15rem; letter-spacing: 0.03em; text-transform: uppercase; }
 .outcol { display: flex; flex-direction: column; gap: 0.35rem; max-height: 12rem; overflow-y: auto; }
 .outcol .cell { width: 4rem; height: 4rem; }
 
-/* ---- bottom bar ---- */
-#bottombar { flex: 0 0 auto; display: flex; align-items: center; gap: 0.6rem; padding: 0 0.9rem 0.7rem; }
+/* ---- bottom bar: black pill buttons on the orange field ---- */
+#bottombar { flex: 0 0 auto; display: flex; align-items: center; gap: 0.7rem; padding: 0.15rem 0.9rem 0.6rem; }
 .debughit { width: 2rem; height: 2rem; flex: 0 0 auto; opacity: 0; cursor: default; }
 .spacer { flex: 1 1 auto; }
-.btnbar { display: inline-flex; align-items: center; gap: 0.4rem; background: transparent; color: var(--ink);
-	font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.03em;
-	border: 0.18rem solid var(--ink); border-radius: 0.6rem; padding: 0.45rem 1.1rem; cursor: pointer; text-transform: uppercase; }
-.btnbar:hover { border-color: var(--accent); color: var(--accent); }
+.btnbar { display: inline-flex; align-items: center; gap: 0.45rem; background: transparent; color: var(--ink);
+	font-family: var(--font-display); font-weight: 800; font-size: 1.2rem; letter-spacing: 0.02em;
+	border: 0.2rem solid var(--ink); border-radius: 0.7rem; padding: 0.4rem 1.15rem; cursor: pointer; text-transform: uppercase; }
+.btnbar svg { width: 1.3rem; height: 1.3rem; fill: var(--ink); }
+.btnbar:hover { background: var(--ink); color: var(--frame); }
+.btnbar:hover svg { fill: var(--frame); }
 
 /* ---- debug panel ---- */
 #debug { position: fixed; top: 0.6rem; left: 0.6rem; z-index: 100; width: 17rem; max-height: 92vh; overflow-y: auto;
 	background: rgba(12,15,19,0.94); border: 0.14rem solid var(--frame); border-radius: 0.4rem; padding: 0.8rem;
-	font-family: system-ui, sans-serif; font-size: 0.8rem; }
+	font-family: system-ui, sans-serif; font-size: 0.8rem; color: #e7ecf3; }
 #debug.hidden { display: none; }
-#debug h3 { margin: 0 0 0.5rem; font-family: var(--font-display); color: var(--accent); font-size: 1rem; }
+#debug h3 { margin: 0 0 0.5rem; font-family: var(--font-display); color: var(--frame); font-size: 1rem; }
 #debug label { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin: 0.3rem 0; }
 #debug input[type=range] { width: 8rem; } #debug input[type=color] { width: 2.4rem; height: 1.4rem; padding: 0; border: none; background: none; }
 #debug select, #debug button { font: inherit; }
 .guides #grid { outline: 1px dashed rgba(255,255,255,0.25); }
-.guides .panel { outline: 1px dashed rgba(255,120,40,0.5); }
+.guides .panel { outline: 1px dashed rgba(0,0,0,0.5); }
 
-/* scrollbars */
 ::-webkit-scrollbar { width: 0.5rem; height: 0.5rem; }
 ::-webkit-scrollbar-thumb { background: var(--slot-edge); border-radius: 0.3rem; }

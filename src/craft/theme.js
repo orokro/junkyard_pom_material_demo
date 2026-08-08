@@ -4,7 +4,8 @@
  * ----------------------------------------------------------------------------
  * CSS-chrome theming (locked: swatch-based, no hue-shift, 3D untouched).
  * A theme is a flat set of color swatches applied as CSS custom properties on
- * :root. Add themes to THEMES; the debug panel edits the active swatches live.
+ * :root. Colors sampled from Greg's Photoshop mockups. Add themes to THEMES;
+ * the debug panel edits the active swatches live.
  * ============================================================================
  */
 
@@ -13,32 +14,30 @@
 /** @type {Record<string, Swatches>} */
 export const THEMES = {
 	orange: {
-		"--frame": "#ef7d1e",
-		"--bg": "#4b5763",
-		"--panel": "#3b4653",
-		"--panel-2": "#333d49",
-		"--slot": "#2b3540",
-		"--slot-edge": "#20272f",
-		"--ink": "#0c0f13",
-		"--text": "#f4f7fb",
-		"--muted": "#c6d0db",
-		"--accent": "#ef7d1e",
+		"--frame": "#ff741b",   // outer field, dividers, labels, accents
+		"--panel": "#465b63",   // blue-grey panel fill
+		"--panel-2": "#3c4f57", // darker inset / 3D view backdrop
+		"--slot": "#2e3b40",    // cell fill
+		"--slot-edge": "#26343a",
+		"--ink": "#0c0c0c",     // black headers / icons / buttons
+		"--text": "#f4f7fb",    // light values (counts, numbers)
+		"--muted": "#cdd6de",
+		"--accent": "#ff741b",
 		"--good": "#7ad06a",
-		"--arrow": "#5aa0e8",
+		"--arrow": "#5d93c0",
 	},
 	viper: {
-		"--frame": "#c3f53a",
-		"--bg": "#585470",
-		"--panel": "#494560",
-		"--panel-2": "#3f3b54",
-		"--slot": "#37324c",
-		"--slot-edge": "#2a2740",
-		"--ink": "#0c0f13",
+		"--frame": "#ccff1b",
+		"--panel": "#494663",
+		"--panel-2": "#403d56",
+		"--slot": "#302e40",
+		"--slot-edge": "#282638",
+		"--ink": "#0c0c0c",
 		"--text": "#f4f7fb",
-		"--muted": "#d0cade",
-		"--accent": "#c3f53a",
+		"--muted": "#d3cee2",
+		"--accent": "#ccff1b",
 		"--good": "#8ce06a",
-		"--arrow": "#8a63e0",
+		"--arrow": "#795dc0",
 	},
 };
 
@@ -46,18 +45,11 @@ let active = "orange";
 /** @type {Swatches} */
 let current = { ...THEMES.orange };
 
-/** Apply a swatch set to :root. @param {Swatches} sw */
 function paint(sw) { for (const [k, v] of Object.entries(sw)) document.documentElement.style.setProperty(k, v); }
 
-/** Switch to a named theme. */
 export function setTheme(name) { if (!THEMES[name]) return; active = name; current = { ...THEMES[name] }; paint(current); }
-
-/** Set one swatch (debug). */
 export function setSwatch(key, value) { current[key] = value; document.documentElement.style.setProperty(key, value); }
-
 export function getTheme() { return active; }
 export function getSwatches() { return { ...current }; }
 export function themeNames() { return Object.keys(THEMES); }
-
-/** Initialize with the default theme. */
 export function initTheme() { setTheme(active); }
