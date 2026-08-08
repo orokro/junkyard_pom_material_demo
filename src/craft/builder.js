@@ -57,7 +57,7 @@ export function initBuilder(thumbs) {
 
 	function renderInv() {
 		invgrid.innerHTML = S.inv.map((st, i) =>
-			st ? `<div class="itile invtile" data-item="${st.id}" data-container="inv" data-index="${i}" title="${BY_ID[st.id]?.label}"><span class="cnt">${st.count}</span></div>` : ""
+			st ? `<div class="itile invtile" data-item="${st.id}" data-container="inv" data-index="${i}"><span class="cnt">${st.count}</span></div>` : ""
 		).join("");
 	}
 	function renderBench() {
@@ -85,7 +85,7 @@ export function initBuilder(thumbs) {
 			return `<div class="slotgroup" data-cols="${g.cols}"><div class="slotcells">${cells}</div><div class="slotlabel">${g.label}</div></div>`;
 		}).join("");
 	}
-	function renderAll() { renderInv(); renderBench(); renderOutput(); renderSlots(); updateStats(); thumbs.refresh(); }
+	function renderAll() { renderInv(); renderBench(); renderOutput(); renderSlots(); updateStats(); thumbs.refresh(); highlight(!!S.held); }
 
 	function updateStats() {
 		let w = 0, batt = 0;
@@ -104,7 +104,8 @@ export function initBuilder(thumbs) {
 		const out = []; const seen = new Set();
 		for (const r of RECIPES) {
 			const rk = Object.keys(r.in);
-			if (rk.length !== keys.length || !rk.every((k) => ms[k] === r.in[k])) continue;
+			// bench types must equal recipe types, with AT LEAST the required counts
+			if (rk.length !== keys.length || !rk.every((k) => ms[k] >= r.in[k])) continue;
 			const counts = {};
 			for (const o of r.out) counts[o] = (counts[o] || 0) + 1;
 			for (const [id, count] of Object.entries(counts)) { const key = id; if (!seen.has(key)) { seen.add(key); out.push({ id, count, recipe: r }); } }
@@ -128,7 +129,7 @@ export function initBuilder(thumbs) {
 		S.held = stack && stack.count > 0 ? stack : null;
 		ghost.id = S.held ? S.held.id : null;
 		document.body.classList.toggle("dragging", !!S.held);
-		highlight(!!S.held);
+		// highlight is (re)applied by renderAll so it survives DOM rebuilds
 	}
 
 	function pick(container, index, slot) {
@@ -191,8 +192,26 @@ export function initBuilder(thumbs) {
 	/** return a stack to inventory */
 	function give(st) { const same = S.inv.find((s) => s.id === st.id); if (same) same.count += st.count; else S.inv.push(st); }
 
+	/** return the held stack to inventory and stop dragging */
+	function cancel() { if (!S.held) return; give(S.held); setHeld(null); renderAll(); }
+
+	// ---------- cursor label (held count while dragging, item name on hover) ----------
+	const label = document.createElement("div");
+	label.id = "cursorlabel"; label.style.display = "none";
+	document.body.appendChild(label);
+	function updateLabel(x, y, target) {
+		if (S.held) { label.textContent = "×" + S.held.count; label.className = "count"; label.style.display = "block"; }
+		else {
+			const t = target && target.closest && target.closest("[data-item]");
+			if (t) { label.textContent = BY_ID[t.dataset.item]?.label || t.dataset.item; label.className = "name"; label.style.display = "block"; }
+			else { label.style.display = "none"; }
+		}
+		label.style.left = (x + 15) + "px";
+		label.style.top = (y + 18) + "px";
+	}
+
 	// ---------- events ----------
-	function cellOf(e) { return e.target.closest("[data-container]"); }
+	const cellOf = (e) => e.target.closest("[data-container]");
 	document.addEventListener("pointerdown", (e) => {
 		if (e.button !== 0) return;
 		const el = cellOf(e);
@@ -201,17 +220,21 @@ export function initBuilder(thumbs) {
 			if (!S.held) pick(container, index != null ? +index : 0, slot);
 			else drop(container, index != null ? +index : 0, slot, false);
 			e.preventDefault();
-		} else if (S.held && e.target.closest("#invgrid")) {
+		} else if (S.held && e.target.closest("#inventory .pbody")) {  // drop anywhere in the inventory panel body
 			drop("invbg"); e.preventDefault();
 		}
+		updateLabel(e.clientX, e.clientY, e.target);
 	});
 	document.addEventListener("contextmenu", (e) => {
 		if (!S.held) return;
+		e.preventDefault();
 		const el = cellOf(e);
-		if (el) { const { container, index, slot } = el.dataset; drop(container, index != null ? +index : 0, slot, true); e.preventDefault(); }
+		if (el) { const { container, index, slot } = el.dataset; drop(container, index != null ? +index : 0, slot, true); }
+		else cancel();  // right-click over empty space cancels -> returns to inventory
+		updateLabel(e.clientX, e.clientY, e.target);
 	});
-	window.addEventListener("pointermove", (e) => { ghost.x = e.clientX; ghost.y = e.clientY; });
-	window.addEventListener("keydown", (e) => { if (e.key === "Escape" && S.held) { give(S.held); setHeld(null); renderAll(); } });
+	window.addEventListener("pointermove", (e) => { ghost.x = e.clientX; ghost.y = e.clientY; updateLabel(e.clientX, e.clientY, e.target); });
+	window.addEventListener("keydown", (e) => { if (e.key === "Escape") cancel(); });
 
 	renderAll();
 	return { state: S, renderAll };

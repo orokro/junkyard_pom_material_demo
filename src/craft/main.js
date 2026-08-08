@@ -35,7 +35,7 @@ initDebug(document.getElementById("debughit"));
 (async () => {
 	try {
 		const thumbs = await initThumbs();
-		initBuilder(thumbs);
+		window.__b = initBuilder(thumbs);
 		console.info("[craft] builder ready");
 	} catch (e) {
 		console.error("[craft] init failed:", e);
