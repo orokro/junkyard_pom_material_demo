@@ -93,7 +93,7 @@ export function makeEffects({ scene, carRoot }) {
 		}
 	}
 	function setDebug(on) { debugOn = on; dbgGroup.visible = on; trailGroup.visible = on; }
-	setDebug(true);
+	setDebug(false);   // off by default; toggled from the debug window
 	function update(dt) {
 		for (let i = active.length - 1; i >= 0; i--) {
 			if (!active[i].update(dt)) { active[i].dispose && active[i].dispose(); active.splice(i, 1); }
@@ -180,44 +180,111 @@ export function makeEffects({ scene, carRoot }) {
 		return { pts, pos, m, g };
 	}
 
-	/** EMP: expanding electric rings from the gun */
-	function emp(worldPos) {
-		for (let k = 0; k < 2; k++) {
-			const ring = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.05, 8, 40),
+	/** EMP: a forward-facing electric shockwave (only the front 180°) expanding out the gun */
+	function emp(worldPos, dir) {
+		const f = (dir && dir.lengthSq() > 1e-6) ? dir.clone().setY(0).normalize() : new THREE.Vector3(0, 0, -1);
+		const up = new THREE.Vector3(0, 1, 0), right = new THREE.Vector3().crossVectors(f, up).normalize();
+		const quat = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, f, up)); // half-torus bulge (+Y local) -> forward
+		const DUR = 0.85, R1 = 2.3;   // ~double the old reach, lasts longer
+		for (let k = 0; k < 3; k++) {
+			const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.05, 8, 48, Math.PI),   // half ring (arc = π)
 				new THREE.MeshBasicMaterial({ color: 0x66ccff, transparent: true, opacity: 0.9, depthWrite: false }));
-			ring.position.copy(worldPos); ring.rotation.x = Math.PI / 2; scene.add(ring);
-			let t = -k * 0.12;
+			ring.position.copy(worldPos); ring.quaternion.copy(quat); ring.visible = false; scene.add(ring);   // hidden until its wave starts
+			let t = -k * 0.15;
 			push({
-				update: (dt) => { t += dt; if (t < 0) return true; const p = t / 0.5; if (p >= 1) return false; const s = 0.3 + p * 3.2; ring.scale.set(s, s, 1); ring.material.opacity = 0.9 * (1 - p); return true; },
+				update: (dt) => { t += dt; if (t < 0) return true; ring.visible = true; const p = t / DUR; if (p >= 1) return false; const s = 0.1 + p * R1; ring.scale.set(s, s, 1); ring.material.opacity = 0.9 * (1 - p * p); return true; },
 				dispose: () => { scene.remove(ring); ring.geometry.dispose(); ring.material.dispose(); },
 			});
 		}
 		return true;
 	}
 
-	/** Electromagnet: motes drawn inward to the magnet */
-	function magnet(worldPos) {
-		const N = 48, { pts, pos, m, g } = makePoints(N, 0xb060ff, 0.12), start = [];
+	/**
+	 * Electromagnet: motes sucked inward. Particles spawn staggered over time (out of
+	 * phase), ease inward on their own clocks, fade in/out, and drag short trails. The
+	 * homing point is nudged toward the magnet's front (just behind the face), not its centre.
+	 */
+	function magnet(worldPos, dir) {
+		const f = (dir && dir.lengthSq() > 1e-6) ? dir.clone().normalize() : new THREE.Vector3(0, 0, -1);
+		const target = worldPos.clone().addScaledVector(f, 0.2);   // just behind the front face
+		const N = 90, SPAWN_WIN = 0.6, TRAVEL = 0.6, K = 6, color = new THREE.Color(0xc070ff);
+		const hg = new THREE.BufferGeometry(), hpos = new Float32Array(N * 3), hcol = new Float32Array(N * 3);
+		hg.setAttribute("position", new THREE.BufferAttribute(hpos, 3)); hg.setAttribute("color", new THREE.BufferAttribute(hcol, 3));
+		const hm = new THREE.PointsMaterial({ size: 0.13, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+		const heads = new THREE.Points(hg, hm); scene.add(heads);
+		const segN = N * (K - 1);
+		const tg = new THREE.BufferGeometry(), tpos = new Float32Array(segN * 6), tcol = new Float32Array(segN * 6);
+		tg.setAttribute("position", new THREE.BufferAttribute(tpos, 3)); tg.setAttribute("color", new THREE.BufferAttribute(tcol, 3));
+		const tm = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+		const trailLine = new THREE.LineSegments(tg, tm); trailLine.frustumCulled = false; scene.add(trailLine);
+		const ease = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
+		const P = [], _u = new THREE.Vector3();
 		for (let i = 0; i < N; i++) {
-			const th = rand(0, Math.PI * 2), ph = rand(0, Math.PI), r = rand(1.5, 2.4);
-			const v = new THREE.Vector3(Math.sin(ph) * Math.cos(th), Math.cos(ph) * 0.7, Math.sin(ph) * Math.sin(th)).multiplyScalar(r);
-			start.push(v); pos[i * 3] = worldPos.x + v.x; pos[i * 3 + 1] = worldPos.y + v.y; pos[i * 3 + 2] = worldPos.z + v.z;
+			// uniform point on the sphere, folded onto the FRONT hemisphere -> a north-pole dome ahead of the magnet
+			const th = rand(0, Math.PI * 2), z = rand(-1, 1), s = Math.sqrt(Math.max(0, 1 - z * z));
+			_u.set(s * Math.cos(th), z, s * Math.sin(th));
+			const d = _u.dot(f); if (d < 0) _u.addScaledVector(f, -2 * d);   // reflect back rows into the front dome
+			const start = target.clone().addScaledVector(_u, rand(1.4, 2.6));
+			const hist = []; for (let k = 0; k < K; k++) hist.push(start.clone());
+			P.push({ start, spawn: rand(0, SPAWN_WIN), travel: TRAVEL * rand(0.8, 1.25), hist, cur: start.clone() });
 		}
-		g.attributes.position.needsUpdate = true; let t = 0;
+		let t = 0;
 		push({
-			update: (dt) => { t += dt; const p = t / 0.55; if (p >= 1) return false; const f = 1 - p; for (let i = 0; i < N; i++) { pos[i * 3] = worldPos.x + start[i].x * f; pos[i * 3 + 1] = worldPos.y + start[i].y * f; pos[i * 3 + 2] = worldPos.z + start[i].z * f; } g.attributes.position.needsUpdate = true; m.opacity = 1 - p * 0.7; return true; },
-			dispose: () => { scene.remove(pts); g.dispose(); m.dispose(); },
+			update: (dt) => {
+				t += dt; let alive = false;
+				for (let i = 0; i < N; i++) {
+					const q = P[i], age = t - q.spawn; let bright = 0;
+					if (age < 0) q.cur.copy(q.start);
+					else if (age <= q.travel) { q.cur.copy(q.start).lerp(target, ease(age / q.travel)); bright = Math.sin((age / q.travel) * Math.PI); alive = true; }
+					else q.cur.copy(target);
+					q.hist.push(q.cur.clone()); if (q.hist.length > K) q.hist.shift();
+					hpos[i * 3] = q.cur.x; hpos[i * 3 + 1] = q.cur.y; hpos[i * 3 + 2] = q.cur.z;
+					hcol[i * 3] = color.r * bright; hcol[i * 3 + 1] = color.g * bright; hcol[i * 3 + 2] = color.b * bright;
+					for (let k = 0; k < K - 1; k++) {
+						const base = (i * (K - 1) + k) * 6, a = q.hist[k], b = q.hist[k + 1], tf = (k / (K - 1)) * bright * 0.6;
+						tpos[base] = a.x; tpos[base + 1] = a.y; tpos[base + 2] = a.z; tpos[base + 3] = b.x; tpos[base + 4] = b.y; tpos[base + 5] = b.z;
+						tcol[base] = color.r * tf; tcol[base + 1] = color.g * tf; tcol[base + 2] = color.b * tf;
+						tcol[base + 3] = color.r * tf; tcol[base + 4] = color.g * tf; tcol[base + 5] = color.b * tf;
+					}
+				}
+				hg.attributes.position.needsUpdate = true; hg.attributes.color.needsUpdate = true;
+				tg.attributes.position.needsUpdate = true; tg.attributes.color.needsUpdate = true;
+				return alive || t <= SPAWN_WIN;
+			},
+			dispose: () => { scene.remove(heads); scene.remove(trailLine); hg.dispose(); hm.dispose(); tg.dispose(); tm.dispose(); },
 		});
 		return true;
 	}
 
-	/** Jet: fiery exhaust burst out the rear */
+	/** Jet: a rich, sustained fiery exhaust stream — particles emit over time and fade through a fire gradient */
 	function jet(worldPos, dir) {
-		const N = 40, { pts, pos, m, g } = makePoints(N, 0xffaa33, 0.14), vel = [], d = dir.clone().normalize();
-		for (let i = 0; i < N; i++) { vel.push(d.clone().multiplyScalar(rand(2, 4)).add(new THREE.Vector3(rand(-0.3, 0.3), rand(-0.3, 0.3), rand(-0.3, 0.3)))); pos[i * 3] = worldPos.x; pos[i * 3 + 1] = worldPos.y; pos[i * 3 + 2] = worldPos.z; }
-		g.attributes.position.needsUpdate = true; let t = 0;
+		const N = 150, EMIT = 0.85, LIFE = 0.42, d = dir.clone().normalize();
+		const perp1 = new THREE.Vector3().crossVectors(d, Math.abs(d.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0)).normalize();
+		const perp2 = new THREE.Vector3().crossVectors(d, perp1).normalize();
+		const g = new THREE.BufferGeometry(), pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
+		g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+		const m = new THREE.PointsMaterial({ size: 0.17, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+		const pts = new THREE.Points(g, m); scene.add(pts); const _c = new THREE.Color();
+		const P = [];
+		for (let i = 0; i < N; i++) {
+			const spread = perp1.clone().multiplyScalar(rand(-0.5, 0.5)).add(perp2.clone().multiplyScalar(rand(-0.5, 0.5)));
+			P.push({ spawn: rand(0, EMIT), life: LIFE * rand(0.7, 1.3), vel: d.clone().multiplyScalar(rand(3, 6)).add(spread) });
+		}
+		let t = 0;
 		push({
-			update: (dt) => { t += dt; const p = t / 0.4; if (p >= 1) return false; for (let i = 0; i < N; i++) { pos[i * 3] += vel[i].x * dt; pos[i * 3 + 1] += vel[i].y * dt; pos[i * 3 + 2] += vel[i].z * dt; } g.attributes.position.needsUpdate = true; m.opacity = 1 - p; m.color.setHSL(0.08 * (1 - p), 1, 0.5); return true; },
+			update: (dt) => {
+				t += dt; let alive = false;
+				for (let i = 0; i < N; i++) {
+					const q = P[i], age = t - q.spawn;
+					if (age < 0 || age > q.life) { col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = 0; continue; }
+					alive = true; const lf = 1 - age / q.life;
+					pos[i * 3] = worldPos.x + q.vel.x * age; pos[i * 3 + 1] = worldPos.y + q.vel.y * age; pos[i * 3 + 2] = worldPos.z + q.vel.z * age;
+					_c.setHSL(0.14 * lf, 1, 0.35 + 0.35 * lf);   // white-hot young -> deep red as it cools
+					col[i * 3] = _c.r * lf; col[i * 3 + 1] = _c.g * lf; col[i * 3 + 2] = _c.b * lf;
+				}
+				g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true;
+				return alive || t <= EMIT;
+			},
 			dispose: () => { scene.remove(pts); g.dispose(); m.dispose(); },
 		});
 		return true;

@@ -302,8 +302,8 @@ export function initCarView(lib) {
 		if (obj?.userData?.rig) return animator.fire(obj.userData.rig);
 		switch (feature.id) {
 			case "jump": return effects.jump(lastSlots?.suspension || []);
-			case "emp_gun": return obj ? effects.emp(obj.getWorldPosition(_wp).clone()) : false;
-			case "electromagnet": return obj ? effects.magnet(obj.getWorldPosition(_wp).clone()) : false;
+			case "emp_gun": return obj ? effects.emp(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
+			case "electromagnet": return obj ? effects.magnet(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
 			case "jet_thruster": return obj ? effects.jet(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
 			case "launcher": return obj ? effects.launcher(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
 			default: return false;   // slick-tire drift etc. — flash-only for now

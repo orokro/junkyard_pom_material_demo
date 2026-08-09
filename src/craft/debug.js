@@ -68,6 +68,11 @@ export function initDebug(hitBtn) {
 			r.appendChild(sl); r.appendChild(val); el.appendChild(r);
 		}
 
+		// jump-profile debug viz (corner markers, panto-free bbox, corner trails)
+		const jdR = row("Jump debug viz");
+		const jd = check(false); jd.onchange = () => window.__cv?.effects?.setDebug?.(jd.checked);
+		jdR.appendChild(jd); el.appendChild(jdR);
+
 		// guides
 		const gR = row("Layout guides");
 		const g = check(false); g.onchange = () => document.body.classList.toggle("guides", g.checked);
