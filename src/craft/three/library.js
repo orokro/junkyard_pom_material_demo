@@ -26,10 +26,15 @@ import { familyScale, HAND } from "../placement.js";
 
 /** Per-hand fine-tune multiplier on the unified target size (kancho is a prod, not a fist). */
 const HAND_MUL = { slap_hand: 1, fist: 1, kancho: 1.15 };
+/** Per-composite extra hand rotation (Euler, applied in hand-local before the socket).
+ *  The kancho prod reads great facing forward on pipes/springs, but on the ram it should
+ *  point along the piston's motion (axial) instead. */
+const HAND_TWEAK = { hyd_piston__kancho: [0, -Math.PI / 2, 0] };
 /** Which local axis of a hand mirrors it left<->right (tuned visually). */
 const MIRROR_AXIS = "z";
-/** How far to slide the piston rod back into its body so it crafts contracted (base-local units). */
-const PISTON_CONTRACT = 0.42;
+/** How far to slide the piston rod back so it crafts contracted — NOT all the way,
+ *  so the ram's attach cylinder stays exposed and the hand doesn't clip the body. */
+const PISTON_CONTRACT = 0.24;
 
 const GLB_URL = new URL("../../../assets/models/parts_and_weapons_lite.glb", import.meta.url).href;
 // Re-exported hands (subdivision applied, scale baked to 1) — the authoritative hand geometry.
@@ -204,6 +209,8 @@ export async function loadCraftLibrary(renderer) {
 		const hand = bakeHand(handId);
 		const k = (HAND.target * (HAND_MUL[handId] ?? 1)) / maxDim(hand);
 		hand.scale.setScalar(k);
+		const tw = HAND_TWEAK[`${baseId}__${handId}`];
+		if (tw) hand.quaternion.setFromEuler(new THREE.Euler(tw[0], tw[1], tw[2]));
 		if (opts.mirror) hand.scale["xyz".indexOf(MIRROR_AXIS) >= 0 ? MIRROR_AXIS : "z"] *= -1;
 
 		const holder = new THREE.Group();

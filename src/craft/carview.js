@@ -67,8 +67,8 @@ export function initCarView(lib) {
 	function attachSlot(k, id) {
 		if (attached[k]) { mount.remove(attached[k]); attached[k] = null; }
 		if (!id) return;
-		const g = lib.bakeItem(BY_ID[id]);
-		const t = lib.slotTransforms[id];
+		const g = lib.bakeById(id);                                    // handles composites (e.g. scorpion+hand)
+		const t = lib.slotTransforms[id] || lib.slotTransforms[BY_ID[id]?.composite?.base];
 		if (t) { g.position.copy(t.position); g.quaternion.copy(t.quaternion); g.scale.copy(t.scale); }
 		mount.add(g); attached[k] = g;
 	}

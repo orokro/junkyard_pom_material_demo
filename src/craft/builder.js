@@ -24,7 +24,7 @@ import { ghost } from "./thumbs.js";
 
 const SLOT_ACCEPT = {
 	front: ["electromagnet", "emp_gun", "chest_spikes", "kancho"],
-	rear: ["jet_thruster", "scorpion_tail"],
+	rear: ["jet_thruster", "scorpion_tail", "scorpion_tail__slap_hand", "scorpion_tail__fist", "scorpion_tail__kancho"],
 	batteries: ["battery"],
 	tires: ["grip_tire", "slick_tire"],
 	suspension: ["spring", "hyd_piston"],

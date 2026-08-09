@@ -115,6 +115,24 @@ for (const b of COMBO_BASES) {
 }
 ITEMS.push(...COMPOSITES);
 
+/**
+ * ---- scorpion tail composites: hand on the tail tip -> REAR slot -----------
+ * Unlike the free-placeable composites above, ScorpionTail × hand is an
+ * AUTO-SLOT weapon (rear bumper) per the UI spec — crafted from the tail base +
+ * a hand, attached at the tail's authored rear transform with the hand posed at
+ * the tail tip socket.
+ */
+export const SCORPION_COMPOSITES = COMBO_HANDS.map((h) => ({
+	id: `scorpion_tail__${h.id}`,
+	label: `Scorpion ${h.label}`,
+	node: _byIdInit.scorpion_tail.node,
+	cat: "weapon",
+	mount: "back",
+	weight: (_byIdInit.scorpion_tail?.weight || 0) + (_byIdInit[h.id]?.weight || 0),
+	composite: { base: "scorpion_tail", hand: h.id, socket: "default" },
+}));
+ITEMS.push(...SCORPION_COMPOSITES);
+
 /** Demo/example nodes we must never bake into another item's geometry. */
 export const DEMO_NODES = ["Fist", "Fist.001", "Fist.002", "SlapHand", "SlapHand.001", "SlapHand.003", "Rocket"];
 
@@ -146,10 +164,10 @@ export const RECIPES = [
 	{ in: { short_pipe: 2, spring: 1, gear: 1 }, out: ["launcher"] },
 	{ in: { long_pipe: 1, gear: 1 }, out: ["jet_thruster"] },
 	{ in: { jerry_can: 1, scrap_iron: 1, scrap_copper: 1 }, out: ["battery"] },
-	{ in: { hyd_arm: 1 }, out: ["scorpion_tail"] }, // placeholder combo for demo variety
+	{ in: { short_pipe: 2, hyd_piston: 1, rubber_hose: 1 }, out: ["scorpion_tail"] }, // 2 pipe + hyd cyl + hose
 ];
 
 // composite recipes: base + hand -> the welded weapon (base×hand, many-to-many).
-for (const c of COMPOSITES) {
+for (const c of [...COMPOSITES, ...SCORPION_COMPOSITES]) {
 	RECIPES.push({ in: { [c.composite.base]: 1, [c.composite.hand]: 1 }, out: [c.id] });
 }
