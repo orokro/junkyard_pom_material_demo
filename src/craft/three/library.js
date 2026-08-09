@@ -29,7 +29,10 @@ const HAND_MUL = { slap_hand: 1, fist: 1, kancho: 1.15 };
 /** Per-composite extra hand rotation (Euler, applied in hand-local before the socket).
  *  The kancho prod reads great facing forward on pipes/springs, but on the ram it should
  *  point along the piston's motion (axial) instead. */
-const HAND_TWEAK = { hyd_piston__kancho: [0, -Math.PI / 2, 0] };
+const HAND_TWEAK = {
+	hyd_piston__kancho: [0, -Math.PI / 2, 0],   // axial along the ram
+	scorpion_tail__kancho: [0, -Math.PI / 2, 0], // point forward (strike dir), like the fist
+};
 /** Which local axis of a hand mirrors it left<->right (tuned visually). */
 const MIRROR_AXIS = "z";
 /** How far to slide the piston rod back so it crafts contracted — NOT all the way,

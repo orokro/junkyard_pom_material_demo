@@ -44,7 +44,7 @@ initDebug(document.getElementById("debughit"));
 		onSlots: (slots) => carview.syncLoadout(slots),
 		onHeld: (held) => carview.setHeld(held),
 	} : null);
-	if (carview) carview.setCallbacks({ onPlace: window.__b.onPlace, onDetach: window.__b.onDetach });
+	if (carview) carview.setCallbacks({ onPlace: window.__b.onPlace, onDetach: window.__b.onDetach, onDetachSlot: window.__b.onDetachSlot });
 	window.__cv = carview;   // test hook
 	window.__lib = lib;      // test hook
 	console.info("[craft] builder ready");

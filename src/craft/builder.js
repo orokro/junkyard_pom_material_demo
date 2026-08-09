@@ -217,6 +217,16 @@ export function initBuilder(thumbs, opts) {
 		setHeld(S.held);
 		renderAll();
 	}
+	/** carview detached a STATIC slot weapon -> clear the slot, pick it up */
+	function onDetachSlot(slot, index) {
+		let id = null;
+		if (slot === "tires" || slot === "suspension") { const st = S.slots[slot][index]; if (!st) return; id = st.id; S.slots[slot][index] = null; }
+		else if (slot === "batteries") { const st = S.slots.batteries; if (!st) return; id = st.id; st.count -= 1; if (st.count <= 0) S.slots.batteries = null; }
+		else { const st = S.slots[slot]; if (!st) return; id = st.id; S.slots[slot] = null; }
+		if (S.held && S.held.id === id) S.held.count += 1; else S.held = { id, count: 1 };
+		setHeld(S.held);
+		renderAll();
+	}
 
 	// ---------- highlight ----------
 	function highlight() {
@@ -258,5 +268,5 @@ export function initBuilder(thumbs, opts) {
 	window.addEventListener("keydown", (e) => { if (e.key === "Escape") cancel(); });
 
 	renderAll();
-	return { state: S, renderAll, leftClick, rightClick, craftGrab, cancel, onPlace, onDetach };
+	return { state: S, renderAll, leftClick, rightClick, craftGrab, cancel, onPlace, onDetach, onDetachSlot };
 }

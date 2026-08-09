@@ -70,6 +70,7 @@ export function initCarView(lib) {
 		const g = lib.bakeById(id);                                    // handles composites (e.g. scorpion+hand)
 		const t = lib.slotTransforms[id] || lib.slotTransforms[BY_ID[id]?.composite?.base];
 		if (t) { g.position.copy(t.position); g.quaternion.copy(t.quaternion); g.scale.copy(t.scale); }
+		g.userData.slot = { key: k, id };                              // clickable to detach in 3D
 		mount.add(g); attached[k] = g;
 	}
 	function setWheel(i, isSlick) {
@@ -79,6 +80,7 @@ export function initCarView(lib) {
 			const g = lib.bakeItem(BY_ID.slick_tire);
 			const w = car.wheelSlots.find((w) => w.index === i);
 			if (w) { g.position.copy(w.position); g.quaternion.copy(w.quaternion); g.scale.copy(w.scale); }
+			g.userData.slot = { key: "tires", index: CELL_TO_WHEEL.indexOf(i), id: "slick_tire" };
 			mount.add(g); slick.set(i, g);
 		}
 	}
@@ -104,7 +106,7 @@ export function initCarView(lib) {
 	let placeRoll = 0;           // mouse-wheel roll about the surface normal
 	let lastHit = null;          // last CarPaint hit (for wheel-driven re-orient)
 	const placed = [];           // { id, object, matrix }
-	let cbPlace = null, cbDetach = null;
+	let cbPlace = null, cbDetach = null, cbDetachSlot = null;
 	let downX = 0, downY = 0;
 	const REFLECT_X = new THREE.Matrix4().makeScale(-1, 1, 1);   // mirror across the car centreline
 	const _one = new THREE.Vector3(1, 1, 1);
@@ -120,6 +122,16 @@ export function initCarView(lib) {
 		const hits = ray.intersectObjects(placed.map((p) => p.object), true);
 		if (!hits.length) return null;
 		for (let o = hits[0].object; o; o = o.parent) { const p = placed.find((x) => x.object === o); if (p) return p; }
+		return null;
+	}
+	/** raycast the static slot-attached weapons (front/rear/slick tires); returns their {key,index,id} */
+	function hitSlot(e) {
+		const objs = [attached.front, attached.rear, ...slick.values()].filter(Boolean);
+		if (!objs.length) return null;
+		ndcFrom(e); ray.setFromCamera(ndc, camera);
+		const hits = ray.intersectObjects(objs, true);
+		if (!hits.length) return null;
+		for (let o = hits[0].object; o; o = o.parent) if (o.userData && o.userData.slot) return o.userData.slot;
 		return null;
 	}
 	/**
@@ -190,7 +202,7 @@ export function initCarView(lib) {
 		ghostId = id; placeRoll = 0;
 		if (id) { ghostObj = makeWrap(id, true); ghostObj.visible = false; scene.add(ghostObj); }
 	}
-	function setCallbacks(cb) { cbPlace = cb?.onPlace || null; cbDetach = cb?.onDetach || null; }
+	function setCallbacks(cb) { cbPlace = cb?.onPlace || null; cbDetach = cb?.onDetach || null; cbDetachSlot = cb?.onDetachSlot || null; }
 
 	// ---- detach hover hint (mirrors the builder's cursor label) ----
 	const hint = document.createElement("div"); hint.id = "detachhint"; hint.style.display = "none"; document.body.appendChild(hint);
@@ -204,7 +216,7 @@ export function initCarView(lib) {
 			if (hit) poseGhost(hit); else ghostObj.visible = false;
 			hideHint();
 		} else if (!heldAny) {
-			const p = hitPlaced(e);
+			const p = hitPlaced(e) || hitSlot(e);
 			if (p) showHint(e.clientX, e.clientY); else hideHint();
 		}
 	});
@@ -217,8 +229,12 @@ export function initCarView(lib) {
 	}, { passive: false });
 	canvas.addEventListener("pointerup", (e) => {
 		if (Math.hypot(e.clientX - downX, e.clientY - downY) > 6) return;   // was an orbit/pan drag
-		if (heldItem) { const hit = hitCar(e); if (hit) { commit(heldItem, hit); cbPlace && cbPlace(heldItem.id); } }
-		else if (!heldAny) { const p = hitPlaced(e); if (p) { mount.remove(p.object); placed.splice(placed.indexOf(p), 1); hideHint(); cbDetach && cbDetach(p.id); } }
+		if (heldItem) { const hit = hitCar(e); if (hit) { commit(heldItem, hit); cbPlace && cbPlace(heldItem.id); } return; }
+		if (heldAny) return;
+		const p = hitPlaced(e);
+		if (p) { mount.remove(p.object); placed.splice(placed.indexOf(p), 1); hideHint(); cbDetach && cbDetach(p.id); return; }
+		const sl = hitSlot(e);                                   // static slot weapon -> detach into hand
+		if (sl) { hideHint(); cbDetachSlot && cbDetachSlot(sl.key, sl.index); }
 	});
 
 	// ---- CarPaint throb while a placeable is in hand (signals a drop target) ----
@@ -247,6 +263,17 @@ export function initCarView(lib) {
 		return hit ? placed[placed.length - 1].matrix.elements[12] : null;   // mount-local x (side)
 	}
 	function _clear() { for (const p of placed) mount.remove(p.object); placed.length = 0; }
+	function _slotScreen(key) {
+		const o = attached[key]; if (!o) return null;
+		camera.updateMatrixWorld(true); o.updateWorldMatrix(true, true);
+		const r = canvas.getBoundingClientRect();
+		const proj = new THREE.Box3().setFromObject(o).getCenter(new THREE.Vector3()).project(camera);
+		const cx = r.left + (proj.x * 0.5 + 0.5) * r.width, cy = r.top + (-proj.y * 0.5 + 0.5) * r.height;
+		const tryHit = (x, y) => { ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1); ray.setFromCamera(ndc, camera); return ray.intersectObject(o, true).length > 0; };
+		if (tryHit(cx, cy)) return { x: cx, y: cy };
+		for (let dy = -r.height * 0.45; dy <= r.height * 0.45; dy += 5) if (tryHit(cx, cy + dy)) return { x: cx, y: cy + dy };
+		return { x: cx, y: cy };
+	}
 
-	return { syncLoadout, setHeld, setCallbacks, scene, car, camera, controls, placed, _testPlace, _clear };
+	return { syncLoadout, setHeld, setCallbacks, scene, car, camera, controls, placed, _testPlace, _clear, _slotScreen };
 }
