@@ -153,7 +153,7 @@ export function initModals({ builder, carview, icons }) {
 		// fire: flash + animate every present feature bound to this key
 		const k = keyName(e);
 		const feats = currentFeatures(), byFk = new Map(feats.map((f) => [f.fk, f]));
-		for (const [fk, set] of binds) if (set.has(k) && byFk.has(fk)) { fireFeature(fk); carview.fireAnim?.(byFk.get(fk).object); }
+		for (const [fk, set] of binds) if (set.has(k) && byFk.has(fk)) { fireFeature(fk); carview.fireFeature?.(byFk.get(fk)); }
 	}, true);
 
 	// ---------- 2D labels + firing feedback ----------

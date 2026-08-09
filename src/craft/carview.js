@@ -19,6 +19,7 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 import { BY_ID } from "./data.js";
 import { onPlaceChange } from "./placement.js";
 import { makeRigAnimator } from "./animation.js";
+import { makeEffects } from "./effects.js";
 
 /** @param {object} lib loadCraftLibrary() result */
 export function initCarView(lib) {
@@ -64,6 +65,9 @@ export function initCarView(lib) {
 	const mount = car.mountParent;
 	const attached = { front: null, rear: null };
 	const slick = new Map();
+	const effects = makeEffects({ scene, carRoot });   // whole-car jump + particle bursts
+	let lastSlots = null;                              // last synced builder S.slots (for jump suspension read)
+	const _wp = new THREE.Vector3(), _carC = new THREE.Vector3();
 
 	function attachSlot(k, id) {
 		if (attached[k]) { dropObject(attached[k]); attached[k] = null; }   // also unregisters any rig
@@ -85,6 +89,7 @@ export function initCarView(lib) {
 			const w = car.wheelSlots.find((w) => w.index === i);
 			if (w) { g.position.copy(w.position); g.quaternion.copy(w.quaternion); g.scale.copy(w.scale); }
 			g.userData.slot = { key: "tires", index: CELL_TO_WHEEL.indexOf(i), id: "slick_tire" };
+			g.userData.wheelDrop = true;                                   // droops with the car on a jump
 			mount.add(g); slick.set(i, g);
 		}
 	}
@@ -94,6 +99,7 @@ export function initCarView(lib) {
 	const CELL_TO_WHEEL = [2, 1, 4, 3];
 	/** reflect slot state on the car @param {object} slots builder S.slots */
 	function syncLoadout(slots) {
+		lastSlots = slots;
 		attachSlot("front", slots.front?.id);
 		attachSlot("rear", slots.rear?.id);
 		for (let c = 0; c < 4; c++) setWheel(CELL_TO_WHEEL[c], slots.tires[c]?.id === "slick_tire");
@@ -260,6 +266,7 @@ export function initCarView(lib) {
 		const now = performance.now();
 		const dt = _last ? Math.min(0.05, (now - _last) / 1000) : 0.016; _last = now;
 		animator.update(dt);                               // drive live weapon rigs
+		effects.update(dt);                                // drive jump + particle bursts
 		_t += 0.05;
 		const on = !!heldItem, pulse = on ? 0.28 + 0.22 * Math.sin(_t * 2.2) : 0;
 		paintMats.forEach((m, i) => { m.emissive.copy(baseEmissive[i]).lerp(throbColor, pulse); });
@@ -268,6 +275,31 @@ export function initCarView(lib) {
 
 	/** fire the one-shot animation for a placed/slot object's rig (non-interruptible) */
 	function fireAnim(object) { return object?.userData?.rig ? animator.fire(object.userData.rig) : false; }
+	/** outward world direction from the car centre to a feature (for exhaust/projectile aim) */
+	function outwardDir(obj) {
+		obj.getWorldPosition(_wp);
+		new THREE.Box3().setFromObject(carRoot).getCenter(_carC);
+		const d = _wp.clone().sub(_carC); d.y = Math.max(d.y, 0.05);     // never fire straight down
+		return d.lengthSq() < 1e-6 ? new THREE.Vector3(0, 0, -1) : d.normalize();
+	}
+	/**
+	 * Route a key-fired feature to its live effect. Rigs (piston/arm/scorpion/saw)
+	 * play their one-shot; procedural features (jump, EMP, magnet, jet, launcher)
+	 * fire a burst. `feature` is the Keys-modal descriptor { id, object, ... }.
+	 */
+	function fireFeature(feature) {
+		if (!feature) return false;
+		const obj = feature.object;
+		if (obj?.userData?.rig) return animator.fire(obj.userData.rig);
+		switch (feature.id) {
+			case "jump": return effects.jump(lastSlots?.suspension || []);
+			case "emp_gun": return obj ? effects.emp(obj.getWorldPosition(_wp).clone()) : false;
+			case "electromagnet": return obj ? effects.magnet(obj.getWorldPosition(_wp).clone()) : false;
+			case "jet_thruster": return obj ? effects.jet(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
+			case "launcher": return obj ? effects.launcher(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
+			default: return false;   // slick-tire drift etc. — flash-only for now
+		}
+	}
 	function _poseRig(object, f) { const rig = object?.userData?.rig; if (rig) animator.pose(rig, f); }   // test hook
 	function _armTest(object, ex, ey, ez) { const rig = object?.userData?.rig; if (rig) animator.poseArmRaw(rig, ex, ey, ez); }
 
@@ -314,5 +346,5 @@ export function initCarView(lib) {
 		return { x: cx, y: cy };
 	}
 
-	return { syncLoadout, setHeld, setCallbacks, fireAnim, scene, car, camera, controls, placed, anchors, _testPlace, _clear, _slotScreen, _poseRig, _armTest };
+	return { syncLoadout, setHeld, setCallbacks, fireAnim, fireFeature, effects, scene, carRoot, car, camera, controls, placed, anchors, _testPlace, _clear, _slotScreen, _poseRig, _armTest };
 }
