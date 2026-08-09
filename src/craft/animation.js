@@ -46,7 +46,7 @@ function armPose(r, f) {
 
 // ---- scorpion tail ----
 const SCORP_SWEEP = Math.PI / 4;      // max ± sweep (pivot Y) = 45°
-const SCORP_TILT = 1.2;               // root X tilt on strike — whips the tail forward + down
+const SCORP_TILT = -1.2;              // root X tilt on strike — whips the tail forward + down
 const SCORP_CURL_MIN = 0.4;           // segments uncurl to ~this fraction of rest curl (keeps a strike arc)
 const SCORP_T = { sweep: 0.30, strike: 0.13, recoil: 0.34, ret: 0.28 };  // phase durations (s)
 /** pose the tail: pivot swept by sweepAngle (rad), strike fraction 0..1 (root tilt + uncurl + piston) */
