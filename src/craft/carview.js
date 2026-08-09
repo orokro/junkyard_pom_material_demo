@@ -90,6 +90,7 @@ export function initCarView(lib) {
 			if (w) { g.position.copy(w.position); g.quaternion.copy(w.quaternion); g.scale.copy(w.scale); }
 			g.userData.slot = { key: "tires", index: CELL_TO_WHEEL.indexOf(i), id: "slick_tire" };
 			g.userData.wheelDrop = true;                                   // droops with the car on a jump
+			g.userData.dropCorner = CELL_TO_WHEEL.indexOf(i);              // which suspension corner it belongs to
 			mount.add(g); slick.set(i, g);
 		}
 	}
@@ -97,6 +98,14 @@ export function initCarView(lib) {
 	// Slot grid cells are TL,TR,BL,BR; the GLB wheels had L/R reversed within each row,
 	// so top-left drove the front-RIGHT tire. Swap columns to make the grid match the car.
 	const CELL_TO_WHEEL = [2, 1, 4, 3];
+	// tag each grip-tire mesh with its suspension corner (0=FL,1=FR,2=RL,3=RR) so a
+	// jump droops only the wheels whose corner actually has a shock.
+	car.object.traverse((o) => {
+		if (o.isMesh && typeof o.userData.wheel === "string") {
+			const i = +o.userData.wheel.replace(/\D/g, "");
+			o.userData.dropCorner = CELL_TO_WHEEL.indexOf(i);
+		}
+	});
 	/** reflect slot state on the car @param {object} slots builder S.slots */
 	function syncLoadout(slots) {
 		lastSlots = slots;

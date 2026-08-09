@@ -22,6 +22,26 @@ export function makeEffects({ scene, carRoot }) {
 	const active = [];
 	let jumping = false;
 	const push = (fx) => active.push(fx);
+
+	// Jump rotation pivot = the WHEEL CENTROID in carRoot-local space: the true
+	// footprint centre horizontally and axle height vertically. A jumping car is
+	// airborne on all four wheels, so it should rotate about that low centre-of-mass,
+	// not carRoot's origin (front/floor) nor the body bbox centre (which a tall
+	// antenna drags way up above the car). Captured now, before any weapons attach.
+	carRoot.updateWorldMatrix(true, true);
+	const pivotLocal = (() => {
+		const _wc = new THREE.Vector3(), mn = new THREE.Vector3(Infinity, Infinity, Infinity), mx = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+		let found = 0;
+		carRoot.traverse((o) => {
+			if (!o.isMesh || typeof o.userData.wheel !== "string" || !o.geometry) return;
+			o.updateWorldMatrix(true, false); o.geometry.computeBoundingBox();
+			o.geometry.boundingBox.getCenter(_wc).applyMatrix4(o.matrixWorld);   // this wheel's world centre
+			mn.min(_wc); mx.max(_wc); found++;
+		});
+		const world = found ? mn.add(mx).multiplyScalar(0.5) : new THREE.Box3().setFromObject(carRoot).getCenter(new THREE.Vector3());
+		return carRoot.worldToLocal(world);
+	})();
+	const _pvNow = new THREE.Vector3();
 	function update(dt) {
 		for (let i = active.length - 1; i >= 0; i--) {
 			if (!active[i].update(dt)) { active[i].dispose && active[i].dispose(); active.splice(i, 1); }
@@ -36,7 +56,8 @@ export function makeEffects({ scene, carRoot }) {
 	function jump(susp) {
 		if (jumping) return false;
 		susp = susp || [];
-		const FL = susp[0] ? 1 : 0, FR = susp[1] ? 1 : 0, RL = susp[2] ? 1 : 0, RR = susp[3] ? 1 : 0;
+		const has = [susp[0] ? 1 : 0, susp[1] ? 1 : 0, susp[2] ? 1 : 0, susp[3] ? 1 : 0];  // FL,FR,RL,RR
+		const [FL, FR, RL, RR] = has;
 		const n = FL + FR + RL + RR;
 		if (n === 0) return false;
 		let pitch = (FL + FR) - (RL + RR);       // front-heavy lift -> nose up
@@ -47,9 +68,15 @@ export function makeEffects({ scene, carRoot }) {
 		pitch = clampAbs((pitch / Math.max(1, n)) * PITCH_MAX, PITCH_MAX) + rand(-RAND_TILT, RAND_TILT);
 		roll = clampAbs((roll / Math.max(1, n)) * ROLL_MAX, ROLL_MAX) + rand(-RAND_TILT, RAND_TILT);
 
-		const restY = carRoot.position.y, restRX = carRoot.rotation.x, restRZ = carRoot.rotation.z;
+		const restPos = carRoot.position.clone();
+		const rx0 = carRoot.rotation.x, ry0 = carRoot.rotation.y, rz0 = carRoot.rotation.z, order = carRoot.rotation.order;
+		const restRotPivot = pivotLocal.clone().applyEuler(carRoot.rotation);   // where the pivot sits at rest
+		// only wheels whose corner actually has a shock droop
 		const wheels = [];
-		carRoot.traverse((o) => { if (o.userData && (o.userData.wheel || o.userData.wheelDrop)) wheels.push({ o, y: o.position.y }); });
+		carRoot.traverse((o) => {
+			const c = o.userData && o.userData.dropCorner;
+			if (o.userData && (o.userData.wheel || o.userData.wheelDrop) && c != null && has[c]) wheels.push({ o, y: o.position.y });
+		});
 
 		jumping = true;
 		let t = 0; const T = JUMP;
@@ -63,12 +90,17 @@ export function makeEffects({ scene, carRoot }) {
 				else if (t < t3) { const p = (t - t2) / T.fall; y = T.height * (1 - p * p); env = Math.max(0, y / T.height); }
 				else if (t < t4) { y = -T.squash * Math.sin(((t - t3) / T.land) * Math.PI); env = 0; }
 				else {
-					carRoot.position.y = restY; carRoot.rotation.x = restRX; carRoot.rotation.z = restRZ;
+					carRoot.position.copy(restPos); carRoot.rotation.set(rx0, ry0, rz0, order);
 					wheels.forEach((w) => (w.o.position.y = w.y)); jumping = false; return false;
 				}
-				carRoot.position.y = restY + y;
-				carRoot.rotation.x = restRX + pitch * env;
-				carRoot.rotation.z = restRZ + roll * env;
+				// tilt about the car centre: rotate, then shift so the pivot stays put (+ the vertical hop)
+				carRoot.rotation.set(rx0 + pitch * env, ry0, rz0 + roll * env, order);
+				_pvNow.copy(pivotLocal).applyEuler(carRoot.rotation);
+				carRoot.position.set(
+					restPos.x + restRotPivot.x - _pvNow.x,
+					restPos.y + restRotPivot.y - _pvNow.y + y,
+					restPos.z + restRotPivot.z - _pvNow.z,
+				);
 				wheels.forEach((w) => (w.o.position.y = w.y - T.wheelDrop * env));
 				return true;
 			},
