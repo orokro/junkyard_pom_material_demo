@@ -276,6 +276,25 @@ export async function loadCraftLibrary(renderer) {
 				j.target = empty; j.axis = axis; j.restTipLen = restTipLen;
 				j.restX = j.forearm.rotation.x; j.restY = j.forearm.rotation.y; j.restZ = j.forearm.rotation.z;
 			} },
+		scorpion_tail: { node: "ScorpoinTailBase", type: "scorpion", demo: "Fist.002",
+			joints: (rig) => ({
+				pivot: rig.getObjectByName(strip("ScorpionTailPivot")),
+				root: rig.getObjectByName(strip("ScorpionTailRoot")),
+				barrel: rig.getObjectByName(strip("PistonPair")),
+				rod: rig.getObjectByName(strip("PistonPairArms")),
+				segments: [1, 2, 3, 4, 5, 6].map((i) => rig.getObjectByName(strip("ScorpionTailSegment_" + i))).filter(Boolean),
+			}),
+			setup: (rig, j) => {
+				rig.updateWorldMatrix(true, true);
+				j.segRest = j.segments.map((seg) => ({ x: seg.rotation.x, y: seg.rotation.y, z: seg.rotation.z }));
+				j.rootRestX = j.root.rotation.x; j.pivotRest = j.pivot.rotation.y;
+				// aiming piston: +Y barrel axis; tip attaches to the ROOT (moves with the strike tilt)
+				const axis = new THREE.Vector3(0, 1, 0), restTipLen = 0.547;   // PistonPairArms mesh max Y
+				const tipWorld = j.barrel.localToWorld(axis.clone().multiplyScalar(restTipLen));
+				const empty = new THREE.Object3D(); j.root.add(empty);
+				empty.position.copy(j.root.worldToLocal(tipWorld.clone()));
+				j.target = empty; j.axis = axis; j.restTipLen = restTipLen;
+			} },
 	};
 	/** @param {string} id @returns {string|null} rig type if this item animates with a rig */
 	function rigType(id) {

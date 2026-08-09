@@ -44,6 +44,22 @@ function armPose(r, f) {
 	solvePiston(j);
 }
 
+// ---- scorpion tail ----
+const SCORP_SWEEP = Math.PI / 4;      // max ± sweep (pivot Y) = 45°
+const SCORP_TILT = 1.2;               // root X tilt on strike — whips the tail forward + down
+const SCORP_CURL_MIN = 0.4;           // segments uncurl to ~this fraction of rest curl (keeps a strike arc)
+const SCORP_T = { sweep: 0.30, strike: 0.13, recoil: 0.34, ret: 0.28 };  // phase durations (s)
+/** pose the tail: pivot swept by sweepAngle (rad), strike fraction 0..1 (root tilt + uncurl + piston) */
+function scorpPose(r, sweepAngle, strikeF) {
+	const j = r.joints;
+	j.pivot.rotation.y = j.pivotRest + sweepAngle;
+	j.root.rotation.x = j.rootRestX + SCORP_TILT * strikeF;
+	const curl = 1 - (1 - SCORP_CURL_MIN) * strikeF;                     // 1 coiled -> CURL_MIN extended
+	j.segments.forEach((seg, i) => { const rr = j.segRest[i]; seg.rotation.set(rr.x, rr.y * curl, rr.z); });
+	r.group.updateWorldMatrix(true, true);
+	solvePiston(j);
+}
+
 /** continuous per-frame motion (always on while attached) */
 const CONT = {
 	saw: (r, dt) => { if (r.joints.blade) r.joints.blade.rotation.x += 15 * dt; },
@@ -54,6 +70,7 @@ const REST = {
 	ram: (r) => { if (r.joints.rod) r.joints.rod.position.x = -r.contract; },
 	saw: () => {},
 	arm: (r) => armPose(r, 0),
+	scorpion: (r) => scorpPose(r, 0, 0),
 };
 
 /**
@@ -73,12 +90,25 @@ const ANIM = {
 		if (t < ARM_OUT + ARM_BACK) { armPose(r, 1 - easeIn((t - ARM_OUT) / ARM_BACK)); return false; }
 		armPose(r, 0); return true;
 	},
+	// two-step: sweep the pivot to a random ±angle, THEN strike (root tilt + uncurl + piston), recoil, return
+	scorpion: (r, t, st) => {
+		if (st.sweep === undefined) st.sweep = (Math.random() * 2 - 1) * SCORP_SWEEP;
+		const T = SCORP_T, t1 = T.sweep, t2 = t1 + T.strike, t3 = t2 + T.recoil, t4 = t3 + T.ret;
+		if (t < t1) { scorpPose(r, st.sweep * easeInOut(t / t1), 0); return false; }
+		if (t < t2) { scorpPose(r, st.sweep, easeOut((t - t1) / T.strike)); return false; }
+		if (t < t3) { scorpPose(r, st.sweep, 1 - easeIn((t - t2) / T.recoil)); return false; }
+		if (t < t4) { scorpPose(r, st.sweep * (1 - easeInOut((t - t3) / T.ret)), 0); return false; }
+		scorpPose(r, 0, 0); return true;
+	},
 };
+const easeInOut = (x) => (x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2);
 
 /** pose a rig at animation fraction f (0=rest, 1=peak) — used for tests/tuning */
 const POSE = {
 	ram: (r, f) => { r.joints.rod.position.x = -r.contract * (1 - f); },
 	arm: (r, f) => armPose(r, f),
+	scorpion: (r, f) => scorpPose(r, 0, f),                 // pure strike (no sweep) for tuning
+	scorpionSweep: (r, f) => scorpPose(r, SCORP_SWEEP * f, 0),
 };
 
 export function makeRigAnimator() {
@@ -102,7 +132,7 @@ export function makeRigAnimator() {
 			for (const rig of rigs) CONT[rig.type]?.(rig, dt);
 			for (const [rig, st] of active) {
 				st.t += dt;
-				if (ANIM[rig.type](rig, st.t)) { active.delete(rig); REST[rig.type]?.(rig); }
+				if (ANIM[rig.type](rig, st.t, st)) { active.delete(rig); REST[rig.type]?.(rig); }
 			}
 		},
 	};

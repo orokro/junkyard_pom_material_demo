@@ -66,12 +66,15 @@ export function initCarView(lib) {
 	const slick = new Map();
 
 	function attachSlot(k, id) {
-		if (attached[k]) { mount.remove(attached[k]); attached[k] = null; }
+		if (attached[k]) { dropObject(attached[k]); attached[k] = null; }   // also unregisters any rig
 		if (!id) return;
-		const g = lib.bakeById(id);                                    // handles composites (e.g. scorpion+hand)
+		let g, rig = null;
+		if (lib.rigType && lib.rigType(id)) { rig = lib.bakeRig(id); g = rig.group; }   // e.g. scorpion tail
+		else g = lib.bakeById(id);                                     // handles static composites
 		const t = lib.slotTransforms[id] || lib.slotTransforms[BY_ID[id]?.composite?.base];
 		if (t) { g.position.copy(t.position); g.quaternion.copy(t.quaternion); g.scale.copy(t.scale); }
 		g.userData.slot = { key: k, id };                              // clickable to detach in 3D
+		if (rig) { g.userData.rig = rig; animator.add(rig); }
 		mount.add(g); attached[k] = g;
 	}
 	function setWheel(i, isSlick) {
