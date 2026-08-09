@@ -32,6 +32,10 @@ const MIRROR_AXIS = "z";
 const PISTON_CONTRACT = 0.42;
 
 const GLB_URL = new URL("../../../assets/models/parts_and_weapons_lite.glb", import.meta.url).href;
+// Re-exported hands (subdivision applied, scale baked to 1) — the authoritative hand geometry.
+const HANDS_URL = new URL("../../../assets/models/hands_re-export.glb", import.meta.url).href;
+/** hand item id -> node name in hands_re-export.glb */
+const HAND_SRC = { slap_hand: "SlapHand.005", fist: "Fist.004", kancho: "KanchoProd.001" };
 const TEX = (() => {
 	const glob = import.meta.glob("../../../assets/tex/*.{png,jpg,jpeg}", { eager: true, query: "?url", import: "default" });
 	/** @type {Record<string,string>} */ const m = {};
@@ -50,11 +54,15 @@ const strip = (n) => (n || "").replace(/\./g, "");
  */
 export async function loadCraftLibrary(renderer) {
 	const maxAniso = renderer.capabilities.getMaxAnisotropy();
-	const gltf = await new GLTFLoader().loadAsync(GLB_URL);
+	const gltfLoader = new GLTFLoader();
+	const [gltf, handsGltf] = await Promise.all([gltfLoader.loadAsync(GLB_URL), gltfLoader.loadAsync(HANDS_URL)]);
 	const root = gltf.scene;
 	root.updateWorldMatrix(true, true);
+	const handsRoot = handsGltf.scene;
+	handsRoot.updateWorldMatrix(true, true);
 
 	const find = (raw) => root.getObjectByName(strip(raw));
+	const findHand = (raw) => handsRoot.getObjectByName(strip(raw));
 
 	// ---- material rebuild (manifest + external tex) -----------------------
 	const loader = new THREE.TextureLoader();
@@ -158,6 +166,27 @@ export async function loadCraftLibrary(renderer) {
 	}
 
 	/**
+	 * Bake a hand from hands_re-export.glb into its node-local frame (which strips the
+	 * export-scene placement rotation, leaving the hand's canonical orientation — the
+	 * same frame the sockets were authored against). Keeps the glb's own material.
+	 * @param {string} handId @returns {THREE.Group}
+	 */
+	function bakeHand(handId) {
+		const group = new THREE.Group(); group.name = handId;
+		const r = findHand(HAND_SRC[handId]);
+		if (!r) { console.warn("[craft] missing re-export hand for", handId); return group; }
+		r.updateWorldMatrix(true, true);
+		const inv = new THREE.Matrix4().copy(r.matrixWorld).invert();
+		r.traverse((o) => {
+			if (!o.isMesh) return;
+			const g = o.geometry.clone();
+			g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+			group.add(new THREE.Mesh(g, o.material));
+		});
+		return group;
+	}
+
+	/**
 	 * Bake a composite (a hand welded onto a base) into one pivot-local group:
 	 * the base at identity, the hand placed at the base's authored hand-socket.
 	 * @param {string} baseId @param {string} handId @param {string} socketKey
@@ -172,7 +201,7 @@ export async function loadCraftLibrary(renderer) {
 		// orient + place with the socket's ROTATION and TRANSLATION only — the socket's
 		// SCALE (which carries the base node's scale) is discarded, so every hand on every
 		// base comes out the same physical size regardless of how the demo was authored.
-		const hand = bakeItem(BY_ID[handId]);
+		const hand = bakeHand(handId);
 		const k = (HAND.target * (HAND_MUL[handId] ?? 1)) / maxDim(hand);
 		hand.scale.setScalar(k);
 		if (opts.mirror) hand.scale["xyz".indexOf(MIRROR_AXIS) >= 0 ? MIRROR_AXIS : "z"] *= -1;
@@ -201,6 +230,7 @@ export async function loadCraftLibrary(renderer) {
 	 */
 	function bakeById(id, opts = {}) {
 		const it = BY_ID[id];
+		if (HAND_SRC[id]) return bakeHand(id);           // standalone hand thumbnail (re-export glb)
 		if (it && it.composite) {
 			return bakeComposite(it.composite.base, it.composite.hand, it.composite.socket, {
 				mirror: !!opts.mirror,
