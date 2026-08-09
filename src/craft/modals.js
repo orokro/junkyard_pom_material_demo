@@ -36,10 +36,10 @@ export function initModals({ builder, carview, icons }) {
 	const icon = (id) => icons ? icons.icon(id) : "";
 
 	// ---------- DOM scaffold ----------
-	const recipes = el(`<div id="recipesModal" class="modal left hidden">
+	const recipes = el(`<div id="recipesModal" class="modal left">
 		<div class="mhead"><span class="mtitle">Recipes</span><button class="mclose">✕</button></div>
 		<div class="rscroll"></div></div>`);
-	const keys = el(`<div id="keysModal" class="modal right hidden">
+	const keys = el(`<div id="keysModal" class="modal right">
 		<div class="mhead"><span class="mtitle">Keys</span><button class="mclose">✕</button></div>
 		<div class="khint">Click <b>Bind</b>, then press a key. A key can fire many things.</div>
 		<div class="kscroll"></div></div>`);
@@ -118,18 +118,18 @@ export function initModals({ builder, carview, icons }) {
 		if (btn) { const row = btn.closest(".krow"); listening = listening === row.dataset.fk ? null : row.dataset.fk; renderKeys(); }
 	});
 
-	// ---------- open / close ----------
+	// ---------- open / close (slide via .open) ----------
 	function open(which) {
 		const other = which === recipes ? keys : recipes;
-		other.classList.add("hidden");
-		const wasHidden = which.classList.contains("hidden");
-		which.classList.toggle("hidden");
-		if (wasHidden) { if (which === recipes) renderRecipes(); else renderKeys(); }
-		document.body.classList.toggle("recipes-open", !recipes.classList.contains("hidden"));
-		document.body.classList.toggle("keys-open", !keys.classList.contains("hidden"));
+		const isOpen = which.classList.contains("open");
+		other.classList.remove("open");                  // slide the other out (simultaneously)
+		if (!isOpen) { if (which === recipes) renderRecipes(); else renderKeys(); which.classList.add("open"); }
+		else which.classList.remove("open");
+		document.body.classList.toggle("recipes-open", recipes.classList.contains("open"));
+		document.body.classList.toggle("keys-open", keys.classList.contains("open"));
 		listening = null;
 	}
-	function close() { recipes.classList.add("hidden"); keys.classList.add("hidden"); document.body.classList.remove("recipes-open", "keys-open"); listening = null; }
+	function close() { recipes.classList.remove("open"); keys.classList.remove("open"); document.body.classList.remove("recipes-open", "keys-open"); listening = null; }
 	recipes.querySelector(".mclose").onclick = close;
 	keys.querySelector(".mclose").onclick = close;
 	document.getElementById("btn-recipes")?.addEventListener("click", () => open(recipes));
@@ -139,7 +139,7 @@ export function initModals({ builder, carview, icons }) {
 	window.addEventListener("keydown", (e) => {
 		if (e.key === "Escape") {
 			if (listening) { listening = null; renderKeys(); e.stopPropagation(); return; }
-			if (!recipes.classList.contains("hidden") || !keys.classList.contains("hidden")) { close(); e.stopPropagation(); return; }
+			if (recipes.classList.contains("open") || keys.classList.contains("open")) { close(); e.stopPropagation(); return; }
 			return;
 		}
 		if (listening) {
@@ -168,7 +168,7 @@ export function initModals({ builder, carview, icons }) {
 	}
 	function tickLabels() {
 		requestAnimationFrame(tickLabels);
-		if (keys.classList.contains("hidden")) { for (const [, n] of lmap) n.style.display = "none"; return; }
+		if (!keys.classList.contains("open")) { for (const [, n] of lmap) n.style.display = "none"; return; }
 		const seen = new Set();
 		for (const f of currentFeatures()) {
 			seen.add(f.fk);
@@ -191,8 +191,8 @@ export function initModals({ builder, carview, icons }) {
 
 	// ---------- external refresh (builder changed) ----------
 	function refresh() {
-		if (!recipes.classList.contains("hidden")) renderRecipes();
-		if (!keys.classList.contains("hidden")) renderKeys();
+		if (recipes.classList.contains("open")) renderRecipes();
+		if (keys.classList.contains("open")) renderKeys();
 	}
 
 	return { open, close, refresh, _binds: binds, _flash: flashUntil };
