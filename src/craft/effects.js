@@ -41,7 +41,59 @@ export function makeEffects({ scene, carRoot }) {
 		const world = found ? mn.add(mx).multiplyScalar(0.5) : new THREE.Box3().setFromObject(carRoot).getCenter(new THREE.Vector3());
 		return carRoot.worldToLocal(world);
 	})();
-	const _pvNow = new THREE.Vector3();
+	const _pvNow = new THREE.Vector3(), _tmp = new THREE.Vector3();
+
+	// ---------- DEBUG jump-profile viz ----------
+	// Corner markers + a panto-free bounding box (both ride the car), plus persistent
+	// world-space trails of the four TOP corners painted during a jump (cleared on the
+	// next jump). Lets us literally see the jump profile and spot any asymmetry.
+	const DBG = { FL: 0xff5566, FR: 0x55dd66, RL: 0x4499ff, RR: 0xffbb33 };
+	const PANTO_MAXY = 1.3;          // meshes taller than this (the right-only pantograph) are ignored
+	let debugOn = true;
+	const bodyMin = new THREE.Vector3(Infinity, Infinity, Infinity), bodyMax = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+	carRoot.traverse((o) => {
+		if (!o.isMesh || !o.geometry) return;
+		o.updateWorldMatrix(true, false); o.geometry.computeBoundingBox();
+		const b = o.geometry.boundingBox; if (!b) return;
+		const mm = new THREE.Vector3(Infinity, Infinity, Infinity), mx2 = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+		for (let xi = 0; xi < 2; xi++) for (let yi = 0; yi < 2; yi++) for (let zi = 0; zi < 2; zi++) {
+			carRoot.worldToLocal(_tmp.set(xi ? b.max.x : b.min.x, yi ? b.max.y : b.min.y, zi ? b.max.z : b.min.z).applyMatrix4(o.matrixWorld));
+			mm.min(_tmp); mx2.max(_tmp);
+		}
+		if (mx2.y > PANTO_MAXY) return;   // skip the pantograph
+		bodyMin.min(mm); bodyMax.max(mx2);
+	});
+	// front = smaller z, left = smaller x; the four TOP corners in carRoot-local
+	const cornersLocal = {
+		FL: new THREE.Vector3(bodyMin.x, bodyMax.y, bodyMin.z), FR: new THREE.Vector3(bodyMax.x, bodyMax.y, bodyMin.z),
+		RL: new THREE.Vector3(bodyMin.x, bodyMax.y, bodyMax.z), RR: new THREE.Vector3(bodyMax.x, bodyMax.y, bodyMax.z),
+	};
+	const dbgGroup = new THREE.Group(); carRoot.add(dbgGroup);
+	dbgGroup.add(new THREE.Box3Helper(new THREE.Box3(bodyMin.clone(), bodyMax.clone()), 0xffffff));
+	const markerGeo = new THREE.SphereGeometry(0.05, 12, 12);
+	for (const k of ["FL", "FR", "RL", "RR"]) {
+		const m = new THREE.Mesh(markerGeo, new THREE.MeshBasicMaterial({ color: DBG[k] }));
+		m.position.copy(cornersLocal[k]); dbgGroup.add(m);
+	}
+	const trailGroup = new THREE.Group(); scene.add(trailGroup);
+	const TRAIL_CAP = 300, trails = {};
+	for (const k of ["FL", "FR", "RL", "RR"]) {
+		const g = new THREE.BufferGeometry(); const pos = new Float32Array(TRAIL_CAP * 3);
+		g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setDrawRange(0, 0);
+		const line = new THREE.Line(g, new THREE.LineBasicMaterial({ color: DBG[k] })); line.frustumCulled = false;
+		trailGroup.add(line); trails[k] = { g, pos, n: 0 };
+	}
+	function clearTrails() { for (const k in trails) { trails[k].n = 0; trails[k].g.setDrawRange(0, 0); } }
+	function recordTrails() {
+		for (const k in trails) {
+			const tr = trails[k]; if (tr.n >= TRAIL_CAP) continue;
+			carRoot.localToWorld(_tmp.copy(cornersLocal[k]));
+			tr.pos[tr.n * 3] = _tmp.x; tr.pos[tr.n * 3 + 1] = _tmp.y; tr.pos[tr.n * 3 + 2] = _tmp.z;
+			tr.n++; tr.g.setDrawRange(0, tr.n); tr.g.attributes.position.needsUpdate = true; tr.g.boundingSphere = null;
+		}
+	}
+	function setDebug(on) { debugOn = on; dbgGroup.visible = on; trailGroup.visible = on; }
+	setDebug(true);
 	function update(dt) {
 		for (let i = active.length - 1; i >= 0; i--) {
 			if (!active[i].update(dt)) { active[i].dispose && active[i].dispose(); active.splice(i, 1); }
@@ -50,7 +102,7 @@ export function makeEffects({ scene, carRoot }) {
 
 	// ---------- JUMP ----------
 	const JUMP = { crouch: 0.07, rise: 0.24, fall: 0.30, land: 0.10, height: 0.55, dip: 0.05, squash: 0.06, wheelDrop: 0.22 };
-	const PITCH_MAX = 0.5, ROLL_MAX = 0.5, RAND_TILT = 0.05;
+	const PITCH_MAX = 0.5, ROLL_MAX = 0.5, RAND_TILT = 0.05, DIAG_ROCK = 1.2;
 	const clampAbs = (v, m) => Math.max(-m, Math.min(m, v));
 	/** @param {Array} susp 4 suspension slots [FL,FR,RL,RR]; truthy = shock present */
 	function jump(susp) {
@@ -60,10 +112,17 @@ export function makeEffects({ scene, carRoot }) {
 		const [FL, FR, RL, RR] = has;
 		const n = FL + FR + RL + RR;
 		if (n === 0) return false;
+		// Plane fit: front-vs-rear -> pitch, right-vs-left -> roll. This is exactly mirror
+		// symmetric (a left/right flip negates roll only; a front/back flip negates pitch
+		// only), so singles, front/rear/left/right doubles and 3-of-4 all come out balanced.
 		let pitch = (FL + FR) - (RL + RR);       // front-heavy lift -> nose up
 		let roll = (FR + RR) - (FL + RL);        // right-heavy lift -> right up
-		const twist = (FL + RR) - (FR + RL);     // diagonal -> coordinated pitch+roll for fun
-		pitch += twist * 0.6; roll -= twist * 0.6;
+		// A pure diagonal pair fits a flat plane (pitch=roll=0) -> would just pop level. For
+		// fun, rock it about the axis through the two shocked tyres: += equal pitch & roll on
+		// the FL-RR diagonal, opposite on FR-RL. Both keep the shocked tyres level and are
+		// exact mirror images of each other (no front/back or left/right bias between them).
+		const diagA = FL && RR && !FR && !RL, diagB = FR && RL && !FL && !RR;
+		if (diagA || diagB) { pitch += DIAG_ROCK; roll += diagA ? DIAG_ROCK : -DIAG_ROCK; }
 		// normalise, cap the drama at one full axis (keeps a lone shock from launching a corner ~46°), add a little jitter
 		pitch = clampAbs((pitch / Math.max(1, n)) * PITCH_MAX, PITCH_MAX) + rand(-RAND_TILT, RAND_TILT);
 		roll = clampAbs((roll / Math.max(1, n)) * ROLL_MAX, ROLL_MAX) + rand(-RAND_TILT, RAND_TILT);
@@ -79,6 +138,7 @@ export function makeEffects({ scene, carRoot }) {
 		});
 
 		jumping = true;
+		if (debugOn) { clearTrails(); recordTrails(); }   // start the profile trails fresh at rest
 		let t = 0; const T = JUMP;
 		const t1 = T.crouch, t2 = t1 + T.rise, t3 = t2 + T.fall, t4 = t3 + T.land;
 		push({
@@ -91,7 +151,9 @@ export function makeEffects({ scene, carRoot }) {
 				else if (t < t4) { y = -T.squash * Math.sin(((t - t3) / T.land) * Math.PI); env = 0; }
 				else {
 					carRoot.position.copy(restPos); carRoot.rotation.set(rx0, ry0, rz0, order);
-					wheels.forEach((w) => (w.o.position.y = w.y)); jumping = false; return false;
+					wheels.forEach((w) => (w.o.position.y = w.y)); jumping = false;
+					if (debugOn) recordTrails();
+					return false;
 				}
 				// tilt about the car centre: rotate, then shift so the pivot stays put (+ the vertical hop)
 				carRoot.rotation.set(rx0 + pitch * env, ry0, rz0 + roll * env, order);
@@ -102,6 +164,7 @@ export function makeEffects({ scene, carRoot }) {
 					restPos.z + restRotPivot.z - _pvNow.z,
 				);
 				wheels.forEach((w) => (w.o.position.y = w.y - T.wheelDrop * env));
+				if (debugOn) recordTrails();
 				return true;
 			},
 		});
@@ -174,5 +237,5 @@ export function makeEffects({ scene, carRoot }) {
 		return true;
 	}
 
-	return { jump, emp, magnet, jet, launcher, update, isJumping: () => jumping };
+	return { jump, emp, magnet, jet, launcher, update, isJumping: () => jumping, setDebug, clearTrails };
 }
