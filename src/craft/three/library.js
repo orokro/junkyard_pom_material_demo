@@ -252,6 +252,69 @@ export async function loadCraftLibrary(renderer) {
 		return g;
 	}
 
+	// ---- animatable rigs (hierarchy preserved so joints can move) ----------
+	/** base id -> { node, type, demo(hand node to replace), joints(rig)->{...} } */
+	const RIG_META = {
+		hyd_piston: { node: "HydraulicPiston", type: "ram", demo: "Fist",
+			joints: (rig) => ({ rod: rig.getObjectByName(strip("HydraulicPiston.001")) }) },
+		side_saw: { node: "SideSaw", type: "saw", demo: null,
+			joints: (rig) => ({ blade: rig.getObjectByName(strip("SideSawBlade")) }) },
+	};
+	/** @param {string} id @returns {string|null} rig type if this item animates with a rig */
+	function rigType(id) {
+		const it = BY_ID[id];
+		const base = it && it.composite ? it.composite.base : id;
+		return RIG_META[base] ? RIG_META[base].type : null;
+	}
+	/**
+	 * Build a LIVE, articulated instance of an animatable weapon: the base's node
+	 * subtree cloned from the GLB (transforms intact), materials rebuilt, demo hand
+	 * swapped for the chosen unified hand parented to the moving joint. Returns the
+	 * placeable group + named joints + rest data for the animator.
+	 * @param {string} id @returns {{group:THREE.Group, type:string, joints:object, contract:number}}
+	 */
+	function bakeRig(id) {
+		const it = BY_ID[id];
+		const base = it && it.composite ? it.composite.base : id;
+		const handId = it && it.composite ? it.composite.hand : null;
+		const meta = RIG_META[base];
+		const src = find(BY_ID[base].node);
+		const rig = src.clone(true);
+		rig.position.set(0, 0, 0); rig.quaternion.identity(); rig.scale.set(1, 1, 1);
+		rig.updateMatrixWorld(true);
+
+		// capture + remove the demo hand (its local transform under its joint = the attach)
+		let joint = null, hpos = null, hquat = null;
+		if (meta.demo) {
+			const demo = rig.getObjectByName(strip(meta.demo));
+			if (demo) { joint = demo.parent; hpos = demo.position.clone(); hquat = demo.quaternion.clone(); demo.parent.remove(demo); }
+		}
+		for (const dn of DEMO_NODES) { const d = rig.getObjectByName(strip(dn)); if (d && d.parent) d.parent.remove(d); }
+
+		// rebuild materials from the manifest (clone carries the raw glb materials)
+		rig.traverse((o) => { if (o.isMesh) { const mn = Array.isArray(o.material) ? o.material[0]?.name : o.material?.name; o.material = material(mn); } });
+
+		// attach the chosen hand to the moving joint at the demo hand's own local transform
+		if (handId && joint) {
+			const hand = bakeHand(handId);
+			hand.scale.setScalar((HAND.target * (HAND_MUL[handId] ?? 1)) / maxDim(hand));
+			const tw = HAND_TWEAK[`${base}__${handId}`];
+			if (tw) hand.quaternion.setFromEuler(new THREE.Euler(tw[0], tw[1], tw[2]));
+			const holder = new THREE.Group(); holder.position.copy(hpos); holder.quaternion.copy(hquat); holder.add(hand);
+			joint.add(holder);
+		}
+
+		const joints = meta.joints(rig);
+		const out = new THREE.Group(); out.add(rig);
+		const fs = familyScale(base);
+		if (fs !== 1) out.scale.setScalar(fs);
+		else if (BY_ID[base]?.placeScale) out.scale.setScalar(BY_ID[base].placeScale);
+
+		const rigObj = { group: out, type: meta.type, joints, contract: PISTON_CONTRACT };
+		if (meta.type === "ram" && joints.rod) joints.rod.position.x = -PISTON_CONTRACT;   // rest = contracted
+		return rigObj;
+	}
+
 	// ---- hand sockets (item-root-local transform of the demo hand) --------
 	/** id -> { default?:Matrix4, fist?:Matrix4, slap?:Matrix4 } */
 	const sockets = {};
@@ -330,5 +393,5 @@ export async function loadCraftLibrary(renderer) {
 		return { object: car, mountParent: car, carPaint, wheelSlots };
 	}
 
-	return { root, material, bakeItem, bakeComposite, bakeById, buildCar, sockets, slotTransforms, strip: (id) => strip(id) };
+	return { root, material, bakeItem, bakeComposite, bakeById, bakeRig, rigType, buildCar, sockets, slotTransforms, strip: (id) => strip(id) };
 }

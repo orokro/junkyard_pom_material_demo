@@ -18,6 +18,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { BY_ID } from "./data.js";
 import { onPlaceChange } from "./placement.js";
+import { makeRigAnimator } from "./animation.js";
 
 /** @param {object} lib loadCraftLibrary() result */
 export function initCarView(lib) {
@@ -159,14 +160,20 @@ export function initCarView(lib) {
 		if (left) m.premultiply(REFLECT_X);                          // reflect back onto the left
 		return m;
 	}
+	const animator = makeRigAnimator();
 	function ghostMat() { return new THREE.MeshBasicMaterial({ color: 0x7ad06a, transparent: true, opacity: 0.5, depthWrite: false, depthTest: false }); }
-	/** wrap a baked item so we can drive it by a raw matrix while it keeps its own family scale */
+	/** wrap a baked item so we can drive it by a raw matrix while it keeps its own family scale.
+	 *  Committed animatable weapons bake a LIVE rig (registered with the animator); ghosts stay static. */
 	function makeWrap(id, ghost) {
-		const g = lib.bakeById(id);
-		if (ghost) { g.traverse((o) => { if (o.isMesh) o.material = ghostMat(); }); g.renderOrder = 999; }
+		let g, rig = null;
+		if (!ghost && lib.rigType && lib.rigType(id)) { rig = lib.bakeRig(id); g = rig.group; }
+		else { g = lib.bakeById(id); if (ghost) { g.traverse((o) => { if (o.isMesh) o.material = ghostMat(); }); g.renderOrder = 999; } }
 		const w = new THREE.Group(); w.matrixAutoUpdate = false; w.add(g);
+		if (rig) { w.userData.rig = rig; animator.add(rig); }
 		return w;
 	}
+	/** remove a placed object's rig (if any) from the animator before dropping the object */
+	function dropObject(obj) { if (obj?.userData?.rig) animator.remove(obj.userData.rig); mount.remove(obj); }
 	function setMatrix(obj, m) { obj.matrix.copy(m); obj.matrixWorldNeedsUpdate = true; }
 	function poseGhost(hit) { setMatrix(ghostObj, placeMatrix(hit, heldItem, placeRoll)); ghostObj.visible = true; }
 	function commit(item, hit) {
@@ -179,7 +186,7 @@ export function initCarView(lib) {
 	/** re-bake ghost + every placed item (e.g. after a family-scale slider change) */
 	function rebuildAll() {
 		for (const p of placed) {
-			mount.remove(p.object);
+			dropObject(p.object);
 			p.object = makeWrap(p.id, false); setMatrix(p.object, p.matrix); p.object.userData.placedId = p.id;
 			mount.add(p.object);
 		}
@@ -232,7 +239,7 @@ export function initCarView(lib) {
 		if (heldItem) { const hit = hitCar(e); if (hit) { commit(heldItem, hit); cbPlace && cbPlace(heldItem.id); } return; }
 		if (heldAny) return;
 		const p = hitPlaced(e);
-		if (p) { mount.remove(p.object); placed.splice(placed.indexOf(p), 1); hideHint(); cbDetach && cbDetach(p.id); return; }
+		if (p) { dropObject(p.object); placed.splice(placed.indexOf(p), 1); hideHint(); cbDetach && cbDetach(p.id); return; }
 		const sl = hitSlot(e);                                   // static slot weapon -> detach into hand
 		if (sl) { hideHint(); cbDetachSlot && cbDetachSlot(sl.key, sl.index); }
 	});
@@ -244,14 +251,20 @@ export function initCarView(lib) {
 
 	function resize() { const w = host.clientWidth, h = host.clientHeight; if (!w || !h) return; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 	new ResizeObserver(resize).observe(host); resize();
-	let _t = 0;
+	let _t = 0, _last = 0;
 	(function tick() {
 		requestAnimationFrame(tick); controls.update();
+		const now = performance.now();
+		const dt = _last ? Math.min(0.05, (now - _last) / 1000) : 0.016; _last = now;
+		animator.update(dt);                               // drive live weapon rigs
 		_t += 0.05;
 		const on = !!heldItem, pulse = on ? 0.28 + 0.22 * Math.sin(_t * 2.2) : 0;
 		paintMats.forEach((m, i) => { m.emissive.copy(baseEmissive[i]).lerp(throbColor, pulse); });
 		renderer.render(scene, camera);
 	})();
+
+	/** fire the one-shot animation for a placed/slot object's rig (non-interruptible) */
+	function fireAnim(object) { return object?.userData?.rig ? animator.fire(object.userData.rig) : false; }
 
 	// ---- feature anchors (for the Keys modal's 2D labels) ----
 	const _box = new THREE.Box3(), _c = new THREE.Vector3();
@@ -283,7 +296,7 @@ export function initCarView(lib) {
 		if (hit) commit(item, hit);
 		return hit ? placed[placed.length - 1].matrix.elements[12] : null;   // mount-local x (side)
 	}
-	function _clear() { for (const p of placed) mount.remove(p.object); placed.length = 0; }
+	function _clear() { for (const p of placed) dropObject(p.object); placed.length = 0; }
 	function _slotScreen(key) {
 		const o = attached[key]; if (!o) return null;
 		camera.updateMatrixWorld(true); o.updateWorldMatrix(true, true);
@@ -296,5 +309,5 @@ export function initCarView(lib) {
 		return { x: cx, y: cy };
 	}
 
-	return { syncLoadout, setHeld, setCallbacks, scene, car, camera, controls, placed, anchors, _testPlace, _clear, _slotScreen };
+	return { syncLoadout, setHeld, setCallbacks, fireAnim, scene, car, camera, controls, placed, anchors, _testPlace, _clear, _slotScreen };
 }
