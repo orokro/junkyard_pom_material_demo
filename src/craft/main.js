@@ -14,6 +14,8 @@ import { initDebug } from "./debug.js";
 import { initThumbs } from "./thumbs.js";
 import { initCarView } from "./carview.js";
 import { initBuilder } from "./builder.js";
+import { initIcons } from "./icons.js";
+import { initModals } from "./modals.js";
 
 initTheme();
 
@@ -40,11 +42,16 @@ initDebug(document.getElementById("debughit"));
 	try { thumbs = await initThumbs(); lib = thumbs.lib; }
 	catch (e) { console.error("[craft] thumbnails failed (continuing without 3D):", e); thumbs = { refresh() {}, cfg: {} }; }
 	if (lib) { try { carview = initCarView(lib); } catch (e) { console.error("[craft] car view failed:", e); } }
+	let icons = null;
+	if (lib) { try { icons = initIcons(lib); } catch (e) { console.error("[craft] icons failed:", e); } }
+	let modals = null;
 	window.__b = initBuilder(thumbs, carview ? {
 		onSlots: (slots) => carview.syncLoadout(slots),
 		onHeld: (held) => carview.setHeld(held),
-	} : null);
+		onChange: () => modals && modals.refresh(),
+	} : { onChange: () => modals && modals.refresh() });
 	if (carview) carview.setCallbacks({ onPlace: window.__b.onPlace, onDetach: window.__b.onDetach, onDetachSlot: window.__b.onDetachSlot });
+	if (carview) { try { modals = initModals({ builder: window.__b, carview, icons }); window.__m = modals; } catch (e) { console.error("[craft] modals failed:", e); } }
 	window.__cv = carview;   // test hook
 	window.__lib = lib;      // test hook
 	console.info("[craft] builder ready");

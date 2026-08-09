@@ -130,6 +130,66 @@ body.dragging, body.dragging .itile, body.dragging .invtile, body.dragging .cell
 .btnbar:hover { background: var(--ink); color: var(--frame); }
 .btnbar:hover svg { fill: var(--frame); }
 
+/* ==========================================================================
+   modals — RECIPES (left) / KEYS (right) half-viewport floating overlays
+   ========================================================================== */
+.modal { position: fixed; top: 0.5rem; bottom: 3.6rem; width: 46vw; z-index: 60; display: flex; flex-direction: column;
+	background: rgba(24,32,37,0.94); border: 0.16rem solid var(--frame); color: var(--text);
+	box-shadow: 0 1.4rem 3rem rgba(0,0,0,0.5); overflow: hidden; }
+.modal.hidden { display: none; }
+.modal.left { left: 0.5rem; border-radius: 0.5rem; -webkit-mask-image: linear-gradient(to right, #000 84%, transparent); mask-image: linear-gradient(to right, #000 84%, transparent); }
+.modal.right { right: 0.5rem; border-radius: 0.5rem; -webkit-mask-image: linear-gradient(to left, #000 84%, transparent); mask-image: linear-gradient(to left, #000 84%, transparent); }
+.mhead { flex: 0 0 auto; display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.9rem; background: var(--frame); color: var(--ink); }
+.modal.right .mhead { flex-direction: row-reverse; }
+.mtitle { font-family: var(--font-display); font-weight: 800; font-size: 1.7rem; text-transform: uppercase; letter-spacing: 0.02em; flex: 1; }
+.mclose { margin: 0; border: 0.14rem solid var(--ink); background: transparent; color: var(--ink); font-weight: 800; font-size: 1rem; border-radius: 0.35rem; width: 1.9rem; height: 1.9rem; cursor: pointer; }
+.mclose:hover { background: var(--ink); color: var(--frame); }
+.khint { flex: 0 0 auto; padding: 0.4rem 0.9rem; font-size: 0.9rem; color: var(--muted); background: rgba(0,0,0,0.25); }
+.khint b { color: var(--frame); }
+
+.rscroll, .kscroll { flex: 1; min-height: 0; overflow-y: auto; padding: 0.6rem 1.6rem 0.6rem 0.7rem; }
+.modal.right .rscroll, .modal.right .kscroll { padding: 0.6rem 0.7rem 0.6rem 1.6rem; }
+
+/* recipes */
+.recipe { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.5rem; margin-bottom: 0.4rem; border-radius: 0.4rem;
+	background: var(--slot); border: 0.1rem solid var(--slot-edge); cursor: pointer; }
+.recipe.dim { opacity: 0.4; filter: grayscale(0.5); cursor: default; }
+.recipe.afford:hover { border-color: var(--frame); background: #33424a; }
+.recipe.flash { box-shadow: inset 0 0 0 0.16rem var(--good); }
+.recipe .ins, .recipe .outs { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; }
+.recipe .ins { flex: 1; } .recipe .outs { flex: 0 0 auto; }
+.rarrow { color: var(--arrow); font-size: 1.3rem; font-weight: 800; flex: 0 0 auto; }
+.ing { display: inline-flex; align-items: center; gap: 0.2rem; background: rgba(0,0,0,0.28); border-radius: 0.3rem; padding: 0.1rem 0.35rem 0.1rem 0.1rem; }
+.ing img { width: 2.1rem; height: 2.1rem; object-fit: contain; }
+.ing .in { font-size: 0.82rem; color: var(--muted); max-width: 7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ing b { color: var(--frame); font-size: 0.85rem; }
+.ing.out { background: rgba(255,116,27,0.16); }
+.ing.out .in { color: var(--text); }
+
+/* keys */
+.krow { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0.5rem; margin-bottom: 0.4rem; border-radius: 0.4rem; background: var(--slot); border: 0.1rem solid var(--slot-edge); }
+.krow.listening { border-color: var(--frame); box-shadow: inset 0 0 0 0.1rem var(--frame); }
+.kicon { width: 2.6rem; height: 2.6rem; object-fit: contain; flex: 0 0 auto; background: rgba(0,0,0,0.25); border-radius: 0.3rem; }
+.klabel { flex: 1; font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
+.kbinds { display: flex; gap: 0.25rem; flex-wrap: wrap; justify-content: flex-end; }
+.kunbound { color: var(--muted); font-style: italic; font-size: 0.85rem; }
+.kchip { display: inline-flex; align-items: center; gap: 0.2rem; background: var(--frame); color: var(--ink); font-weight: 800; font-size: 0.85rem; border-radius: 0.3rem; padding: 0.12rem 0.4rem; cursor: pointer; }
+.kchip i { font-style: normal; opacity: 0.7; }
+.kchip:hover { background: #ffd0a8; }
+.kbind { flex: 0 0 auto; border: 0.14rem solid var(--frame); background: transparent; color: var(--frame); font-weight: 800; font-size: 0.85rem; border-radius: 0.35rem; padding: 0.25rem 0.6rem; cursor: pointer; white-space: nowrap; }
+.kbind:hover { background: var(--frame); color: var(--ink); }
+.kempty { color: var(--muted); text-align: center; padding: 2rem 1rem; line-height: 1.5; }
+
+/* 2D feature labels over the model */
+#keyLabels { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+.klabel2d { position: fixed; transform: translate(-50%, -100%); display: flex; align-items: center; gap: 0.25rem;
+	background: rgba(12,15,19,0.92); border: 0.1rem solid var(--frame); border-radius: 0.3rem; padding: 0.15rem 0.4rem; white-space: nowrap; }
+.klabel2d .l-name { font: 700 0.82rem/1 var(--font-display); color: var(--text); }
+.klabel2d .l-key { font: 800 0.82rem/1 var(--font-display); color: var(--ink); background: var(--frame); border-radius: 0.25rem; padding: 0.08rem 0.3rem; }
+.klabel2d .l-key.l-un { background: transparent; color: var(--muted); border: 0.08rem solid var(--slot-edge); }
+.klabel2d.fire { box-shadow: 0 0 0.6rem 0.15rem var(--good); border-color: var(--good); }
+.klabel2d.fire .l-key { background: var(--good); }
+
 /* ---- debug panel ---- */
 #debug { position: fixed; top: 0.6rem; left: 0.6rem; z-index: 100; width: 17rem; max-height: 92vh; overflow-y: auto;
 	background: rgba(12,15,19,0.94); border: 0.14rem solid var(--frame); border-radius: 0.4rem; padding: 0.8rem;

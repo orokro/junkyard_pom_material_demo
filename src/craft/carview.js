@@ -253,6 +253,27 @@ export function initCarView(lib) {
 		renderer.render(scene, camera);
 	})();
 
+	// ---- feature anchors (for the Keys modal's 2D labels) ----
+	const _box = new THREE.Box3(), _c = new THREE.Vector3();
+	/** project an object's top-centre to client px; visible=false if behind camera / off-panel */
+	function projectTop(obj) {
+		camera.updateMatrixWorld(true); obj.updateWorldMatrix(true, false);
+		_box.setFromObject(obj); if (_box.isEmpty()) return { x: 0, y: 0, visible: false };
+		_box.getCenter(_c); _c.y = _box.max.y;                       // top-centre
+		const p = _c.clone().project(camera);
+		const r = canvas.getBoundingClientRect();
+		return { x: r.left + (p.x * 0.5 + 0.5) * r.width, y: r.top + (-p.y * 0.5 + 0.5) * r.height, visible: p.z < 1 };
+	}
+	/** current controllable anchors on the car: slot weapons, placed weapons, slick tires */
+	function anchors() {
+		const out = [];
+		if (attached.front) out.push({ id: attached.front.userData.slot.id, kind: "front", object: attached.front });
+		if (attached.rear) out.push({ id: attached.rear.userData.slot.id, kind: "rear", object: attached.rear });
+		placed.forEach((p, i) => out.push({ id: p.id, kind: "placed", ord: i, object: p.object }));
+		let ti = 0; for (const o of slick.values()) out.push({ id: "slick_tire", kind: "tire", ord: ti++, object: o });
+		return out.map((a) => ({ ...a, screen: projectTop(a.object) }));
+	}
+
 	// ---- dev/test hooks (harmless; used by the placement tuning harness) ----
 	function _testPlace(id, clientX, clientY, roll = 0) {
 		const item = BY_ID[id];
@@ -275,5 +296,5 @@ export function initCarView(lib) {
 		return { x: cx, y: cy };
 	}
 
-	return { syncLoadout, setHeld, setCallbacks, scene, car, camera, controls, placed, _testPlace, _clear, _slotScreen };
+	return { syncLoadout, setHeld, setCallbacks, scene, car, camera, controls, placed, anchors, _testPlace, _clear, _slotScreen };
 }

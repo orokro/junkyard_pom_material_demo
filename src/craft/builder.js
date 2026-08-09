@@ -43,6 +43,7 @@ export function initBuilder(thumbs, opts) {
 	// Back-compat: a bare function is the old onSlots callback.
 	const onSlots = typeof opts === "function" ? opts : opts?.onSlots || null;
 	const onHeld = typeof opts === "function" ? null : opts?.onHeld || null;
+	const onChange = typeof opts === "function" ? null : opts?.onChange || null;
 	const S = {
 		inv: ITEMS.map((it) => ({ id: it.id, count: 200 })),
 		bench: Array(9).fill(null),
@@ -93,7 +94,7 @@ export function initBuilder(thumbs, opts) {
 		$("#wt").textContent = w.toFixed(0);
 		$("#charge").textContent = (100 + 100 * batt) + "%";
 	}
-	function renderAll() { renderInv(); renderBench(); renderOutput(); renderSlots(); updateStats(); thumbs.refresh(); highlight(); if (onSlots) onSlots(S.slots); }
+	function renderAll() { renderInv(); renderBench(); renderOutput(); renderSlots(); updateStats(); thumbs.refresh(); highlight(); if (onSlots) onSlots(S.slots); if (onChange) onChange(); }
 
 	// ---------- crafting ----------
 	function benchMs() { const m = {}; for (const st of S.bench) if (st) m[st.id] = (m[st.id] || 0) + st.count; return m; }
@@ -217,6 +218,21 @@ export function initBuilder(thumbs, opts) {
 		setHeld(S.held);
 		renderAll();
 	}
+	/** Recipes modal: clear the bench (back to inventory) then pull a recipe's inputs in. */
+	function loadRecipe(input) {
+		if (S.held) cancel();
+		for (let i = 0; i < S.bench.length; i++) { if (S.bench[i]) { give(S.bench[i]); S.bench[i] = null; } }
+		let cell = 0;
+		for (const [id, count] of Object.entries(input)) {
+			if (cell >= S.bench.length) break;
+			const inv = S.inv.find((s) => s.id === id);
+			const take = Math.min(count, inv ? inv.count : 0);
+			if (inv) { inv.count -= take; if (inv.count <= 0) S.inv.splice(S.inv.indexOf(inv), 1); }
+			S.bench[cell++] = { id, count: Math.max(take, 1) };
+		}
+		renderAll();
+	}
+
 	/** carview detached a STATIC slot weapon -> clear the slot, pick it up */
 	function onDetachSlot(slot, index) {
 		let id = null;
@@ -268,5 +284,5 @@ export function initBuilder(thumbs, opts) {
 	window.addEventListener("keydown", (e) => { if (e.key === "Escape") cancel(); });
 
 	renderAll();
-	return { state: S, renderAll, leftClick, rightClick, craftGrab, cancel, onPlace, onDetach, onDetachSlot };
+	return { state: S, renderAll, leftClick, rightClick, craftGrab, cancel, onPlace, onDetach, onDetachSlot, loadRecipe };
 }
