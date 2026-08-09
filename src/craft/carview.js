@@ -265,6 +265,8 @@ export function initCarView(lib) {
 
 	/** fire the one-shot animation for a placed/slot object's rig (non-interruptible) */
 	function fireAnim(object) { return object?.userData?.rig ? animator.fire(object.userData.rig) : false; }
+	function _poseRig(object, f) { const rig = object?.userData?.rig; if (rig) animator.pose(rig, f); }   // test hook
+	function _armTest(object, ex, ey, ez) { const rig = object?.userData?.rig; if (rig) animator.poseArmRaw(rig, ex, ey, ez); }
 
 	// ---- feature anchors (for the Keys modal's 2D labels) ----
 	const _box = new THREE.Box3(), _c = new THREE.Vector3();
@@ -309,5 +311,5 @@ export function initCarView(lib) {
 		return { x: cx, y: cy };
 	}
 
-	return { syncLoadout, setHeld, setCallbacks, fireAnim, scene, car, camera, controls, placed, anchors, _testPlace, _clear, _slotScreen };
+	return { syncLoadout, setHeld, setCallbacks, fireAnim, scene, car, camera, controls, placed, anchors, _testPlace, _clear, _slotScreen, _poseRig, _armTest };
 }

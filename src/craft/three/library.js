@@ -37,7 +37,7 @@ const HAND_TWEAK = {
 const MIRROR_AXIS = "z";
 /** How far to slide the piston rod back so it crafts contracted — NOT all the way,
  *  so the ram's attach cylinder stays exposed and the hand doesn't clip the body. */
-const PISTON_CONTRACT = 0.24;
+const PISTON_CONTRACT = 0.30;
 
 const GLB_URL = new URL("../../../assets/models/parts_and_weapons_lite.glb", import.meta.url).href;
 // Re-exported hands (subdivision applied, scale baked to 1) — the authoritative hand geometry.
@@ -259,6 +259,23 @@ export async function loadCraftLibrary(renderer) {
 			joints: (rig) => ({ rod: rig.getObjectByName(strip("HydraulicPiston.001")) }) },
 		side_saw: { node: "SideSaw", type: "saw", demo: null,
 			joints: (rig) => ({ blade: rig.getObjectByName(strip("SideSawBlade")) }) },
+		hyd_arm: { node: "HydraulicArm", type: "arm", demo: "Fist.001",
+			joints: (rig) => ({
+				forearm: rig.getObjectByName(strip("HydraulicArmArm")),
+				barrel: rig.getObjectByName(strip("HydraulicArmPiston")),
+				rod: rig.getObjectByName(strip("HydraulicArmPistonArm")),
+			}),
+			// Plant an empty at the piston's rest tip UNDER the forearm, so it moves with the
+			// elbow; the animator re-aims the barrel + slides the rod to keep the tip glued to it.
+			setup: (rig, j) => {
+				rig.updateWorldMatrix(true, true);
+				const axis = new THREE.Vector3(1, 0, 0), restTipLen = 0.711;   // rod mesh max X (barrel-local)
+				const tipWorld = j.barrel.localToWorld(axis.clone().multiplyScalar(restTipLen));
+				const empty = new THREE.Object3D(); j.forearm.add(empty);
+				empty.position.copy(j.forearm.worldToLocal(tipWorld.clone()));
+				j.target = empty; j.axis = axis; j.restTipLen = restTipLen;
+				j.restX = j.forearm.rotation.x; j.restY = j.forearm.rotation.y; j.restZ = j.forearm.rotation.z;
+			} },
 	};
 	/** @param {string} id @returns {string|null} rig type if this item animates with a rig */
 	function rigType(id) {
@@ -305,6 +322,7 @@ export async function loadCraftLibrary(renderer) {
 		}
 
 		const joints = meta.joints(rig);
+		meta.setup?.(rig, joints);
 		const out = new THREE.Group(); out.add(rig);
 		const fs = familyScale(base);
 		if (fs !== 1) out.scale.setScalar(fs);
