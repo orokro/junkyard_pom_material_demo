@@ -323,7 +323,10 @@ export function initCarView(lib) {
 			case "launcher": {
 				if (!obj) return false;
 				const fireDir = new THREE.Vector3(0, 1, 0).transformDirection(obj.matrixWorld).normalize();  // barrel = launcher-local +Y
-				const muzzle = obj.getWorldPosition(_wp).clone().addScaledVector(fireDir, 0.5);
+				// spawn at the barrel muzzle: the authored muzzle point (launcher-local) through the baked group's world transform
+				const ml = BY_ID[feature.id]?.muzzle, baked = obj.children[0];
+				const muzzle = (ml && baked) ? baked.localToWorld(new THREE.Vector3(ml[0], ml[1], ml[2]))
+					: obj.getWorldPosition(_wp).clone().addScaledVector(fireDir, 0.5);
 				const isCan = feature.ammo === "can";
 				const proj = lib.bakeNode(isCan ? "SodaCan" : "Rocket");
 				proj.scale.setScalar(0.5);
