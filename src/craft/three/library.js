@@ -165,6 +165,28 @@ export async function loadCraftLibrary(renderer) {
 		return group;
 	}
 
+	/**
+	 * Bake ANY named node's subtree into a node-local group with rebuilt materials.
+	 * Used for free projectiles (Rocket, SodaCan) that aren't catalog items. Geometry
+	 * comes out in the node's own local frame, so its authored forward axis is preserved.
+	 * @param {string} nodeName @returns {THREE.Group}
+	 */
+	function bakeNode(nodeName) {
+		const r = find(nodeName);
+		const group = new THREE.Group();
+		if (!r) { console.warn("[craft] missing node", nodeName); return group; }
+		r.updateWorldMatrix(true, true);
+		const inv = new THREE.Matrix4().copy(r.matrixWorld).invert();
+		r.traverse((o) => {
+			if (!o.isMesh) return;
+			const g = o.geometry.clone();
+			g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+			const mn = Array.isArray(o.material) ? o.material[0]?.name : o.material?.name;
+			group.add(new THREE.Mesh(g, material(mn)));
+		});
+		return group;
+	}
+
 	/** measure a group's local bounding size (max dimension). */
 	function maxDim(group) {
 		const b = new THREE.Box3().setFromObject(group);
@@ -430,5 +452,5 @@ export async function loadCraftLibrary(renderer) {
 		return { object: car, mountParent: car, carPaint, wheelSlots };
 	}
 
-	return { root, material, bakeItem, bakeComposite, bakeById, bakeRig, rigType, buildCar, sockets, slotTransforms, strip: (id) => strip(id) };
+	return { root, material, bakeItem, bakeNode, bakeComposite, bakeById, bakeRig, rigType, buildCar, sockets, slotTransforms, strip: (id) => strip(id) };
 }

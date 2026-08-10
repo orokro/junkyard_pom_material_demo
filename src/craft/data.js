@@ -70,7 +70,7 @@ export const ITEMS = [
 
 	// ---- free-placeable weapons (raycast onto CarPaint, oriented to the normal) ----
 	// outSign flips which end of outAxis points OUT of the surface (geometry authored inward).
-	{ id: "launcher",  label: "Launcher", node: "Launcher", cat: "weapon", mount: "place", outAxis: "x", outSign: -1, upBias: 0.4, placeScale: 0.5, weight: 3 },
+	{ id: "launcher",  label: "Launcher", node: "Launcher", cat: "weapon", mount: "place", outAxis: "x", outSign: -1, barrelAxis: "y", upBias: 0.4, placeScale: 0.5, weight: 3 },
 	{ id: "side_saw",  label: "Side-Saw", node: "SideSaw",  cat: "weapon", mount: "place", outAxis: "x", outSign: -1, weight: 3, group: ["SideSaw", "SideSawBlade"] },
 ];
 

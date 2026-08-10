@@ -173,6 +173,20 @@ export function initCarView(lib) {
 		const axis = (AXIS[item.outAxis] || AXIS.x).clone();
 		if (item.outSign && item.outSign < 0) axis.negate();
 		const q = new THREE.Quaternion().setFromUnitVectors(axis, n);
+		// Barrel weapons (launcher) mount sideways — their barrel points along a local axis
+		// PERPENDICULAR to the surface normal, so a default placement can aim it anywhere on
+		// the tangent circle (often straight down). Auto-roll about the normal so the barrel
+		// points as close as possible to "forward + a little up", then user scroll fine-tunes.
+		if (item.barrelAxis) {
+			const b0 = (AXIS[item.barrelAxis] || AXIS.y).clone().applyQuaternion(q);
+			const aim = new THREE.Vector3(0, 0.35, -1).normalize();      // world: forward (car front -z) + slight up
+			const bp = b0.clone().addScaledVector(n, -b0.dot(n)), ap = aim.clone().addScaledVector(n, -aim.dot(n));
+			if (bp.lengthSq() > 1e-6 && ap.lengthSq() > 1e-6) {
+				bp.normalize(); ap.normalize();
+				const ang = Math.atan2(new THREE.Vector3().crossVectors(bp, ap).dot(n), bp.dot(ap));
+				q.premultiply(new THREE.Quaternion().setFromAxisAngle(n, ang));
+			}
+		}
 		if (roll) q.premultiply(new THREE.Quaternion().setFromAxisAngle(n, roll * (left ? -1 : 1)));
 		const m = new THREE.Matrix4().compose(p, q, _one);
 		if (left) m.premultiply(REFLECT_X);                          // reflect back onto the left
@@ -222,6 +236,7 @@ export function initCarView(lib) {
 		const placeable = item && item.mount === "place";
 		const id = placeable ? item.id : null;
 		heldItem = placeable ? item : null;
+		controls.enableZoom = !heldItem;        // scroll rolls the placement instead of zooming while placing
 		if (id === ghostId) return;             // same ghost — keep it
 		if (ghostObj) { scene.remove(ghostObj); ghostObj = null; }
 		ghostId = id; placeRoll = 0;
@@ -305,7 +320,16 @@ export function initCarView(lib) {
 			case "emp_gun": return obj ? effects.emp(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
 			case "electromagnet": return obj ? effects.magnet(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
 			case "jet_thruster": return obj ? effects.jet(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
-			case "launcher": return obj ? effects.launcher(obj.getWorldPosition(_wp).clone(), outwardDir(obj)) : false;
+			case "launcher": {
+				if (!obj) return false;
+				const fireDir = new THREE.Vector3(0, 1, 0).transformDirection(obj.matrixWorld).normalize();  // barrel = launcher-local +Y
+				const muzzle = obj.getWorldPosition(_wp).clone().addScaledVector(fireDir, 0.5);
+				const isCan = feature.ammo === "can";
+				const proj = lib.bakeNode(isCan ? "SodaCan" : "Rocket");
+				proj.scale.setScalar(0.5);
+				proj.quaternion.setFromUnitVectors(isCan ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0), fireDir);  // can +Y / rocket +X -> barrel
+				return effects.launcher(muzzle, fireDir, isCan ? "can" : "rocket", proj);
+			}
 			default: return false;   // slick-tire drift etc. — flash-only for now
 		}
 	}

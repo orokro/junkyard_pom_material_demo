@@ -91,7 +91,13 @@ export function initModals({ builder, carview, icons }) {
 		const out = [];
 		for (const a of carview.anchors()) {
 			const label = featureLabel(a.id); if (!label) continue;
-			out.push({ ...a, label, fk: featureKey(a) });
+			if (a.id === "launcher") {                          // two ammo actions, each separately bindable
+				const base = featureKey(a);
+				out.push({ ...a, label: "Launcher · Rocket", ammo: "rocket", fk: base + ":rocket" });
+				out.push({ ...a, label: "Launcher · Can", ammo: "can", fk: base + ":can" });
+			} else {
+				out.push({ ...a, label, fk: featureKey(a) });
+			}
 		}
 		// Jump: any suspension piston (no dedicated model anchor — pin to car centre)
 		if (S.slots.suspension.some(Boolean)) out.push({ id: "jump", kind: "jump", ord: 0, label: "Jump", fk: "jump:jump:0", object: null });
@@ -177,7 +183,7 @@ export function initModals({ builder, carview, icons }) {
 			n.innerHTML = `<span class="l-name">${f.label}</span>` + (ks.length ? ks.map((k) => `<span class="l-key">${k}</span>`).join("") : `<span class="l-key l-un">—</span>`);
 			const pos = f.object ? f.screen : carCentreScreen();
 			if (pos && pos.visible !== false) {
-				n.style.display = "flex"; n.style.left = pos.x + "px"; n.style.top = (pos.y - 6) + "px";
+				n.style.display = "flex"; n.style.left = pos.x + "px"; n.style.top = (pos.y - 6 + (f.ammo === "can" ? 22 : 0)) + "px";   // stack the can label below the rocket
 				if ((flashUntil.get(f.fk) || 0) <= performance.now()) n.classList.remove("fire");
 			} else n.style.display = "none";
 		}

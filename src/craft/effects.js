@@ -290,16 +290,45 @@ export function makeEffects({ scene, carRoot }) {
 		return true;
 	}
 
-	/** Launcher: a projectile flung along the aim */
-	function launcher(worldPos, dir) {
-		const proj = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.4, 8),
-			new THREE.MeshStandardMaterial({ color: 0x9aa0a6, metalness: 0.6, roughness: 0.4 }));
-		const d = dir.clone().normalize();
-		proj.position.copy(worldPos); proj.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d); scene.add(proj);
-		let t = 0;
+	function disposeObj(o) { o.traverse((n) => { if (n.isMesh) { n.geometry?.dispose?.(); const mm = n.material; Array.isArray(mm) ? mm.forEach((x) => x?.dispose?.()) : mm?.dispose?.(); } }); }
+
+	/**
+	 * Launcher: fly a pre-oriented projectile (rocket or soda can) down the barrel,
+	 * leaving an ammo-specific trail — a fiery smoke plume for rockets, rising blue
+	 * bubbles for cans. `proj` is a baked, oriented THREE.Object3D from the library.
+	 */
+	function launcher(worldPos, dir, ammo, proj) {
+		const d = dir.clone().normalize(), isCan = ammo === "can";
+		proj.position.copy(worldPos); scene.add(proj);
+		const SPEED = isCan ? 5.5 : 8.5, DUR = 1.1, CAP = 240;
+		const g = new THREE.BufferGeometry(), pos = new Float32Array(CAP * 3), col = new Float32Array(CAP * 3);
+		g.setAttribute("position", new THREE.BufferAttribute(pos, 3)); g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+		const m = new THREE.PointsMaterial({ size: isCan ? 0.1 : 0.14, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+		const pts = new THREE.Points(g, m); pts.frustumCulled = false; scene.add(pts);
+		const born = new Float32Array(CAP).fill(-1), life = new Float32Array(CAP), rise = new Float32Array(CAP);
+		const baseC = new THREE.Color(); let head = 0, t = 0, spin = 0;
 		push({
-			update: (dt) => { t += dt; if (t > 0.7) return false; proj.position.addScaledVector(d, 7 * dt); return true; },
-			dispose: () => { scene.remove(proj); proj.geometry.dispose(); proj.material.dispose(); },
+			update: (dt) => {
+				t += dt; proj.position.addScaledVector(d, SPEED * dt);
+				if (isCan) { spin += dt * 9; proj.rotation.set(spin, spin * 0.6, spin * 0.4); }
+				const emit = isCan ? 2 : 5;                    // spawn trail particles at the tail
+				for (let e = 0; e < emit; e++) {
+					const i = head % CAP; head++;
+					pos[i * 3] = proj.position.x + rand(-0.05, 0.05); pos[i * 3 + 1] = proj.position.y + rand(-0.05, 0.05); pos[i * 3 + 2] = proj.position.z + rand(-0.05, 0.05);
+					born[i] = t; life[i] = isCan ? 0.8 : 0.55; rise[i] = isCan ? rand(0.25, 0.7) : rand(-0.1, 0.15);
+				}
+				for (let i = 0; i < CAP; i++) {
+					if (born[i] < 0) { col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = 0; continue; }
+					const lf = 1 - (t - born[i]) / life[i];
+					if (lf <= 0) { col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = 0; continue; }
+					pos[i * 3 + 1] += rise[i] * dt;             // bubbles float up / smoke drifts
+					if (isCan) baseC.setRGB(0.35, 0.65, 1.0); else baseC.setHSL(0.06 * lf, 1, 0.5);
+					col[i * 3] = baseC.r * lf; col[i * 3 + 1] = baseC.g * lf; col[i * 3 + 2] = baseC.b * lf;
+				}
+				g.attributes.position.needsUpdate = true; g.attributes.color.needsUpdate = true;
+				return t < DUR;
+			},
+			dispose: () => { scene.remove(proj); scene.remove(pts); g.dispose(); m.dispose(); disposeObj(proj); },
 		});
 		return true;
 	}
