@@ -153,15 +153,15 @@ export function buildRings(dims, params, seed) {
 		for (const [x, z] of c.cells) solidCells.add(key(x, z));
 	}
 
-	// --- Metal rail barriers ---
-	// A guard rail sits on TOP (Y=4) of every SINGLE-STORY ring container, along its
-	// INTERIOR edge — the edge that meets the open playable area (a gap / drop into
-	// the arena at Y0). This lines the inner top of the one-container-high wall (the
-	// "stadium railing" you see from the field) and blocks a car from driving off a
-	// ring top into the arena/OOB. Two-story ring containers are tall enough already
-	// — skipped. Edges that meet an inward poke (a wall, not a gap) are skipped too.
-	const pokeCellSet = new Set();
-	for (const c of pokes) for (const [x, z] of c.cells) pokeCellSet.add(key(x, z));
+	// --- Metal rail barriers (inner-ring railing) ---
+	// The ONLY place rails are generated. A guard rail sits on TOP (Y=4) of every
+	// SINGLE-STORY ring container, along EACH edge that meets the in-bounds playable area.
+	// This lines the inner top of the one-container-high wall (the "stadium railing" from
+	// the field) so a car can't cross from the field / a platform / a poke into the ring
+	// (chairs + tents) or beyond. Two-story ring containers are tall walls already — skipped.
+	// NOTE: inward pokes ARE drivable play area (they just hug the wall to break the square),
+	// so R1 edges facing a poke ARE railed too — you may drive a poke, but not past it into
+	// the ring. Rails are never placed on anything but these single-story ring tops.
 	const upperGround = new Set();
 	for (const u of upper) if (u.ground != null) upperGround.add(u.ground);
 	const DIRB = { N: [0, -1], E: [1, 0], S: [0, 1], W: [-1, 0] };
@@ -171,11 +171,7 @@ export function buildRings(dims, params, seed) {
 		if (upperGround.has(i)) return; // two-story: the upper container is the wall
 		for (const [x, z] of c.cells) {
 			for (const [d, [dx, dz]] of Object.entries(DIRB)) {
-				const nx = x + dx, nz = z + dz, nk = key(nx, nz);
-				// Interior gap = a playable in-bounds cell (open, a drop) that isn't a poke wall.
-				if (isInbounds(nx, nz, dims) && !pokeCellSet.has(nk)) {
-					railBarriers.push({ cx: x, cz: z, dir: d });
-				}
+				if (isInbounds(x + dx, z + dz, dims)) railBarriers.push({ cx: x, cz: z, dir: d });
 			}
 		}
 	});

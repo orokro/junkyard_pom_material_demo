@@ -74,8 +74,9 @@ export function generateArena(seed, params) {
 		bridge: c.isBridge === true,
 	}));
 
-	// Metal rail barriers: computed in the ring phase — on single-story ring tops
-	// along outer-void edges (see rings.js). Detached from L3 platforms entirely.
+	// Metal rail barriers: the inner-ring railing, computed entirely in the ring phase
+	// (single-story ring tops, every edge facing the in-bounds interior). Rails are never
+	// generated inside the arena — L3 platforms and pokes stay open/drivable.
 	const barriers = rings.railBarriers;
 
 	const model = {
@@ -107,3 +108,4 @@ export function generateArena(seed, params) {
 	model.chargeGrids = generateChargeGrids(model, params, seed);
 	return model;
 }
+
